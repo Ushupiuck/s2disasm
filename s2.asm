@@ -1241,30 +1241,23 @@ VDPSetupGame:
 VDP_Loop:
 	move.w	(a2)+,(a0)
 	dbf	d7,VDP_Loop	; set the VDP registers
-
 	move.w	(VDPSetupArray+2).l,d0
 	move.w	d0,(VDP_Reg1_val).w
 	move.w	#$8A00+223,(Hint_counter_reserve).w	; H-INT every 224th scanline
 	moveq	#0,d0
-
 	move.l	#vdpComm($0000,VSRAM,WRITE),(VDP_control_port).l
 	move.w	d0,(a1)
 	move.w	d0,(a1)
-
 	move.l	#vdpComm($0000,CRAM,WRITE),(VDP_control_port).l
-
 	move.w	#bytesToWcnt(palette_line_size*4),d7
 ; loc_11A0:
 VDP_ClrCRAM:
 	move.w	d0,(a1)
 	dbf	d7,VDP_ClrCRAM	; clear	the CRAM
-
 	clr.l	(Vscroll_Factor).w
 	clr.l	(unk_F61A).w
 	move.l	d1,-(sp)
-
 	dmaFillVRAM 0,$0000,$10000	; fill entire VRAM with 0
-
 	move.l	(sp)+,d1
 	rts
 ; End of function VDPSetupGame
