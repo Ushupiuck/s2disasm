@@ -1427,7 +1427,7 @@ Obj_respawn_data_End:
 				ds.b	$FE	; Stack; the first $7E bytes are cleared by ObjectsManager_Init, with possibly disastrous consequences. At least $A0 bytes are needed.
 System_Stack:
 
-SS_2p_Flag:				ds.w	1	; $FFFFFE00-$FFFFFE01 ; seems unused
+SS_2p_Flag:			ds.w	1	; $FFFFFE00-$FFFFFE01 ; seems unused
 Level_Inactive_flag:		ds.w	1	; (2 bytes)
 Timer_frames:			ds.w	1	; (2 bytes)
 Debug_object:			ds.b	1
