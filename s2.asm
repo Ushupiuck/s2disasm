@@ -1662,7 +1662,7 @@ NemDecRun:
 	subq.w	#8,d7
 	move.w	d5,d1
 	lsr.w	d7,d1
-	cmpi.b	#-4,d1
+	cmpi.b	#$FC,d1
 	bhs.s	loc_1574
 	andi.w	#$FF,d1
 	add.w	d1,d1
@@ -12435,7 +12435,7 @@ EndingSequence:
 	jsrto	(NemDec).l, JmpTo_NemDec
 	move.w	#death_egg_zone_act_1,(Current_ZoneAndAct).w
 	move	#$2300,sr
-	moveq	#MusID_Ending,d0
+	moveq	#signextendB(MusID_Ending),d0
 	jsrto	(PlayMusic).l, JmpTo2_PlayMusic
 	move.l	#$EEE0EEE,d1
 	lea	(Normal_palette).w,a1
@@ -12547,7 +12547,7 @@ EndgameCredits:
 	; Bug: The '+4' shouldn't be here; clearRAM accidentally clears an additional 4 bytes
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
 
-	moveq	#MusID_Credits,d0
+	moveq	#signextendB(MusID_Credits),d0
 	jsrto	(PlaySound).l, JmpTo2_PlaySound
 	clr.w	(Target_palette).w
 	move.w	#$EEE,(Target_palette+$C).w
@@ -24291,7 +24291,7 @@ Obj0E_Sonic_Init:
 	lea	(IntroEmblemTop).w,a1
 	move.b	#ObjID_IntroStars,id(a1) ; load obj0E (flashing intro stars) at $FFFFD140
 	move.b	#6,subtype(a1)				; logo top
-	moveq	#SndID_Sparkle,d0
+	moveq	#signextendB(SndID_Sparkle),d0
 	jmpto	(PlaySound).l, JmpTo4_PlaySound
 ; ===========================================================================
 
@@ -24306,7 +24306,7 @@ loc_12EC2:
 	move.b	#ObjID_TtlScrPalChanger,id(a1) ; load objC9 (palette change)
 	move.b	#0,subtype(a1)
 	st.b	objoff_30(a0)
-	moveq	#MusID_Title,d0 ; title music
+	moveq	#signextendB(MusID_Title),d0 ; title music
 	jmpto	(PlayMusic).l, JmpTo4_PlayMusic
 ; ===========================================================================
 
@@ -24608,7 +24608,7 @@ loc_1319E:
 	move.w	d0,y_pixel(a0)
 	swap	d0
 	move.w	d0,x_pixel(a0)
-	moveq	#SndID_Sparkle,d0 ; play intro sparkle sound
+	moveq	#signextendB(SndID_Sparkle),d0 ; play intro sparkle sound
 	jmpto	(PlaySound).l, JmpTo4_PlaySound
 ; ===========================================================================
 ; unknown
@@ -24963,7 +24963,7 @@ TitleScreen_SetFinalState:
 
 	tst.b	objoff_30(a0)
 	bne.s	+	; rts
-	moveq	#MusID_Title,d0 ; title music
+	moveq	#signextendB(MusID_Title),d0 ; title music
 	jsrto	(PlayMusic).l, JmpTo4_PlayMusic
 +
 	rts
@@ -25033,7 +25033,7 @@ Obj0F_Main:
 	move.b	d2,(Title_screen_option).w
 	andi.b	#button_up_mask|button_down_mask,d0
 	beq.s	+	; rts
-	moveq	#SndID_Blip,d0 ; selection blip sound
+	moveq	#signextendB(SndID_Blip),d0 ; selection blip sound
 	jsrto	(PlaySound).l, JmpTo4_PlaySound
 +
 	rts
@@ -58861,7 +58861,7 @@ Obj5D_Index:	offsetTable
 		offsetTableEntry.w Obj5D_FallingParts	; $14
 		offsetTableEntry.w Obj5D_Robotnik	; $16
 		offsetTableEntry.w Obj5D_Flame		; $18
-		offsetTableEntry.w Obj5D_1A		; $1A
+		offsetTableEntry.w Obj5D_Smoke_Puff	; $1A
 ; ===========================================================================
 ; loc_2D75E:
 Obj5D_Init:
@@ -59565,6 +59565,8 @@ loc_2DFD8:
 ; ===========================================================================
 
 Obj5D_Pipe_Retract_ChkID:
+	; BUG: d7 should not be used here. This causes RunObjects routine to either
+	; run too few objects or too many objects, causing all sorts of errors.
 	moveq	#0,d7
 	move.b	#ObjID_CPZBoss,d7
 	cmp.b	id(a1),d7	; is object a subtype of the CPZ Boss?
@@ -60318,8 +60320,10 @@ loc_2E9A8:
 	rts
 ; ===========================================================================
 +
+	; BUG: this should be 'routine' instead of 'routine_secondary'.
 	addq.b	#2,routine_secondary(a0)
 	move.l	#Obj5D_MapUnc_2EEA0,mappings(a0)
+	; BUG: this should be make_art_tile(ArtTile_ArtNem_BossSmoke_1,1,0) instead.
 	move.w	#make_art_tile(ArtTile_ArtNem_EggpodJets_1,0,0),art_tile(a0)
 	jsrto	(Adjust2PArtPointer).l, JmpTo60_Adjust2PArtPointer
 	move.b	#0,mapping_frame(a0)
@@ -60331,8 +60335,8 @@ loc_2E9A8:
 	subi.w	#$28,x_pos(a0)
 	rts
 ; ===========================================================================
-
-Obj5D_1A:
+; Obj5D_1A:
+Obj5D_Smoke_Puff:
 	subq.b	#1,anim_frame_duration(a0)
 	bpl.s	BranchTo2_JmpTo34_DisplaySprite
 	move.b	#5,anim_frame_duration(a0)
@@ -74099,7 +74103,7 @@ loc_397BA:
 	move.w	d0,(Camera_Min_X_pos).w
 	move.w	d0,(Camera_Max_X_pos).w
 	move.b	#9,(Current_Boss_ID).w
-	moveq	#MusID_FadeOut,d0
+	moveq	#signextendB(MusID_FadeOut),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
@@ -74112,7 +74116,7 @@ loc_397E6:
 
 loc_397F0:
 	addq.b	#2,routine(a0)
-	moveq	#MusID_Boss,d0
+	moveq	#signextendB(MusID_Boss),d0
 	jsrto	(PlayMusic).l, JmpTo5_PlayMusic
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
@@ -74121,7 +74125,7 @@ loc_397FE:
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#$1F,d0
 	bne.s	loc_3980E
-	moveq	#SndID_Fire,d0
+	moveq	#signextendB(SndID_Fire),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 
 loc_3980E:
@@ -74152,7 +74156,7 @@ loc_3984A:
 	beq.s	loc_39886
 	cmpi.b	#$32,objoff_2A(a0)
 	bne.s	loc_3986A
-	moveq	#SndID_MechaSonicBuzz,d0
+	moveq	#signextendB(SndID_MechaSonicBuzz),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	jsrto	(DisplaySprite).l, JmpTo45_DisplaySprite
 
@@ -74264,7 +74268,7 @@ loc_3994E:
 	bsr.w	loc_39D60
 	movea.w	parent(a0),a1 ; a1=object
 	move.b	#2,anim(a1)
-	moveq	#SndID_SpindashRelease,d0
+	moveq	#signextendB(SndID_SpindashRelease),d0
 	jmpto	(PlaySound).l, JmpTo12_PlaySound
 ; ===========================================================================
 
@@ -74310,7 +74314,7 @@ loc_399D6:
 	move.b	#$12,routine(a1)
 	movea.w	objoff_3C(a0),a1 ; a1=object
 	move.b	#$18,routine(a1)
-	moveq	#SndID_MechaSonicBuzz,d0
+	moveq	#signextendB(SndID_MechaSonicBuzz),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
@@ -74333,7 +74337,7 @@ loc_39A2A:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$20,objoff_2A(a0)
 	move.b	#4,anim(a0)
-	moveq	#SndID_LaserBeam,d0
+	moveq	#signextendB(SndID_LaserBeam),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
@@ -74452,7 +74456,7 @@ loc_39B44:
 	bmi.s	loc_39B66
 	st	objoff_2E(a0)
 	bsr.w	loc_39D82
-	moveq	#SndID_SpikeSwitch,d0
+	moveq	#signextendB(SndID_SpikeSwitch),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 
 loc_39B66:
@@ -75429,7 +75433,7 @@ ObjB2_Main_WFZ_Start_shot_down:
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#$1F,d0
 	bne.s	+
-	moveq	#SndID_Scatter,d0
+	moveq	#signextendB(SndID_Scatter),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 + ; loc_3A92A:
 	subq.w	#1,objoff_2A(a0)
@@ -76231,7 +76235,7 @@ ObjB4_Main:
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#$1F,d0
 	bne.s	+
-	moveq	#SndID_Helicopter,d0
+	moveq	#signextendB(SndID_Helicopter),d0
 	jsrto	(PlaySoundLocal).l, JmpTo_PlaySoundLocal
 +
 	jmpto	(MarkObjGone).l, JmpTo39_MarkObjGone
@@ -76474,7 +76478,7 @@ loc_3B674:
 	clr.b	anim_frame_duration(a0)
 	bsr.w	loc_3B7BC
 	bsr.w	loc_3B7F8
-	moveq	#SndID_Fire,d0
+	moveq	#signextendB(SndID_Fire),d0
 	jmpto	(PlaySound).l, JmpTo12_PlaySound
 ; ===========================================================================
 
@@ -76838,7 +76842,7 @@ loc_3BAD2:
 +
 	addq.b	#2,routine(a0)
 	move.w	#-$1000,x_vel(a0)
-	moveq	#SndID_LargeLaser,d0
+	moveq	#signextendB(SndID_LargeLaser),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	bra.w	loc_3BAF8
 ; ===========================================================================
@@ -77795,7 +77799,7 @@ ObjC5_CaseStart:
 	lea	(ObjC5_RobotnikData).l,a2
 	bsr.w	LoadChildObject
 	move.w	#$5A,objoff_2A(a0)	; How long for the boss music to start playing and the boss to start
-	moveq	#MusID_FadeOut,d0
+	moveq	#signextendB(MusID_FadeOut),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
@@ -77809,7 +77813,7 @@ ObjC5_CaseWaitDown:
 ObjC5_CaseSpeedDown:
 	addq.b	#2,routine_secondary(a0)
 	move.w	#$60,objoff_2A(a0)	; How long the laser carrier goes down
-	moveq	#MusID_Boss,d0
+	moveq	#signextendB(MusID_Boss),d0
 	jsrto	(PlayMusic).l, JmpTo5_PlayMusic
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
@@ -78002,7 +78006,7 @@ ObjC5_CaseDefeated:
 ; ===========================================================================
 
 ObjC5_End:	; play music and change camera speed
-	moveq	#MusID_WFZ,d0
+	moveq	#signextendB(MusID_WFZ),d0
 	jsrto	(PlayMusic).l, JmpTo5_PlayMusic
 	move.w	#$720,d0
 	move.w	d0,(Camera_Max_Y_pos_now).w
@@ -79137,7 +79141,7 @@ loc_3D5A8:
 +
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$3C,anim_frame_duration(a0)
-	moveq	#MusID_FadeOut,d0
+	moveq	#signextendB(MusID_FadeOut),d0
 	jmpto	(PlaySound).l, JmpTo12_PlaySound
 ; ===========================================================================
 
@@ -79152,14 +79156,14 @@ loc_3D5C2:
 	move.w	#-$100,y_vel(a0)
 	movea.w	objoff_38(a0),a1 ; a1=object
 	move.b	#4,routine_secondary(a1)
-	moveq	#MusID_EndBoss,d0
+	moveq	#signextendB(MusID_EndBoss),d0
 	jmpto	(PlayMusic).l, JmpTo5_PlayMusic
 ; ===========================================================================
 
 loc_3D5EA:
 	subq.b	#1,anim_frame_duration(a0)
 	beq.s	+
-	moveq	#SndID_Rumbling,d0
+	moveq	#signextendB(SndID_Rumbling),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	jsrto	(ObjectMove).l, JmpTo26_ObjectMove
 	lea	(ObjC7_ChildDeltas).l,a1
@@ -79319,7 +79323,7 @@ loc_3D744:
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#$1F,d0
 	bne.s	+
-	moveq	#SndID_Fire,d0
+	moveq	#signextendB(SndID_Fire),d0
 	jsrto	(PlaySoundLocal).l, JmpTo_PlaySoundLocal
 +
 	jsrto	(ObjectMove).l, JmpTo26_ObjectMove
@@ -79369,7 +79373,7 @@ loc_3D7B8:
 	move.w	#$40,(DEZ_Shake_Timer).w
 	movea.w	objoff_38(a0),a1 ; a1=object
 	move.b	#6,routine_secondary(a1)
-	moveq	#SndID_Smash,d0
+	moveq	#signextendB(SndID_Smash),d0
 	jmpto	(PlaySound).l, JmpTo12_PlaySound
 ; ===========================================================================
 
@@ -79542,7 +79546,7 @@ ObjC7_SetupEnding:
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#$1F,d0
 	bne.s	+
-	moveq	#SndID_Rumbling2,d0
+	moveq	#signextendB(SndID_Rumbling2),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	subq.w	#1,objoff_2A(a0)
 +
@@ -79597,7 +79601,7 @@ loc_3D9D6:
 -	move.l	d0,(a1)+
 	dbf	d6,-
 
-	moveq	#MusID_FadeOut,d0
+	moveq	#signextendB(MusID_FadeOut),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 	move.b	#GameModeID_EndingSequence,(Game_Mode).w ; => EndingSequence
 	bra.w	JmpTo65_DeleteObject
@@ -79727,7 +79731,7 @@ loc_3DACC:
 	neg.w	d2
 +
 	move.w	d2,x_vel(a0)
-	moveq	#SndID_SpindashRelease,d0
+	moveq	#signextendB(SndID_SpindashRelease),d0
 	jmpto	(PlaySound).l, JmpTo12_PlaySound
 ; ===========================================================================
 word_3DB2A:
@@ -80065,7 +80069,7 @@ loc_3DDA6:
 	bpl.s	+
 	subq.b	#1,objoff_27(a0)
 	move.b	objoff_27(a0),angle(a0)
-	moveq	#SndID_Beep,d0
+	moveq	#signextendB(SndID_Beep),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 +
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
@@ -80092,7 +80096,7 @@ loc_3DE3C:
 	subq.b	#1,angle(a0)
 	bpl.s	+
 	move.b	#4,angle(a0)
-	moveq	#SndID_Beep,d0
+	moveq	#signextendB(SndID_Beep),d0
 	jsrto	(PlaySound).l, JmpTo12_PlaySound
 +
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
@@ -88642,7 +88646,7 @@ SoundDriverLoad:
 	sne	(Z80_RAM+zPalModeByte).l	; set if PAL
 	move.w	d2,(a2)	; hold Z80 reset
 	move.w	d2,(a3)	; release Z80 bus
-	moveq	#$E6,d0
+	moveq	#signextendB($E6),d0
 -	dbf	d0,-	; wait for 2,314 cycles
 	move.w	d1,(a2)	; release Z80 reset
 	movem.l	(sp)+,d0-a6
@@ -89615,9 +89619,6 @@ MusCreditsE246:	dc.b $80,$0C
 		dc.b $C8,$0C
 		dc.b $C9,$08
 		dc.b $C8,$04,$80,$18,$80,$0C
-
-    if 1==1
-		; this part of the original credits music (CNZ PSG) sounds buggy (dissonant)
 		dc.b $C6,$04,$80,$10
 		dc.b $C6,$04,$80,$0C
 		dc.b $C6,$0C
@@ -89627,27 +89628,6 @@ MusCreditsE246:	dc.b $80,$0C
 		dc.b $C5,$04,$80,$0C
 		dc.b $C5,$0C
 		dc.b $C7,$08
-    else
-		; replace the above block of notes with this to fix it.
-		; (I'm not sure why, but the notes $C6 and $C7 are broken here,
-		;  so I've replaced them with pitch-shifted $C8s)
-		dc.b	$E1,-64
-		dc.b $C8,$04,$80,$10 ; $C6
-		dc.b $C8,$04,$80,$0C ; $C6
-		dc.b $C8,$0C ; $C6
-		dc.b	$E1,0
-		dc.b $C8,$08
-		dc.b	$E1,-64
-		dc.b $C8,$04,$80,$24 ; $C6
-		dc.b	$E1,0
-		dc.b $C5,$04,$80,$10
-		dc.b $C5,$04,$80,$0C
-		dc.b $C5,$0C
-		dc.b	$E1,-32
-		dc.b $C8,$08 ; $C7
-		dc.b	$E1,0
-    endif
-
 		dc.b $C5,$04,$80,$18
 		dc.b $E3
 MusCreditsE28F:	dc.b $EF,$25,$80,$0C,$D0,$D4,$D7,$DB,$0C,$80,$06,$DB
@@ -89839,14 +89819,30 @@ MusCred_PSG2:	dc.b $80,$30
 -		dc.b $80,$30
 		dc.b $F7,$00,$0A
 		dc.w z80_ptr(-)
-		dc.b $80,$60,$F5,$00,$E9,$F4,$EC,$FF,$E9,$E8,$80,$60
+		dc.b $80,$60,$F5,$00
+    if 1==1
+		; This is wrong: it should convert from EHZ 2P's PSG2 transpose ($D0)
+		; to CNZ's PSG2 transpose ($DC), but instead of adding $C, it subtracts
+		; $C, causing the note to be too low and underflow the sound driver's
+		; frequency table, producing invalid notes.
+		dc.b $E9,$F4
+    else
+		dc.b $E9,$0C
+    endif
+		dc.b $EC,$FF,$E9,$E8,$80,$60
 		dc.b $F8
 		dc.w z80_ptr(MusCreditsE246)
 		dc.b $E9,$18,$EC,$02,$B1,$30,$B0,$18,$B1,$0C,$B0,$AE
 		dc.b $30,$B1,$EC,$FE,$80,$0C,$B5,$80,$B5,$80,$B6,$80
 		dc.b $B6,$EC,$03,$80,$B1,$80,$B1,$80,$B1,$80,$B1,$EC
 		dc.b $FC,$80,$B1,$80,$B1,$80,$B1,$18,$08,$B1,$04,$EC
-		dc.b $01,$E9,$18,$F5,$05,$E1,$01,$80,$60,$80,$80,$80
+		dc.b $01
+    if 1==1
+		; If the above bug is fixed, then this line needs removing (the track
+		; will already be $18 keys higher).
+		dc.b $E9,$18
+    endif
+		dc.b $F5,$05,$E1,$01,$80,$60,$80,$80,$80
 		dc.b $80,$80,$80,$0C,$CD,$06,$80,$D4,$CD,$80,$0C,$CD
 		dc.b $06,$80,$D4,$CD,$80,$18,$80,$54,$E9,$24,$EC,$FD
 MusCreditsE770:	dc.b $F5,$03,$80,$06

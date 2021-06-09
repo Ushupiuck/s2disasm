@@ -262,6 +262,16 @@ SFX_PSG_TRACK_COUNT = (zSFX_PSGEnd-zSFX_PSGStart)/zTrack.len
 ; the start of zROMWindow points to the start of the given 68k address,
 ; rounded down to the nearest $8000 byte boundary
 bankswitch macro addr68k
+    if OptimiseDriver=1
+	; Because why use a and e when you can use h and l?
+	ld	hl,zBankRegister+1	; +1 so that 6000h becomes 6001h, which is still a valid bankswitch port
+cnt	:= 0
+	rept 9
+		; this is either ld (hl),h or ld (hl),l
+		db (74h|(((addr68k)&(1<<(15+cnt)))<>0))
+cnt		:= (cnt+1)
+	endm
+    else
 	xor	a	; a = 0
 	ld	e,1	; e = 1
 	ld	hl,zBankRegister
@@ -271,6 +281,7 @@ cnt	:= 0
 		db (73h|((((addr68k)&(1<<(15+cnt)))==0)<<2))
 cnt		:= (cnt+1)
 	endm
+    endif
     endm
 
 ; macro to make a certain error message clearer should you happen to get it...
@@ -446,6 +457,11 @@ zUpdateEverything:
 	ld	a,80h
 	ld	(zDoSFXFlag),a		; Set zDoSFXFlag = 80h (updating sound effects)
 
+    if FixDriverBugs
+	; A bugfix in zUpdateMusic prevents it from returning ix set to a convenient value, so set it explicitly here
+	ld	ix,zTracksSFXStart-zTrack.len
+    endif
+
 	; FM SFX channels
 	ld	b,SFX_FM_TRACK_COUNT		; Only 3 FM channels for SFX (FM3, FM4, FM5)
 
@@ -521,7 +537,14 @@ zloc_10B:
 
 ;zsub_110
 zUpdateMusic:
-	call	TempoWait		; This is a tempo waiting function
+    if FixDriverBugs=0
+	; Calling this function here is bad, because it can cause the
+	; first note of a newly-started song to be delayed for a frame.
+	; The vanilla driver resorts to a workaround to prevent such a
+	; delay from having side-effects, but it's better to just fix
+	; the problem directly, and move this call to the proper place.
+	call	TempoWait
+    endif
 
 	; DAC updates
 	ld	a,0FFh
@@ -551,7 +574,11 @@ zUpdateMusic:
 	pop	bc
 	djnz	-
 
+    if FixDriverBugs=0
+	; See above. Removing this instruction will cause this
+	; subroutine to fall-through to TempoWait.
 	ret
+    endif
 ; End of function zUpdateMusic
 
 
@@ -1691,7 +1718,13 @@ zBGMLoad:
 	ld	de,zFMDACInitBytes		; 'de' points to zFMDACInitBytes
     endif
 
--	ld	(iy+zTrack.PlaybackControl),82h	; Set "track is playing" bit and "track at rest" bit
+-
+    if FixDriverBugs
+	; Enabling the 'track at rest' bit was a workaround for a bug that is no longer necessary (see zUpdateMusic)
+	ld	(iy+zTrack.PlaybackControl),80h	; Set "track is playing" bit
+    else
+	ld	(iy+zTrack.PlaybackControl),82h	; Set "track is playing" bit and "track at rest" bit
+    endif
     if FixDriverBugs=0
 	; The bugfix in zInitMusicPlayback does this, already
 	ld	a,(de)				; Get current byte from zFMDACInitBytes -> 'a'
@@ -1795,7 +1828,13 @@ zloc_884:
 	ld	de,zPSGInitBytes	; 'de' points to zPSGInitBytes
     endif
 
--	ld	(iy+zTrack.PlaybackControl),82h	; Set "track is playing" bit and "track at rest" bit
+-
+    if FixDriverBugs
+	; Enabling the 'track at rest' bit was a workaround for a bug that is no longer necessary (see zUpdateMusic)
+	ld	(iy+zTrack.PlaybackControl),80h	; Set "track is playing" bit
+    else
+	ld	(iy+zTrack.PlaybackControl),82h	; Set "track is playing" bit and "track at rest" bit
+    endif
     if FixDriverBugs=0
 	; The bugfix in zInitMusicPlayback does this, already
 	ld	a,(de)				; Get current byte from zPSGInitBytes -> 'a'
