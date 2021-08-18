@@ -1125,7 +1125,7 @@ loc_1072:
 sndDriverInput:
 	lea	(Music_to_play&$00FFFFFF).l,a0
 	lea	(Z80_RAM+zAbsVar).l,a1 ; $A01B80
-	cmpi.b	#$80,zAbsVar.QueueToPlay-zAbsVar(a1)	; If this (zReadyFlag) isn't $80, the driver is processing a previous sound request.
+	cmpi.b	#$80,zVar.QueueToPlay(a1)	; If this (zReadyFlag) isn't $80, the driver is processing a previous sound request.
 	bne.s	loc_10C4	; So we'll wait until at least the next frame before putting anything in there.
 	_move.b	0(a0),d0
 	beq.s	loc_10A4
@@ -1143,22 +1143,22 @@ loc_10AE:		; Check that the sound is not FE or FF
 	subi.b	#MusID_Pause,d1
 	bcs.s	loc_10C0
 	addi.b	#$7F,d1
-	move.b	d1,zAbsVar.StopMusic-zAbsVar(a1)
+	move.b	d1,zVar.StopMusic(a1)
 	bra.s	loc_10C4
 ; ---------------------------------------------------------------------------
 
 loc_10C0:
-	move.b	d0,zAbsVar.QueueToPlay-zAbsVar(a1)
+	move.b	d0,zVar.QueueToPlay(a1)
 
 loc_10C4:
 	moveq	#4-1,d1
 				; FFE4 (Music_to_play_2) goes to 1B8C (zMusicToPlay),
 -	move.b	1(a0,d1.w),d0	; FFE3 (unk_FFE3) goes to 1B8B, (unknown)
 	beq.s	+		; FFE2 (SFX_to_play_2) goes to 1B8A (zSFXToPlay2),
-	tst.b	zAbsVar.SFXToPlay-zAbsVar(a1,d1.w)	; FFE1 (SFX_to_play) goes to 1B89 (zSFXToPlay).
+	tst.b	zVar.SFXToPlay(a1,d1.w)	; FFE1 (SFX_to_play) goes to 1B89 (zSFXToPlay).
 	bne.s	+
 	clr.b	1(a0,d1.w)
-	move.b	d0,zAbsVar.SFXToPlay-zAbsVar(a1,d1.w)
+	move.b	d0,zVar.SFXToPlay(a1,d1.w)
 +
 	dbf	d1,-
 	rts
@@ -4186,17 +4186,13 @@ ArtNem_Player1VS2:	BINCLUDE	"art/nemesis/1Player2VS.bin"
 
 ; word_3E82:
 CopyrightText:
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + '@',0,0)	; (C)
-	dc.w  make_art_tile(ArtTile_VRAM_Start,0,0)	;
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + '1',0,0)	; 1
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + '9',0,0)	; 9
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + '9',0,0)	; 9
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + '2',0,0)	; 2
-	dc.w  make_art_tile(ArtTile_VRAM_Start,0,0)	;
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + 'S',0,0)	; S
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + 'E',0,0)	; E
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + 'G',0,0)	; G
-	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + 'A',0,0)	; A
+  irpc chr,"@ 1992 SEGA"
+    if "chr"<>" "
+	dc.w  make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr + 'chr'|0,0,0)
+    else
+	dc.w  make_art_tile(ArtTile_VRAM_Start,0,0)
+    endif
+  endm
 CopyrightText_End:
 
     charset ; Revert character set
@@ -5606,10 +5602,8 @@ SignpostUpdateTailsBounds:
 ; macro to simplify editing the demo scripts
 demoinput macro buttons,duration
 btns_mask := 0
-idx := 0
-  rept strlen("buttons")
-btn := substr("buttons",idx,1)
-    switch btn
+  irpc btn,"buttons"
+    switch "btn"
     case "U"
 btns_mask := btns_mask|button_up_mask
     case "D"
@@ -5626,8 +5620,8 @@ btns_mask := btns_mask|button_B_mask
 btns_mask := btns_mask|button_C_mask
     case "S"
 btns_mask := btns_mask|button_start_mask
+    elsecase
     endcase
-idx := idx+1
   endm
 	dc.b	btns_mask,duration-1
  endm
@@ -8875,7 +8869,7 @@ loc_6F4C:
 ; ===========================================================================
 ; Special stage vertical scroll index for 'straight' animation -- bobbing up and down
 +
-   rept 4
+    rept 4
 	dc.b   6
 	dc.b   6
 	dc.b $14
@@ -9696,19 +9690,16 @@ llookup	:= "ABCDEFGHIJKLMNOPQRSTUVWXYZ ."
 titleLetters macro letters
      ;  ". ZYXWVUTSRQPONMLKJIHGFEDCBA"
 used := %0110000000000110000000010000	; set to initial state
-c := 0
-    rept strlen(letters)
-t := substr(letters,c,1)
-	if ~~(used&1<<strstr(llookup,t))	; has the letter been used already?
-used := used|1<<strstr(llookup,t)	; if not, mark it as used
-	dc.b t			; output letter code
-	if t=="."
+    irpc char,letters
+	if ~~(used&1<<strstr(llookup,"char"))	; has the letter been used already?
+used := used|1<<strstr(llookup,"char")	; if not, mark it as used
+	dc.b "char"			; output letter code
+	if "char"=="."
 	dc.b 2			; output character size
 	else
-	dc.b lowstring(t)	; output letter size
+	dc.b lowstring("char")	; output letter size
 	endif
 	endif
-c := c+1
     endm
 	dc.w $FFFF	; output string terminator
     endm
@@ -13868,23 +13859,23 @@ creditText macro pal,ss
 	if ((vram_src & $FF) <> $0) && ((vram_src & $FF) <> $1)
 		fatal "The low byte of vram_src was $\{vram_src & $FF}, but it must be $00 or $01."
 	endif
-c := 0
 	dc.b (make_art_tile(vram_src,pal,0) & $FF00) >> 8
-	rept strlen(ss)
-t := substr(ss,c,1)
-	dc.b t
-l := lowstring(t)
-	if t="I"
-	elseif l<>t
-		dc.b l
-	elseif t="1"
+	irpc char,ss
+	dc.b "char"
+	switch "char"
+	case "I"
+	case "1"
 		dc.b "!"
-	elseif t="2"
+	case "2"
 		dc.b "$"
-	elseif t="9"
+	case "9"
 		dc.b "#"
-	endif
-c := c+1
+	elsecase
+l := lowstring("char")
+		if l<>"char"
+			dc.b l
+		endif
+	endcase
 	endm
 	dc.b -1
 	rev02even
@@ -40483,14 +40474,19 @@ loc_1EAE0:
 ; End of function FindWall2
 
 ; ---------------------------------------------------------------------------
-; The subroutine appears to convert the collision array from an unknown
-; 'raw' format to its current format, and write it to ROM, overwritting
-; the original. This doesn't work on standard read-only cartridges, and
-; would instead require a special dev cartridge.
+; This subroutine takes 'raw' bitmap-like collision block data as input and
+; converts it into the proper collision arrays (ColArray and ColArray2).
+; Pointers to said raw data are dummied out.
+; Curiously, an example of the original 'raw' data that this was intended
+; to process can be found in the J2ME version of Sonic 1, in a file called
+; 'blkcol.bct'.
 ; This subroutine exists in Sonic 1 as well, but was oddly changed in
 ; the S2 Nick Arcade prototype to just handle loading GHZ's collision
 ; instead (though it too is dummied out, hence collision being broken).
 ; ---------------------------------------------------------------------------
+
+RawColBlocks		= ColArray
+ConvRowColBlocks	= ColArray
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -40498,10 +40494,12 @@ loc_1EAE0:
 ConvertCollisionArray:
 	rts
 ; ---------------------------------------------------------------------------
-	lea	(ColArray).l,a1	; Source location of 'raw' collision array
-	lea	(ColArray).l,a2	; Destinatation of converted collision array (overwrites the original)
+	; The raw format stores the collision data column by column for the normal collision array.
+	; This makes a copy of the data, but stored row by row, for the rotated collision array.
+	lea	(RawColBlocks).l,a1	; Source location of raw collision block data
+	lea	(ConvRowColBlocks).l,a2	; Destinatation location for row-converted collision block data
 
-	move.w	#$100-1,d3	; Number of blocks in collision array
+	move.w	#$100-1,d3	; Number of blocks in collision data
 .blockLoop:
 	moveq	#16,d5		; Start on the 16th bit (the leftmost pixel)
 
@@ -40509,9 +40507,6 @@ ConvertCollisionArray:
 .columnLoop:
 	moveq	#0,d4
 
-	; It seems the 'raw' format stored the collision of each pixel in rows.
-	; This block of code changes it from rows to columns, so each word contains
-	; a bit for each pixel in a column.
 	move.w	#16-1,d1	; Height of a block in pixels
 .rowLoop:
 	move.w	(a1)+,d0	; Get row of collision bits
@@ -40525,13 +40520,14 @@ ConvertCollisionArray:
 	dbf	d2,.columnLoop	; Loop for each column of pixels in a block
 
 	adda.w	#2*16,a1	; Next block
-	dbf	d3,.blockLoop	; Loop for each block in the collision array
+	dbf	d3,.blockLoop	; Loop for each block in the raw collision block data
 
-	lea	(ColArray).l,a1
-	lea	(ColArray2).l,a2	; Write converted collision array to location of rotated collison array
+	; This then converts the collision data into the final collision arrays
+	lea	(ConvRowColBlocks).l,a1
+	lea	(ColArray2).l,a2	; Convert the row-converted collision block data into final rotated collision array
 	bsr.s	.convertArrayToStandardFormat
-	lea	(ColArray).l,a1
-	lea	(ColArray).l,a2		; Write converted collision array to location of normal collison array
+	lea	(RawColBlocks).l,a1
+	lea	(ColArray).l,a2		; Convert the raw collision block data into final normal collision array
 
 ; loc_1EB46: FloorLog_Unk2:
 .convertArrayToStandardFormat:
@@ -40579,7 +40575,7 @@ ConvertCollisionArray:
 
 ; loc_1EB7A:
 .columnProcessed:
-	move.b	d2,(a2)+	; Store column collision height to ROM
+	move.b	d2,(a2)+	; Store column collision height
 	dbf	d3,.processCollisionArrayLoop
 
 	rts
