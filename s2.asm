@@ -36208,20 +36208,9 @@ Sonic_TurnLeft:
 	move.w	#-$80,d0
 +
 	move.w	d0,inertia(a0)
-    if fixBugs
 	move.b	angle(a0),d1
 	addi.b	#$20,d1
 	andi.b	#$C0,d1
-    else
-	; These three instructions partially overwrite the inertia value in
-	; 'd0'! This causes the character to trigger their skidding
-	; animation at different speeds depending on whether they're going
-	; right or left. To fix this, make these instructions use 'd1'
-	; instead.
-	move.b	angle(a0),d0
-	addi.b	#$20,d0
-	andi.b	#$C0,d0
-    endif
 	bne.s	return_1A744
 	cmpi.w	#$400,d0
 	blt.s	return_1A744
@@ -36269,20 +36258,9 @@ Sonic_TurnRight:
 	move.w	#$80,d0
 +
 	move.w	d0,inertia(a0)
-    if fixBugs
 	move.b	angle(a0),d1
 	addi.b	#$20,d1
 	andi.b	#$C0,d1
-    else
-	; These three instructions partially overwrite the inertia value in
-	; 'd0'! This causes the character to trigger their skidding
-	; animation at different speeds depending on whether they're going
-	; right or left. To fix this, make these instructions use 'd1'
-	; instead.
-	move.b	angle(a0),d0
-	addi.b	#$20,d0
-	andi.b	#$C0,d0
-    endif
 	bne.s	return_1A7C4
 	cmpi.w	#-$400,d0
 	bgt.s	return_1A7C4
@@ -36469,18 +36447,19 @@ Sonic_ChgJumpDir:
 	move.w	x_vel(a0),d0
 	btst	#button_left,(Ctrl_1_Held_Logical).w
 	beq.s	+	; if not holding left, branch
-
 	bset	#0,status(a0)
 	sub.w	d5,d0	; add acceleration to the left
 	move.w	d6,d1
 	neg.w	d1
 	cmp.w	d1,d0	; compare new speed with top speed
 	bgt.s	+	; if new speed is less than the maximum, branch
+	add.w	d5,d0	; remove this frame's acceleration change
+	cmp.w	d1,d0	; compare speed with top speed
+	ble.s	+	; if speed was already greater than the maximum, branch
 	move.w	d1,d0	; limit speed in air going left, even if Sonic was already going faster (speed limit/cap)
 +
 	btst	#button_right,(Ctrl_1_Held_Logical).w
 	beq.s	+	; if not holding right, branch
-
 	bclr	#0,status(a0)
 	add.w	d5,d0	; accelerate right in the air
 	cmp.w	d6,d0	; compare new speed with top speed
@@ -46626,14 +46605,13 @@ Obj14_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj14_MapUnc_21CF0,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HtzSeeSaw,0,0),art_tile(a0)
-	jsrto	Adjust2PArtPointer, JmpTo13_Adjust2PArtPointer
 	ori.b	#4,render_flags(a0)
 	move.b	#4,priority(a0)
 	move.b	#$30,width_pixels(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	tst.b	subtype(a0)
 	bne.s	loc_219A4
-	jsrto	SingleObjLoad2, JmpTo3_SingleObjLoad2
+	jsr	SingleObjLoad2
 	bne.s	loc_219A4
 	_move.b	#ObjID_Seesaw,id(a1) ; load obj14
 	addq.b	#6,routine(a1)
