@@ -3966,11 +3966,11 @@ Sega_WaitPalette:
 	beq.s	Sega_WaitPalette
     if ~~fixBugs
 	; This is a leftover from Sonic 1: ObjB0 plays the Sega sound now.
-	; Normally, you'll only hear one Sega sound, but the actually tries
-	; to play it twice. The only reason it doesn't is because the sound
-	; queue only has room for one sound per frame. Some custom sound
-	; drivers don't have this limitation, however, and the sound will
-	; indeed play twice in those.
+	; Normally, you'll only hear one Sega sound, but the game actually
+	; tries to play it twice. The only reason it doesn't is because the
+	; sound queue only has room for one sound per frame. Some custom
+	; sound drivers don't have this limitation, however, and the sound
+	; will indeed play twice in those.
 	move.b	#SndID_SegaSound,d0
 	bsr.w	PlaySound	; play "SEGA" sound
     endif
@@ -14958,21 +14958,21 @@ DeformBgLayer:
 	bne.s	DeformBgLayerAfterScrollVert
 	lea	(MainCharacter).w,a0 ; a0=character
 	lea	(Camera_X_pos).w,a1
-	lea	(Camera_Min_X_pos).w,a2
+	lea	(Camera_Boundaries).w,a2
 	lea	(Scroll_flags).w,a3
 	lea	(Camera_X_pos_diff).w,a4
-	lea	(Horiz_scroll_delay_val).w,a5
+	lea	(Camera_Delay).w,a5
 	lea	(Sonic_Pos_Record_Buf).w,a6
 	cmpi.w	#2,(Player_mode).w
 	bne.s	+
-	lea	(Horiz_scroll_delay_val_P2).w,a5
+	lea	(Camera_Delay_P2).w,a5
 	lea	(Tails_Pos_Record_Buf).w,a6
 +
 	bsr.w	ScrollHoriz
 	lea	(Horiz_block_crossed_flag).w,a2
 	bsr.w	SetHorizScrollFlags
 	lea	(Camera_Y_pos).w,a1
-	lea	(Camera_Min_X_pos).w,a2
+	lea	(Camera_Boundaries).w,a2
 	lea	(Camera_Y_pos_diff).w,a4
 	move.w	(Camera_Y_pos_bias).w,d3
 	cmpi.w	#2,(Player_mode).w
@@ -14990,16 +14990,16 @@ DeformBgLayerAfterScrollVert:
 	bne.s	loc_C4D0
 	lea	(Sidekick).w,a0 ; a0=character
 	lea	(Camera_X_pos_P2).w,a1
-	lea	(Tails_Min_X_pos).w,a2
+	lea	(Camera_Boundaries_P2).w,a2
 	lea	(Scroll_flags_P2).w,a3
 	lea	(Camera_X_pos_diff_P2).w,a4
-	lea	(Horiz_scroll_delay_val_P2).w,a5
+	lea	(Camera_Delay_P2).w,a5
 	lea	(Tails_Pos_Record_Buf).w,a6
 	bsr.w	ScrollHoriz
 	lea	(Horiz_block_crossed_flag_P2).w,a2
 	bsr.w	SetHorizScrollFlags
 	lea	(Camera_Y_pos_P2).w,a1
-	lea	(Tails_Min_X_pos).w,a2
+	lea	(Camera_Boundaries_P2).w,a2
 	lea	(Camera_Y_pos_diff_P2).w,a4
 	move.w	(Camera_Y_pos_bias_P2).w,d3
 	bsr.w	ScrollVerti
@@ -17832,15 +17832,42 @@ ScrollHoriz:
 	move.w	(a1),d4		; get camera X pos
 	tst.b	(Teleport_flag).w
 	bne.s	.return		; if a teleport is in progress, return
-	move.w	(a5),d1		; should scrolling be delayed?
-	beq.s	.scrollNotDelayed	; if not, branch
-	subi.w	#$100,d1	; reduce delay value
-	move.w	d1,(a5)
+    if fixBugs
+	; To prevent the bug that is described below, this caps the position
+	; array index offset so that it does not access position data from
+	; before the spin dash was performed. Note that this required
+	; modifications to 'Sonic_UpdateSpindash' and 'Tails_UpdateSpindash'.
+	move.b	Horiz_scroll_delay_val-Camera_Delay(a5),d1	; should scrolling be delayed?
+	beq.s	.scrollNotDelayed				; if not, branch
+	lsl.b	#2,d1		; multiply by 4, the size of a position buffer entry
+	subq.b	#1,Horiz_scroll_delay_val-Camera_Delay(a5)	; reduce delay value
+	move.b	Sonic_Pos_Record_Index+1-Camera_Delay(a5),d0
+	sub.b	Horiz_scroll_delay_val+1-Camera_Delay(a5),d0
+	cmp.b	d0,d1
+	blo.s	.doNotCap
+	move.b	d0,d1
+.doNotCap:
+    else
+	; The intent of this code is to make the camera briefly lag behind the
+	; player right after releasing a spin dash, however it does this by
+	; simply making the camera use position data from previous frames. This
+	; means that if the camera had been moving recently enough, then
+	; releasing a spin dash will cause the camera to jerk around instead of
+	; remain still. This can be encountered by running into a wall, and
+	; quickly turning around and spin dashing away. Sonic 3 would have had
+	; this same issue with the Fire Shield's dash abiliity, but it shoddily
+	; works around the issue by resetting the old position values to the
+	; current position (see 'Reset_Player_Position_Array').
+	move.w	Horiz_scroll_delay_val-Camera_Delay(a5),d1	; should scrolling be delayed?
+	beq.s	.scrollNotDelayed				; if not, branch
+	subi.w	#$100,d1					; reduce delay value
+	move.w	d1,Horiz_scroll_delay_val-Camera_Delay(a5)
 	moveq	#0,d1
-	move.b	(a5),d1		; get delay value
+	move.b	Horiz_scroll_delay_val-Camera_Delay(a5),d1	; get delay value
 	lsl.b	#2,d1		; multiply by 4, the size of a position buffer entry
 	addq.b	#4,d1
-	move.w	2(a5),d0	; get current position buffer index
+    endif
+	move.w	Sonic_Pos_Record_Index-Camera_Delay(a5),d0	; get current position buffer index
 	sub.b	d1,d0
 	move.w	(a6,d0.w),d0	; get Sonic's position a certain number of frames ago
 	andi.w	#$3FFF,d0
@@ -17868,10 +17895,10 @@ ScrollHoriz:
 	move.w	#-16,d0		; limit scrolling to 16 pixels per frame
 ; loc_D74E:
 .maxNotReached:
-	add.w	(a1),d0		; get new camera position
-	cmp.w	(a2),d0		; is it greater than the minimum position?
-	bgt.s	.doScroll		; if it is, branch
-	move.w	(a2),d0		; prevent camera from going any further back
+	add.w	(a1),d0						; get new camera position
+	cmp.w	Camera_Min_X_pos-Camera_Boundaries(a2),d0	; is it greater than the minimum position?
+	bgt.s	.doScroll					; if it is, branch
+	move.w	Camera_Min_X_pos-Camera_Boundaries(a2),d0	; prevent camera from going any further back
 	bra.s	.doScroll
 ; ===========================================================================
 ; loc_D758:
@@ -17881,10 +17908,10 @@ ScrollHoriz:
 	move.w	#16,d0
 ; loc_D762:
 .maxNotReached2:
-	add.w	(a1),d0		; get new camera position
-	cmp.w	Camera_Max_X_pos-Camera_Min_X_pos(a2),d0	; is it less than the max position?
-	blt.s	.doScroll	; if it is, branch
-	move.w	Camera_Max_X_pos-Camera_Min_X_pos(a2),d0	; prevent camera from going any further forward
+	add.w	(a1),d0						; get new camera position
+	cmp.w	Camera_Max_X_pos-Camera_Boundaries(a2),d0	; is it less than the max position?
+	blt.s	.doScroll					; if it is, branch
+	move.w	Camera_Max_X_pos-Camera_Boundaries(a2),d0	; prevent camera from going any further forward
 ; loc_D76E:
 .doScroll:
 	move.w	d0,d1
@@ -18011,7 +18038,7 @@ ScrollVerti:
 	swap	d1	; actual Y-coordinate is now the low word
 ; loc_D82E:
 .scrollUp:
-	cmp.w	Camera_Min_Y_pos-Camera_Min_X_pos(a2),d1	; is the new position less than the minimum Y pos?
+	cmp.w	Camera_Min_Y_pos-Camera_Boundaries(a2),d1	; is the new position less than the minimum Y pos?
 	bgt.s	.doScroll	; if not, branch
 	cmpi.w	#-$100,d1
 	bgt.s	.minYPosReached
@@ -18021,7 +18048,7 @@ ScrollVerti:
 ; ===========================================================================
 ; loc_D844:
 .minYPosReached:
-	move.w	Camera_Min_Y_pos-Camera_Min_X_pos(a2),d1	; prevent camera from going any further up
+	move.w	Camera_Min_Y_pos-Camera_Boundaries(a2),d1	; prevent camera from going any further up
 	bra.s	.doScroll
 ; ===========================================================================
 ; loc_D84A:
@@ -18032,7 +18059,7 @@ ScrollVerti:
 	swap	d1		; actual Y-coordinate is now the low word
 ; loc_D852:
 .scrollDown:
-	cmp.w	Camera_Max_Y_pos_now-Camera_Min_X_pos(a2),d1	; is the new position greater than the maximum Y pos?
+	cmp.w	Camera_Max_Y_pos_now-Camera_Boundaries(a2),d1	; is the new position greater than the maximum Y pos?
 	blt.s	.doScroll	; if not, branch
 	subi.w	#$800,d1
 	bcs.s	.maxYPosReached
@@ -18041,7 +18068,7 @@ ScrollVerti:
 ; ===========================================================================
 ; loc_D864:
 .maxYPosReached:
-	move.w	Camera_Max_Y_pos_now-Camera_Min_X_pos(a2),d1	; prevent camera from going any further down
+	move.w	Camera_Max_Y_pos_now-Camera_Boundaries(a2),d1	; prevent camera from going any further down
 ; loc_D868:
 .doScroll:
 	move.w	(a1),d4		; get old pos (used by SetVertiScrollFlags)
@@ -36871,13 +36898,31 @@ Sonic_UpdateSpindash:
 	beq.s	+
 	move.w	SpindashSpeedsSuper(pc,d0.w),inertia(a0)
 +
+	; Determine how long to lag the camera for.
+	; Notably, the faster Sonic goes, the less the camera lags.
+	; This is seemingly to prevent Sonic from going off-screen.
 	move.w	inertia(a0),d0
-	subi.w	#$800,d0
+	subi.w	#$800,d0 ; $800 is the lowest spin dash speed
+    if fixBugs
+	; To fix a bug in 'ScrollHoriz', we need an extra variable, so this
+	; code has been modified to make the delay value only a single byte.
+	; The lower byte has been repurposed to hold a copy of the position
+	; array index at the time that the spin dash was released.
+	; This is used by the fixed 'ScrollHoriz'.
+	lsr.w	#7,d0
+	neg.w	d0
+	addi.w	#$20,d0
+	move.b	d0,(Horiz_scroll_delay_val).w
+	; Back up the position array index for later.
+	move.b	(Sonic_Pos_Record_Index+1).w,(Horiz_scroll_delay_val+1).w
+    else
 	add.w	d0,d0
-	andi.w	#$1F00,d0
+	andi.w	#$1F00,d0 ; This line is not necessary, as none of the removed bits are ever set in the first place
 	neg.w	d0
 	addi.w	#$2000,d0
 	move.w	d0,(Horiz_scroll_delay_val).w
+    endif
+
 	btst	#0,status(a0)
 	beq.s	+
 	neg.w	inertia(a0)
@@ -39706,13 +39751,32 @@ Tails_UpdateSpindash:
 	move.b	spindash_counter(a0),d0
 	add.w	d0,d0
 	move.w	Tails_SpindashSpeeds(pc,d0.w),inertia(a0)
+
+	; Determine how long to lag the camera for.
+	; Notably, the faster Tails goes, the less the camera lags.
+	; This is seemingly to prevent Tails from going off-screen.
 	move.w	inertia(a0),d0
-	subi.w	#$800,d0
+	subi.w	#$800,d0 ; $800 is the lowest spin dash speed
+    if fixBugs
+	; To fix a bug in 'ScrollHoriz', we need an extra variable, so this
+	; code has been modified to make the delay value only a single byte.
+	; The lower byte has been repurposed to hold a copy of the position
+	; array index at the time that the spin dash was released.
+	; This is used by the fixed 'ScrollHoriz'.
+	lsr.w	#7,d0
+	neg.w	d0
+	addi.w	#$20,d0
+	move.b	d0,(Horiz_scroll_delay_val_P2).w
+	; Back up the position array index for later.
+	move.b	(Tails_Pos_Record_Index+1).w,(Horiz_scroll_delay_val_P2+1).w
+    else
 	add.w	d0,d0
-	andi.w	#$1F00,d0
+	andi.w	#$1F00,d0 ; This line is not necessary, as none of the removed bits are ever set in the first place
 	neg.w	d0
 	addi.w	#$2000,d0
 	move.w	d0,(Horiz_scroll_delay_val_P2).w
+    endif
+
 	btst	#0,status(a0)
 	beq.s	+
 	neg.w	inertia(a0)
@@ -68993,7 +69057,7 @@ Obj09_Index:	offsetTable
 loc_33908:
 	lea	(SS_Ctrl_Record_Buf_End).w,a1
 
-	moveq	#(SS_Ctrl_Record_Buf_End-SS_Ctrl_Record_Buf)/2-2,d0
+	moveq	#bytesToWcnt(SS_Ctrl_Record_Buf_End-SS_Ctrl_Record_Buf)-1,d0
 -	move.w	-4(a1),-(a1)
 	dbf	d0,-
 
@@ -69998,11 +70062,18 @@ SSTailsCPU_Control:
 	andi.b	#button_up_mask|button_down_mask|button_left_mask|button_right_mask|button_B_mask|button_C_mask|button_A_mask,d0
 	beq.s	+
 	moveq	#0,d0
-	moveq	#3,d1
+	moveq	#bytesToXcnt(SS_Ctrl_Record_Buf_End-SS_Ctrl_Record_Buf,4*2),d1
 	lea	(SS_Ctrl_Record_Buf).w,a1
 -
+    if fixBugs
+	move.l	d0,(a1)+
+	move.l	d0,(a1)+
+    else
+	; The pointer does not increment, preventing the 'SS_Ctrl_Record_Buf'
+	; buffer from being cleared!
 	move.l	d0,(a1)
 	move.l	d0,(a1)
+    endif
 	dbf	d1,-
 	move.w	#$B4,(Tails_control_counter).w
 	rts
@@ -70014,7 +70085,7 @@ SSTailsCPU_Control:
 	rts
 ; ===========================================================================
 +
-	lea	(SS_Last_Ctrl_Record).w,a1
+	lea	(SS_Ctrl_Record_Buf_End-2).w,a1 ; Last value
 	move.w	(a1),(Ctrl_2_Logical).w
 	rts
 ; ===========================================================================
