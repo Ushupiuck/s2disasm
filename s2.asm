@@ -17,20 +17,20 @@
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ASSEMBLY OPTIONS:
 ;
-gameRevision = 1
+gameRevision = 2
 ;	| If 0, a REV00 ROM is built
 ;	| If 1, a REV01 ROM is built, which contains some fixes
 ;	| If 2, a (probable) REV02 ROM is built, which contains even more fixes
 padToPowerOfTwo = 1
 ;	| If 1, pads the end of the ROM to the next power of two bytes (for real hardware)
 ;
-fixBugs = 0
+fixBugs = 1
 ;	| If 1, enables all bug-fixes
 ;	| See also the 'FixDriverBugs' flag in 's2.sounddriver.asm'
-allOptimizations = 0
+allOptimizations = 1
 ;	| If 1, enables all optimizations
 ;
-skipChecksumCheck = 0
+skipChecksumCheck = 1
 ;	| If 1, disables the slow bootup checksum calculation
 ;
 zeroOffsetOptimization = 0|allOptimizations
@@ -45,7 +45,7 @@ addsubOptimize = 0|(gameRevision=2)|allOptimizations
 relativeLea = 0|(gameRevision<>2)|allOptimizations
 ;	| If 1, makes some instructions use pc-relative addressing, instead of absolute long
 ;
-useFullWaterTables = 0
+useFullWaterTables = 1
 ;	| If 1, zone offset tables for water levels cover all level slots instead of only slots 8-$F
 ;	| Set to 1 if you've shifted level IDs around or you want water in levels with a level slot below 8
 
@@ -4595,12 +4595,7 @@ Level_ClrRam:
 	clearRAM MiscLevelVariables,MiscLevelVariables_End
 	clearRAM Misc_Variables,Misc_Variables_End
 	clearRAM Oscillating_Data,Oscillating_variables_End
-    if fixBugs
 	clearRAM CNZ_saucer_data,CNZ_saucer_data_End
-    else
-	; The '+C0' shouldn't be here; CNZ_saucer_data is only $40 bytes large
-	clearRAM CNZ_saucer_data,CNZ_saucer_data_End+$C0
-    endif
 
 	cmpi.w	#chemical_plant_zone_act_2,(Current_ZoneAndAct).w ; CPZ 2
 	beq.s	Level_InitWater
@@ -6366,16 +6361,9 @@ SpecialStage:
 ; | Now we clear out some regions in main RAM where we want to store some  |
 ; | of our data structures.                                                |
 ; \------------------------------------------------------------------------/
-    if fixBugs
 	clearRAM Sprite_Table,Sprite_Table_End
 	clearRAM SS_Horiz_Scroll_Buf_1,SS_Horiz_Scroll_Buf_1_End
 	clearRAM SS_Shared_RAM,SS_Shared_RAM_End
-    else
-	; These '+4's shouldn't be here; 'clearRAM' accidentally clears an additional 4 bytes.
-	clearRAM Sprite_Table,Sprite_Table_End+4
-	clearRAM SS_Horiz_Scroll_Buf_1,SS_Horiz_Scroll_Buf_1_End+4
-	clearRAM SS_Shared_RAM,SS_Shared_RAM_End+4
-    endif
 	clearRAM Sprite_Table_Input,Sprite_Table_Input_End
 	clearRAM Object_RAM,Object_RAM_End
 
@@ -11955,17 +11943,17 @@ OptionScreen_Select:
     else
 	move.w	#emerald_hill_zone_act_1,(Current_ZoneAndAct).w
     endif
-    if fixBugs
+;    if fixBugs
 	; The game forgets to reset these variables here, making it possible
 	; for the player to repeatedly soft-reset and play Emerald Hill Zone
 	; over and over again, collecting all of the emeralds within the
 	; first act. This code is borrowed from similar logic in the title
 	; screen, which doesn't make this mistake.
-	move.w	d0,(Current_Special_StageAndAct).w
-	move.w	d0,(Got_Emerald).w
-	move.l	d0,(Got_Emeralds_array).w
-	move.l	d0,(Got_Emeralds_array+4).w
-    endif
+;	move.w	d0,(Current_Special_StageAndAct).w
+;	move.w	d0,(Got_Emerald).w
+;	move.l	d0,(Got_Emeralds_array).w
+;	move.l	d0,(Got_Emeralds_array+4).w
+;    endif
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	rts
 ; ===========================================================================
@@ -11977,15 +11965,15 @@ OptionScreen_Select_Not1P:
 	moveq	#1,d0
 	move.w	d0,(Two_player_mode).w
 	move.w	d0,(Two_player_mode_copy).w
-    if fixBugs
+;    if fixBugs
 	; The game forgets to reset these variables here, making it possible
 	; for the player to play two player mode with all emeralds collected,
 	; allowing them to use Super Sonic. This code is borrowed from
 	; similar logic in the title screen, which doesn't make this mistake.
-	move.w	d0,(Got_Emerald).w
-	move.l	d0,(Got_Emeralds_array).w
-	move.l	d0,(Got_Emeralds_array+4).w
-    endif
+;	move.w	d0,(Got_Emerald).w
+;	move.l	d0,(Got_Emeralds_array).w
+;	move.l	d0,(Got_Emeralds_array+4).w
+;    endif
 	move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
 	move.b	#0,(Current_Zone_2P).w
 	move.w	#0,(Player_mode).w
@@ -12716,15 +12704,9 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	tst.w	d2				; Test this to determine which cheat to enable
 	bne.s	+				; If not 0, branch
 	move.b	#$F,(Continue_count).w		; Give 15 continues
-    if fixBugs
 	; Fun fact: this was fixed in the version of Sonic 2 included in
 	; Sonic Mega Collection.
 	move.b	#SndID_ContinueJingle,d0	; Play the continue jingle
-    else
-	; The next line causes the bug where the OOZ music plays until reset.
-	; Remove "&$7F" to fix the bug.
-	move.b	#SndID_ContinueJingle&$7F,d0	; Play the continue jingle
-    endif
 	jsrto	PlayMusic, JmpTo_PlayMusic
 	bra.s	++
 ; ===========================================================================
@@ -12930,12 +12912,7 @@ EndingSequence:
 	move.w	d0,(Ending_VInt_Subrout).w
 	move.w	d0,(Credits_Trigger).w
 
-    if fixBugs
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
-    else
-	; The '+4' shouldn't be here; clearRAM accidentally clears an additional 4 bytes
-	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
-    endif
 
 	move.w	#$7FFF,(PalCycle_Timer).w
 	lea	(CutScene).w,a1
@@ -13010,12 +12987,7 @@ EndgameCredits:
 	move.w	d0,(Ending_VInt_Subrout).w
 	move.w	d0,(Credits_Trigger).w
 
-    if fixBugs
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
-    else
-	; The '+4' shouldn't be here; clearRAM accidentally clears an additional 4 bytes
-	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
-    endif
 
 	moveq	#signextendB(MusID_Credits),d0
 	jsrto	PlaySound, JmpTo2_PlaySound
@@ -31654,13 +31626,7 @@ RingsManager_Setup:
 	clearRAM Ring_Positions,Ring_Positions_End
 	; d0 = 0
 	lea	(Ring_consumption_table).w,a1
-
-    if fixBugs
 	move.w	#bytesToLcnt(Ring_consumption_table_End-Ring_consumption_table),d1
-    else
-	; Coding error, that '-$40' shouldn't be there: only half of 'Ring_consumption_table' is cleared.
-	move.w	#bytesToLcnt(Ring_consumption_table_End-Ring_consumption_table-$40),d1
-    endif
 -	move.l	d0,(a1)+
 	dbf	d1,-
 
@@ -32420,22 +32386,13 @@ ObjectsManager_Init:
 	move.w	#$0101,(a2)+	; the first two bytes are not used as respawn values
 	; instead, they are used to keep track of the current respawn indexes
 
-    if fixBugs
 	move.w	#bytesToLcnt(Obj_respawn_data_End-Obj_respawn_data),d0 ; set loop counter
-    else
-	; This clears longwords, but the loop counter is measured in words!
-	; This causes $17C bytes to be cleared instead of $BE.
-	move.w	#bytesToWcnt(Obj_respawn_data_End-Obj_respawn_data),d0 ; set loop counter
-    endif
-
 -	clr.l	(a2)+		; loop clears all other respawn values
 	dbf	d0,-
 
-    if fixBugs
 	; Clear the last word, since the above loop only does longwords.
     if (Obj_respawn_data_End-Obj_respawn_data)&2
 	clr.w	(a2)+
-    endif
     endif
 
 	lea	(Obj_respawn_index).w,a2	; reset a2
@@ -41666,12 +41623,12 @@ loc_1D9A4:
 	move.b	#4,objoff_34(a0)
 
 loc_1DA0C:
-    if fixBugs
+;    if fixBugs
 	; If Sonic is invincible and he turns Super, then the invincibility
 	; stars will not go away. S3K fixes this by doing this:
-	tst.b	(Super_Sonic_flag).w
-	bne.w	DeleteObject
-    endif
+;	tst.b	(Super_Sonic_flag).w
+;	bne.w	DeleteObject
+;    endif
 	movea.w	parent(a0),a1 ; a1=character
 	btst	#status_sec_isInvincible,status_secondary(a1)
 	beq.w	DeleteObject
@@ -90230,6 +90187,7 @@ ArtUnc_Tails:	BINCLUDE	"art/uncompressed/Tails's art.bin"
 ; Sprite Mappings
 ; Sonic			; MapUnc_6FBE0: SprTbl_Sonic:
 ;--------------------------------------------------------------------------------------
+	align $20
 MapUnc_Sonic:	BINCLUDE	"mappings/sprite/Sonic.bin"
 ;--------------------------------------------------------------------------------------
 ; Sprite Dynamic Pattern Reloading
@@ -90237,6 +90195,7 @@ MapUnc_Sonic:	BINCLUDE	"mappings/sprite/Sonic.bin"
 ;--------------------------------------------------------------------------------------
 ; WARNING: the build script needs editing if you rename this label
 ;          or if you move Sonic's running frame to somewhere else than frame $2D
+	align $20
 MapRUnc_Sonic:	BINCLUDE	"mappings/spriteDPLC/Sonic.bin"
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art (32 blocks)
