@@ -491,7 +491,7 @@ VintRet:
 	rte
 ; ===========================================================================
 Vint_SwitchTbl: offsetTable
-Vint_Lag_ptr		offsetTableEntry.w Vint_Lag			;   0
+Vint_Lag_ptr		offsetTableEntry.w Vint_Lag		;   0
 Vint_SEGA_ptr:		offsetTableEntry.w Vint_SEGA		;   2
 Vint_Title_ptr:		offsetTableEntry.w Vint_Title		;   4
 Vint_Unused6_ptr:	offsetTableEntry.w Vint_Unused6		;   6
@@ -501,7 +501,7 @@ Vint_TitleCard_ptr:	offsetTableEntry.w Vint_TitleCard	;  $C
 Vint_UnusedE_ptr:	offsetTableEntry.w Vint_UnusedE		;  $E
 Vint_Pause_ptr:		offsetTableEntry.w Vint_Pause		; $10
 Vint_Fade_ptr:		offsetTableEntry.w Vint_Fade		; $12
-Vint_PCM_ptr:		offsetTableEntry.w Vint_PCM			; $14
+Vint_PCM_ptr:		offsetTableEntry.w Vint_PCM		; $14
 Vint_Menu_ptr:		offsetTableEntry.w Vint_Menu		; $16
 Vint_Ending_ptr:	offsetTableEntry.w Vint_Ending		; $18
 Vint_CtrlDMA_ptr:	offsetTableEntry.w Vint_CtrlDMA		; $1A
@@ -535,14 +535,10 @@ loc_4C4:
 -	dbf	d0,- ; do nothing for a while...
 +
 	move.w	#1,(Hint_flag).w
-
 	stopZ80
-
 	tst.b	(Water_fullscreen_flag).w
 	bne.s	loc_526
-
 	dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
-
 	bra.s	loc_54A
 ; ---------------------------------------------------------------------------
 
@@ -29314,7 +29310,7 @@ RunObjectDisplayOnly:
 	pea	+(pc)	; This is an optimisation to avoid the need for extra branches: it makes it so '+' will be executed after 'DisplaySprite' or 'DisplaySprite3' return.
 	btst	#6,render_flags(a0)	; Is this a multi-sprite object?
 	beq.w	DisplaySprite		; If not, display using the object's 'priority' value.
-	move.w	#$80*4,d0		; If not, display using a hardcoded priority of 4.
+	move.w	#$80*4,d0		; Otherwise, display using a hardcoded priority of 4.
 	bra.w	DisplaySprite3
     else
 	bsr.w	DisplaySprite
@@ -35643,12 +35639,11 @@ Sonic_RecordPos:
 	move.w	x_pos(a0),(a1)+
 	move.w	y_pos(a0),(a1)+
 	addq.b	#4,(Sonic_Pos_Record_Index+1).w
-
 	lea	(Sonic_Stat_Record_Buf).w,a1
 	lea	(a1,d0.w),a1
 	move.w	(Ctrl_1_Logical).w,(a1)+
 	move.w	status(a0),(a1)+
-
+	move.b	art_tile(a0),(a1)+
 	rts
 ; End of subroutine Sonic_RecordPos
 
