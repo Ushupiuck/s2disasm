@@ -5488,7 +5488,6 @@ MoveDemo_On_P1:
 	move.b	(a1),d0	; load button press
 	lea	(Ctrl_1_Held).w,a0
 	move.b	d0,d1
-    if fixBugs
 	; In REV00 of Sonic 1, this instruction was 'move.b (a0),d2'. The
 	; purpose of this is to XOR the current frame's input with the
 	; previous frame's input to determine which inputs had been pressed
@@ -5508,9 +5507,6 @@ MoveDemo_On_P1:
 	; the previous frame, so we can use this here instead to fix this bug
 	; properly.
 	move.b	Ctrl_1_Held_Logical-Ctrl_1_Held(a0),d2
-    else
-	moveq	#0,d2
-    endif
 	eor.b	d2,d0	; determine which buttons differ between this frame and the last
 	move.b	d1,(a0)+ ; save button press data from demo to Ctrl_1_Held
 	and.b	d1,d0	; only keep the buttons that were pressed on this frame
@@ -5531,29 +5527,7 @@ MoveDemo_On_P2:
 	move.b	(a1),d0
 	lea	(Ctrl_2_Held).w,a0
 	move.b	d0,d1
-    if fixBugs
-	; In REV00 of Sonic 1, this instruction was 'move.b (a0),d2'. The
-	; purpose of this is to XOR the current frame's input with the
-	; previous frame's input to determine which inputs had been pressed
-	; on the current frame. The usage of '(a0)' for this is a problem
-	; because it doesn't hold the *demo* inputs from the previous frame,
-	; but rather the *player's* inputs from the *current* frame.
-	; This meant that it was possible for the player to influence the
-	; demos by pressing buttons on the joypad. In REV01 of Sonic 1, this
-	; instruction was replaced with a 'moveq #0,d2', effectively
-	; dummying-out the process of differentiating newly-pressed inputs
-	; from old held inputs, causing every input to be treated as
-	; newly-pressed on every frame. While this isn't a problem in this
-	; game, it does become a problem if Sonic or Tails is given a
-	; double-jump ability, as the ability will constantly be activated
-	; when they shouldn't be. While not exactly the intended use for this
-	; variable, 'Ctrl_1_Held_Logical' does happen to hold the inputs from
-	; the previous frame, so we can use this here instead to fix this bug
-	; properly.
 	move.b	Ctrl_1_Held_Logical-Ctrl_1_Held(a0),d2
-    else
-	moveq	#0,d2
-    endif
 	eor.b	d2,d0
 	move.b	d1,(a0)+
 	and.b	d1,d0
@@ -38027,7 +38001,6 @@ SupSonAni_Transform:	dc.b   2,$6D,$6D,$6E,$6E,$6F,$70,$71,$70,$71,$70,$71,$70,$7
 
 ; loc_1B848:
 LoadSonicDynPLC:
-
 	moveq	#0,d0
 	move.b	mapping_frame(a0),d0	; load frame number
 ; loc_1B84E:
