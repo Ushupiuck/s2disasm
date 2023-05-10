@@ -29936,9 +29936,6 @@ BuildSprites_LevelLoop:
 BuildSprites_ObjLoop:
 	movea.w	(a4,d6.w),a0 ; a0=object
 
-	; These is a sanity check, to detect invalid objects which should not
-	; have been queued for display. S3K gets rids of this, since it
-	; should not be needed and it just slows this code down.
 	; These are sanity checks, to detect invalid objects which should not
 	; have been queued for display. S3K gets rids of them compeletely,
 	; since they should not be needed and they just slow this code down.
@@ -37864,15 +37861,10 @@ SonAni_Lying_ptr:		offsetTableEntry.w SonAni_Lying		; 32 ; $20
 SonAni_LieDown_ptr:		offsetTableEntry.w SonAni_LieDown	; 33 ; $21
 
 SonAni_Walk:	dc.b $FF, $F,$10,$11,$12,$13,$14, $D, $E,$FF
-	rev02even
 SonAni_Run:	dc.b $FF,$2D,$2E,$2F,$30,$FF,$FF,$FF,$FF,$FF
-	rev02even
 SonAni_Roll:	dc.b $FE,$3D,$41,$3E,$41,$3F,$41,$40,$41,$FF
-	rev02even
 SonAni_Roll2:	dc.b $FE,$3D,$41,$3E,$41,$3F,$41,$40,$41,$FF
-	rev02even
 SonAni_Push:	dc.b $FD,$48,$49,$4A,$4B,$FF,$FF,$FF,$FF,$FF
-	rev02even
 SonAni_Wait:
 	dc.b   5,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
 	dc.b   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2
@@ -37886,57 +37878,31 @@ SonAni_Wait:
 	dc.b   5,  4,  4,  4,  5,  5,  5,  4,  4,  4,  5,  5,  5,  4,  4,  4
 	dc.b   5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  7,  8,  8
 	dc.b   8,  9,  9,  9,$FE,  6
-	rev02even
 SonAni_Balance:	dc.b   9,$CC,$CD,$CE,$CD,$FF
-	rev02even
 SonAni_LookUp:	dc.b   5, $B, $C,$FE,  1
-	rev02even
 SonAni_Duck:	dc.b   5,$4C,$4D,$FE,  1
-	rev02even
 SonAni_Spindash:dc.b   0,$42,$43,$42,$44,$42,$45,$42,$46,$42,$47,$FF
-	rev02even
 SonAni_Blink:	dc.b   1,  2,$FD,  0
-	rev02even
 SonAni_GetUp:	dc.b   3, $A,$FD,  0
-	rev02even
 SonAni_Balance2:dc.b   3,$C8,$C9,$CA,$CB,$FF
-	rev02even
 SonAni_Stop:	dc.b   5,$D2,$D3,$D4,$D5,$FD,  0 ; halt/skidding animation
-	rev02even
 SonAni_Float:	dc.b   7,$54,$59,$FF
-	rev02even
 SonAni_Float2:	dc.b   7,$54,$55,$56,$57,$58,$FF
-	rev02even
 SonAni_Spring:	dc.b $2F,$5B,$FD,  0
-	rev02even
 SonAni_Hang:	dc.b   1,$50,$51,$FF
-	rev02even
 SonAni_Dash2:	dc.b  $F,$43,$43,$43,$FE,  1
-	rev02even
 SonAni_Dash3:	dc.b  $F,$43,$44,$FE,  1
-	rev02even
 SonAni_Hang2:	dc.b $13,$6B,$6C,$FF
-	rev02even
 SonAni_Bubble:	dc.b  $B,$5A,$5A,$11,$12,$FD,  0 ; breathe
-	rev02even
 SonAni_DeathBW:	dc.b $20,$5E,$FF
-	rev02even
 SonAni_Drown:	dc.b $20,$5D,$FF
-	rev02even
 SonAni_Death:	dc.b $20,$5C,$FF
-	rev02even
 SonAni_Hurt:	dc.b $40,$4E,$FF
-	rev02even
 SonAni_Slide:	dc.b   9,$4E,$4F,$FF
-	rev02even
 SonAni_Blank:	dc.b $77,  0,$FD,  0
-	rev02even
 SonAni_Balance3:dc.b $13,$D0,$D1,$FF
-	rev02even
 SonAni_Balance4:dc.b   3,$CF,$C8,$C9,$CA,$CB,$FE,  4
-	rev02even
 SonAni_Lying:	dc.b   9,  8,  9,$FF
-	rev02even
 SonAni_LieDown:	dc.b   3,  7,$FD,  0
 	even
 
@@ -37979,17 +37945,11 @@ SuperSonicAniData: offsetTable
 	offsetTableEntry.w SupSonAni_Transform	; 31 ; $1F
 
 SupSonAni_Walk:		dc.b $FF,$77,$78,$79,$7A,$7B,$7C,$75,$76,$FF
-	rev02even
 SupSonAni_Run:		dc.b $FF,$B5,$B9,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-	rev02even
 SupSonAni_Push:		dc.b $FD,$BD,$BE,$BF,$C0,$FF,$FF,$FF,$FF,$FF
-	rev02even
 SupSonAni_Stand:	dc.b   7,$72,$73,$74,$73,$FF
-	rev02even
 SupSonAni_Balance:	dc.b   9,$C2,$C3,$C4,$C3,$C5,$C6,$C7,$C6,$FF
-	rev02even
 SupSonAni_Duck:		dc.b   5,$C1,$FF
-	rev02even
 SupSonAni_Transform:	dc.b   2,$6D,$6D,$6E,$6E,$6F,$70,$71,$70,$71,$70,$71,$70,$71,$FD,  0
 	even
 
@@ -40667,74 +40627,42 @@ TailsAni_HaulAss_ptr:	offsetTableEntry.w TailsAni_HaulAss	; 31 ; $1F
 TailsAni_Fly_ptr:	offsetTableEntry.w TailsAni_Fly		; 32 ; $20
 
 TailsAni_Walk:	dc.b $FF,$10,$11,$12,$13,$14,$15, $E, $F,$FF
-	rev02even
 TailsAni_Run:	dc.b $FF,$2E,$2F,$30,$31,$FF,$FF,$FF,$FF,$FF
-	rev02even
 TailsAni_Roll:	dc.b   1,$48,$47,$46,$FF
-	rev02even
 TailsAni_Roll2:	dc.b   1,$48,$47,$46,$FF
-	rev02even
 TailsAni_Push:	dc.b $FD,$63,$64,$65,$66,$FF,$FF,$FF,$FF,$FF
-	rev02even
 TailsAni_Wait:	dc.b   7,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  3,  2,  1,  1,  1
 		dc.b   1,  1,  1,  1,  1,  3,  2,  1,  1,  1,  1,  1,  1,  1,  1,  1
 		dc.b   5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5
 		dc.b   6,  7,  8,  7,  8,  7,  8,  7,  8,  7,  8,  6,$FE,$1C
-	rev02even
 TailsAni_Balance:	dc.b   9,$69,$69,$6A,$6A,$69,$69,$6A,$6A,$69,$69,$6A,$6A,$69,$69,$6A
 			dc.b $6A,$69,$69,$6A,$6A,$69,$6A,$FF
-	rev02even
 TailsAni_LookUp:	dc.b $3F,  4,$FF
-	rev02even
 TailsAni_Duck:		dc.b $3F,$5B,$FF
-	rev02even
 TailsAni_Spindash:	dc.b   0,$60,$61,$62,$FF
-	rev02even
 TailsAni_Dummy1:	dc.b $3F,$82,$FF
-	rev02even
 TailsAni_Dummy2:	dc.b   7,  8,  8,  9,$FD,  5
-	rev02even
 TailsAni_Dummy3:	dc.b   7,  9,$FD,  5
-	rev02even
 TailsAni_Stop:		dc.b   7,$67,$68,$67,$68,$FD,  0
-	rev02even
 TailsAni_Float:		dc.b   9,$6E,$73,$FF
-	rev02even
 TailsAni_Float2:	dc.b   9,$6E,$6F,$70,$71,$72,$FF
-	rev02even
 TailsAni_Spring:	dc.b   3,$59,$5A,$59,$5A,$59,$5A,$59,$5A,$59,$5A,$59,$5A,$FD,  0
-	rev02even
 TailsAni_Hang:		dc.b   5,$6C,$6D,$FF
-	rev02even
 TailsAni_Blink:		dc.b  $F,  1,  2,  3,$FE,  1
-	rev02even
 TailsAni_Blink2:	dc.b  $F,  1,  2,$FE,  1
-	rev02even
 TailsAni_Hang2:		dc.b $13,$85,$86,$FF
-	rev02even
 TailsAni_Bubble:	dc.b  $B,$74,$74,$12,$13,$FD,  0
-	rev02even
 TailsAni_DeathBW:	dc.b $20,$5D,$FF
-	rev02even
 TailsAni_Drown:		dc.b $2F,$5D,$FF
-	rev02even
 TailsAni_Death:		dc.b   3,$5D,$FF
-	rev02even
 TailsAni_Hurt:		dc.b   3,$5D,$FF
-	rev02even
 TailsAni_Hurt2:		dc.b   3,$5C,$FF
-	rev02even
 TailsAni_Slide:		dc.b   9,$6B,$5C,$FF
-	rev02even
 TailsAni_Blank:		dc.b $77,  0,$FD,  0
-	rev02even
 TailsAni_Dummy4:	dc.b   3,  1,  2,  3,  4,  5,  6,  7,  8,$FF
-	rev02even
 TailsAni_Dummy5:	dc.b   3,  1,  2,  3,  4,  5,  6,  7,  8,$FF
-	rev02even
 TailsAni_HaulAss:	dc.b $FF,$32,$33,$FF
 			dc.b $FF,$FF,$FF,$FF,$FF,$FF
-	rev02even
 TailsAni_Fly:		dc.b   1,$5E,$5F,$FF
 	even
 
