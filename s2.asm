@@ -23689,17 +23689,12 @@ Obj1C_Radii:
 	dc.b   0	; 1
 	dc.b   0	; 2
 	dc.b   0	; 3
-    if fixBugs
 	; These are the stakes that the ziplines are attached to in Hill Top Zone.
 	; Using 0 here is good for objects that are at most 32 pixels tall, but these are 40
 	; pixels tall, so they need to be explicitly set here.
 	; This fixes these objects disappearing when they're partially off-screen vertically.
 	dc.b  40	; 4
 	dc.b  40	; 5
-    else
-	dc.b   0	; 4
-	dc.b   0	; 5
-    endif
 	dc.b   0	; 6
 	dc.b   0	; 7
 	dc.b   0	; 8
@@ -23730,7 +23725,6 @@ Obj1C_Init:
 	move.b	(a1),mapping_frame(a0)
 	move.l	(a1)+,mappings(a0)
 	move.w	(a1)+,art_tile(a0)
-	bsr.w	Adjust2PArtPointer
 	ori.b	#4,render_flags(a0)
 	move.b	(a1)+,width_pixels(a0)
 	move.b	(a1)+,priority(a0)
@@ -23775,7 +23769,6 @@ Obj71_Init:
 	move.b	(a1),mapping_frame(a0)
 	move.l	(a1)+,mappings(a0)
 	move.w	(a1)+,art_tile(a0)
-	bsr.w	Adjust2PArtPointer
 	ori.b	#4,render_flags(a0)
 	move.b	(a1)+,width_pixels(a0)
 	move.b	(a1)+,priority(a0)
@@ -23861,7 +23854,6 @@ Obj2A_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj2A_MapUnc_11666,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
-	bsr.w	Adjust2PArtPointer
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#4,priority(a0)
@@ -23894,7 +23886,7 @@ Obj2A_Main:
 	move.w	d2,d3
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
-	jsrto	SolidObject, JmpTo2_SolidObject
+	jsr	(SolidObject).l
 	bra.w	MarkObjGone
 ; ===========================================================================
 ; -------------------------------------------------------------------------------
@@ -23947,7 +23939,6 @@ Obj2D_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_ARZBarrierThing,1,0),art_tile(a0)
 	move.b	#8,width_pixels(a0)
 +
-	bsr.w	Adjust2PArtPointer
 	ori.b	#4,render_flags(a0)
 	move.b	#4,priority(a0)
 	move.w	y_pos(a0),objoff_32(a0)
@@ -23969,7 +23960,7 @@ Obj2D_Main:
 	bne.s	+
 	move.w	objoff_38(a0),d2
 	move.w	x_pos(a0),d3
-	tst.b	routine_secondary(a0)                ; check if barrier is moving up
+	tst.b	routine_secondary(a0)			; check if barrier is moving up
 	beq.s	++
 	move.w	objoff_3A(a0),d3
 	bra.s	++
@@ -23977,7 +23968,7 @@ Obj2D_Main:
 +
 	move.w	x_pos(a0),d2
 	move.w	objoff_3A(a0),d3
-	tst.b	routine_secondary(a0)                ; check if barrier is moving up
+	tst.b	routine_secondary(a0)			; check if barrier is moving up
 	beq.s	+
 	move.w	objoff_38(a0),d2
 +
@@ -23985,42 +23976,42 @@ Obj2D_Main:
 	move.w	d4,d5
 	subi.w	#$20,d4
 	addi.w	#$20,d5
-	move.b	#0,routine_secondary(a0)             ; set barrier to move down, check if characters are in area
+	move.b	#0,routine_secondary(a0)		; set barrier to move down, check if characters are in area
 	lea	(MainCharacter).w,a1 ; a1=character
 	bsr.s	Obj2D_CheckCharacter
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.s	Obj2D_CheckCharacter
-	tst.b	routine_secondary(a0)                ; check if barrier is moving up
+	tst.b	routine_secondary(a0)			; check if barrier is moving up
 	beq.s	+
-	cmpi.w	#$40,objoff_30(a0)                   ; check if barrier is high enough
+	cmpi.w	#$40,objoff_30(a0)			; check if barrier is high enough
 	beq.s	+++
-	addq.w	#8,objoff_30(a0)                     ; move barrier up
+	addq.w	#8,objoff_30(a0)			; move barrier up
 	bra.s	++
 ; ===========================================================================
 +
-	tst.w	objoff_30(a0)                        ; check if barrier is not in original position
+	tst.w	objoff_30(a0)				; check if barrier is not in original position
 	beq.s	++
-	subq.w	#8,objoff_30(a0)                     ; move barrier down
+	subq.w	#8,objoff_30(a0)			; move barrier down
 +
-	move.w	objoff_32(a0),d0                     ; set the barrier y position
+	move.w	objoff_32(a0),d0			; set the barrier y position
 	sub.w	objoff_30(a0),d0
 	move.w	d0,y_pos(a0)
 +
-	moveq	#0,d1                                ; perform solid object collision
+	moveq	#0,d1					; perform solid object collision
 	move.b	width_pixels(a0),d1
 	addi.w	#$B,d1
 	move.w	#$20,d2
 	move.w	d2,d3
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
-	jsrto	SolidObject, JmpTo2_SolidObject
-	bra.w	MarkObjGone                          ; delete object if off screen
+	jsr	(SolidObject).l
+	bra.w	MarkObjGone				; delete object if off screen
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 ; sub_117F4
 Obj2D_CheckCharacter:
-    ; rect ltrb (d2, d4, d3, d5)
+	; rect ltrb (d2, d4, d3, d5)
 
 	move.w	x_pos(a1),d0
 	cmp.w	d2,d0
@@ -24034,7 +24025,7 @@ Obj2D_CheckCharacter:
 	bhs.w	return_11820
 	tst.b	obj_control(a1)
 	bmi.s	return_11820
-	move.b	#2,routine_secondary(a0)             ; set barrier to move up
+	move.b	#2,routine_secondary(a0)		; set barrier to move up
 
 return_11820:
 	rts
@@ -48027,16 +48018,15 @@ Obj20_Index:	offsetTable
 		offsetTableEntry.w loc_2311E				;  6
 		offsetTableEntry.w loc_23144				;  8
 		offsetTableEntry.w loc_231D2				; $A
-		offsetTableEntry.w BranchTo_JmpTo21_DeleteObject	; $C
+		offsetTableEntry.w Obj20_DeleteObject			; $C
 ; ===========================================================================
 ; loc_23014:
 Obj20_Init:
-	addq.b	#2,routine(a0)
+	addq.b	#2,routine(a0)	; Go to routine 4
 	move.b	#8,y_radius(a0)
 	move.b	#8,x_radius(a0)
 	move.l	#Obj20_MapUnc_23254,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HtzFireball2,0,1),art_tile(a0)
-	jsrto	Adjust2PArtPointer, JmpTo17_Adjust2PArtPointer
 	ori.b	#4,render_flags(a0)
 	move.b	#3,priority(a0)
 	move.b	#8,width_pixels(a0)
@@ -48056,17 +48046,17 @@ Obj20_Init:
 
 loc_23076:
 	lea	(Ani_obj20).l,a1
-	jsrto	AnimateSprite, JmpTo4_AnimateSprite
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
-loc_23084:
+loc_23084:	; Routine 4
 	cmpi.b	#5,anim_frame_duration(a0)
 	bne.s	loc_230B4
-	jsrto	SingleObjLoad2, JmpTo6_SingleObjLoad2
+	jsr	(SingleObjLoad2).l
 	bne.s	loc_230A6
 	bsr.s	loc_230C2
-	jsrto	SingleObjLoad2, JmpTo6_SingleObjLoad2
+	jsr	(SingleObjLoad2).l
 	bne.s	loc_230A6
 	bsr.s	loc_230C2
 	neg.w	x_vel(a1)
@@ -48075,17 +48065,17 @@ loc_23084:
 loc_230A6:
 	move.w	#SndID_ArrowFiring,d0
 	jsr	(PlaySound).l
-	addq.b	#2,routine(a0)
+	addq.b	#2,routine(a0)	; Go to routine 6
 
 loc_230B4:
 	lea	(Ani_obj20).l,a1
-	jsrto	AnimateSprite, JmpTo4_AnimateSprite
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_230C2:
-	_move.b	#ObjID_LavaBubble,id(a1) ; load obj20
-	move.b	#8,routine(a1)
+	_move.b	#ObjID_LavaBubble,id(a1)	; load obj20
+	move.b	#8,routine(a1)	; skip ahead to routine 8
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.w	x_vel(a0),x_vel(a1)
@@ -48102,20 +48092,20 @@ loc_230C2:
 	rts
 ; ===========================================================================
 
-loc_2311E:
+loc_2311E:	; routine 6
 	subq.w	#1,objoff_32(a0)
 	bpl.s	loc_23136
 	move.w	objoff_34(a0),objoff_32(a0)
-	move.b	#2,routine(a0)
+	move.b	#2,routine(a0)	; Go to routine 8
 	move.w	#1,anim(a0)
 
 loc_23136:
 	lea	(Ani_obj20).l,a1
-	jsrto	AnimateSprite, JmpTo4_AnimateSprite
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
-loc_23144:
+loc_23144:	; Routine 8
 	subq.b	#1,anim_frame_duration(a0)
 	bpl.s	loc_2315A
 	move.b	#7,anim_frame_duration(a0)
@@ -48123,13 +48113,14 @@ loc_23144:
 	andi.b	#1,mapping_frame(a0)
 
 loc_2315A:
-	jsrto	ObjectMove, JmpTo7_ObjectMove
+	jsr	(ObjectMove).l
 	addi.w	#$18,y_vel(a0)
 	move.w	(Camera_Max_Y_pos_now).w,d0
 	addi.w	#$E0,d0
 	cmp.w	y_pos(a0),d0
 	bhs.s	loc_23176
-	jmpto	DeleteObject, JmpTo21_DeleteObject
+Obj20_DeleteObject:
+	jmp	(DeleteObject).l
 ; ===========================================================================
 
 loc_23176:
@@ -48141,28 +48132,27 @@ loc_23176:
 	tst.w	d1
 	bpl.s	BranchTo_JmpTo8_MarkObjGone
 	add.w	d1,y_pos(a0)
-	addq.b	#2,routine(a0)
+	addq.b	#2,routine(a0)	; Go to routine $A
 	move.b	#2,anim(a0)
 	move.b	#4,mapping_frame(a0)
 	move.w	#0,y_vel(a0)
 	move.l	#Obj20_MapUnc_23294,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HtzFireball1,0,1),art_tile(a0)
-	jsrto	Adjust2PArtPointer, JmpTo17_Adjust2PArtPointer
 	move.b	#0,mapping_frame(a0)
 	move.w	#9,objoff_32(a0)
 	move.b	#3,objoff_36(a0)
 
 BranchTo_JmpTo8_MarkObjGone ; BranchTo
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
-loc_231D2:
+loc_231D2:	; Routine $A
 	subq.w	#1,objoff_32(a0)
 	bpl.s	loc_23224
 	move.w	#$7F,objoff_32(a0)
 	subq.b	#1,objoff_36(a0)
 	bmi.s	loc_23224
-	jsrto	SingleObjLoad2, JmpTo6_SingleObjLoad2
+	jsr	(SingleObjLoad2).l
 	bne.s	loc_23224
 	moveq	#0,d0
 
@@ -48192,12 +48182,8 @@ loc_23214:
 
 loc_23224:
 	lea	(Ani_obj20).l,a1
-	jsrto	AnimateSprite, JmpTo4_AnimateSprite
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
-; ===========================================================================
-
-BranchTo_JmpTo21_DeleteObject ; BranchTo
-	jmpto	DeleteObject, JmpTo21_DeleteObject
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; animation script
 ; off_23236:
@@ -48223,8 +48209,6 @@ Obj20_MapUnc_23294:	BINCLUDE "mappings/sprite/obj20_b.bin"
 ; ===========================================================================
 
     if ~~removeJmpTos
-JmpTo21_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
 JmpTo8_MarkObjGone ; JmpTo
 	jmp	(MarkObjGone).l
 JmpTo6_SingleObjLoad2 ; JmpTo
@@ -64381,7 +64365,7 @@ loc_30008:
 	tst.w	d1
 	bpl.s	loc_30064
 	add.w	d1,y_pos(a0)
-	move.b	#ObjID_LavaBubble,id(a0) ; load 0bj20
+	move.b	#ObjID_LavaBubble,id(a0) ; load Obj20
 	move.b	#$A,routine(a0)
 	move.b	#2,anim(a0)
 	move.b	#4,mapping_frame(a0)
@@ -88460,6 +88444,7 @@ DbgObjList_WFZ: dbglistheader
 DbgObjList_WFZ_End
 
 DbgObjList_HTZ: dbglistheader
+;			obj,		mapaddr,	subtype, frame, vram
 	dbglistobj ObjID_Ring,		Obj25_MapUnc_12382,   0,   0, make_art_tile(ArtTile_ArtNem_Ring,1,0)
 	dbglistobj ObjID_Monitor,	Obj26_MapUnc_12D36,   8,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,0)
 	dbglistobj ObjID_Starpost,	Obj79_MapUnc_1F424,   1,   0, make_art_tile(ArtTile_ArtNem_Checkpoint,0,0)
