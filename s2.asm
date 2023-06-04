@@ -38,36 +38,33 @@ gameRevision = 3
 ;	| If 1, a REV01 ROM is built, which contains some fixes
 ;	| If 2, a (probable) REV02 ROM is built, which contains even more fixes
 ;	| If 3, a 'Knuckles in Sonic 2' ROM is built
-padToPowerOfTwo = 1
+padToPowerOfTwo = 0
 ;	| If 1, pads the end of the ROM to the next power of two bytes (for real hardware)
 ;
-fixBugs = 0
+fixBugs = 1
 ;	| If 1, enables all bug-fixes
 ;	| See also the 'FixDriverBugs' flag in 's2.sounddriver.asm'
-allOptimizations = 0
+allOptimizations = 1
 ;	| If 1, enables all optimizations
 ;
-skipChecksumCheck = 0
+skipChecksumCheck = 1
 ;	| If 1, disables the slow bootup checksum calculation
 ;
-zeroOffsetOptimization = 0|allOptimizations
+zeroOffsetOptimization = 1|allOptimizations
 ;	| If 1, makes a handful of zero-offset instructions smaller
 ;
-removeJmpTos = 0|(gameRevision>=2)|allOptimizations
+removeJmpTos = 1|(gameRevision>=2)|allOptimizations
 ;	| If 1, many unnecessary JmpTos are removed, improving performance
 ;
-addsubOptimize = 0|(gameRevision=2)|allOptimizations
+addsubOptimize = 1|(gameRevision=2)|allOptimizations
 ;	| If 1, some add/sub instructions are optimized to addq/subq
 ;
-relativeLea = 0|(gameRevision<2)|allOptimizations
+relativeLea = 1|(gameRevision<2)|allOptimizations
 ;	| If 1, makes some instructions use pc-relative addressing, instead of absolute long
 ;
-useFullWaterTables = 0
+useFullWaterTables = 1
 ;	| If 1, zone offset tables for water levels cover all level slots instead of only slots 8-$F
 ;	| Set to 1 if you've shifted level IDs around or you want water in levels with a level slot below 8
-standaloneKiS2 = 0
-;	| If 1, a standalone version of KiS2 is built that does not depend on S2 or S&K
-;
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; AS-specific macros and assembler settings
@@ -95,31 +92,6 @@ SonicDriverVer = 2 ; Tell SMPS2ASM that we are targetting Sonic 2's sound driver
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; start of ROM
 
-    if (gameRevision=3) && ~~standaloneKiS2
-	; Include the base ROMs here.
-	; TODO: This is temporary, until AS can do 'phase $300000' without
-	; resulting in a ton of bugs.
-	BINCLUDE "Sonic & Knuckles.bin"
-	BINCLUDE "Sonic the Hedgehog 2.bin"
-
-StartOfRom:
-	; KiS2 (lock-on): The header and much of the initialisation code are gone.
-
-; loc_206:
-;EntryPoint:
-	; KiS2 (lock-on): Some unique initialisation code.
-
-	; Set the stack register to point to Sonic 2's stack region.
-	lea	(System_Stack).w,sp
-
-	; Update the V-Int and H-Int jumps.
-	; These are needed because Sonic & Knuckles' vector table has V-Int
-	; and H-Int pointing to these locations in RAM.
-	move.w	#$4EF9,(V_Int_Opcode).w
-	move.l	#V_Int,(V_Int_Address).w
-	move.w	#$4EF9,(H_Int_Opcode).w
-	move.l	#H_Int,(H_Int_Address).w
-    else
 StartOfRom:
     if * <> 0
 	fatal "StartOfRom was $\{*} but it should be 0"
@@ -307,7 +279,7 @@ PSGInitLoop:
 	move	#$2700,sr	; set the sr
  ; loc_292:
 PortC_OK: ;;
-	bra.s	GameProgram	; Branch to game program.
+	bra.s	GameInit	; Branch to game program.
 ; ===========================================================================
 ; byte_294:
 SetupValues:
@@ -316,7 +288,8 @@ SetupValues:
 	dc.l	Z80_RAM
 	dc.l	Z80_Bus_Request
 	dc.l	Z80_Reset
-	dc.l	VDP_data_port, VDP_control_port
+	dc.l	VDP_data_port
+	dc.l	VDP_control_port
 
 VDPInitValues:	; values for VDP registers
 	dc.b 4			; Command $8004 - HInt off, Enable HV counter read
@@ -391,94 +364,19 @@ Z80StartupCodeEnd:
 PSGInitValues:
 	dc.b	$9F,$BF,$DF,$FF	; values for PSG channel volumes
 PSGInitValues_End:
+	even
 ; ===========================================================================
 
-	even
-; loc_300:
-GameProgram:
-	tst.w	(VDP_control_port).l
-; loc_306:
-CheckSumCheck:
-    if gameRevision>0
-	move.w	(VDP_control_port).l,d1
-	btst	#1,d1
-	bne.s	CheckSumCheck	; wait until DMA is completed
-    endif
-    endif
-
-	btst	#6,(HW_Expansion_Control).l
-	beq.s	ChecksumTest
-    if gameRevision=3
-	; KiS2: This code was changed from 'init' to 's2md'. Cute. This is
-	; presumably short for 'Sonic 2 Mega Drive'.
-	cmpi.l	#'s2md',(Checksum_fourcc).w ; has checksum routine already run?
-    else
-	cmpi.l	#'init',(Checksum_fourcc).w ; has checksum routine already run?
-    endif
-	beq.w	GameInit
-
-; loc_328:
-ChecksumTest:
-    if skipChecksumCheck=0	; checksum code
-	movea.l	#EndOfHeader,a0	; start checking bytes after the header ($200)
-	movea.l	#ROMEndLoc,a1	; stop at end of ROM
-	move.l	(a1),d0
-	moveq	#0,d1
-; loc_338:
-ChecksumLoop:
-	add.w	(a0)+,d1
-	cmp.l	a0,d0
-    if gameRevision=3
-	; KiS2 (lock-on): The checksum was dummied out.
-	nop
-	nop
-    else
-	bhs.s	ChecksumLoop
-    endif
-	movea.l	#Checksum,a1	; read the checksum
-	cmp.w	(a1),d1	; compare correct checksum to the one in ROM
-    if gameRevision=3
-	; KiS2 (lock-on): Ditto.
-	nop
-	nop
-    else
-	bne.w	ChecksumError	; if they don't match, branch
-    endif
-    endif
-;checksum_good:
-	; Clear some RAM only on a coldboot.
-	lea	(CrossResetRAM).w,a6
-	moveq	#0,d7
-
-	move.w	#bytesToLcnt(CrossResetRAM_End-CrossResetRAM),d6
--	move.l	d7,(a6)+
-	dbf	d6,-
-
-	move.b	(HW_Version).l,d0
-	andi.b	#$C0,d0
-	move.b	d0,(Graphics_Flags).w
-    if gameRevision=3
-	; KiS2: This code was changed from 'init' to 's2md' too.
-	move.l	#'s2md',(Checksum_fourcc).w ; set flag so checksum won't be run again
-    else
-	move.l	#'init',(Checksum_fourcc).w ; set flag so checksum won't be run again
-    endif
-; loc_370:
 GameInit:
-    if (gameRevision<>3) || standaloneKiS2
-	; KiS2 (lock-on): KiS2 doesn't clear memory here because Sonic & Knuckles already did so earlier.
 	; Clear some RAM on every boot and reset.
 	lea	(RAM_Start&$FFFFFF).l,a6
 	moveq	#0,d7
 	move.w	#bytesToLcnt(CrossResetRAM-RAM_Start),d6
-; loc_37C:
-GameClrRAM:
-	move.l	d7,(a6)+
-	dbf	d6,GameClrRAM	; clear RAM ($0000-$FDFF)
-    endif
+-	move.l	d7,(a6)+
+	dbf	d6,-	; clear RAM ($0000-$FDFF)
 
 	bsr.w	VDPSetupGame
-	bsr.w	JmpTo_SoundDriverLoad
+	jsr	(SoundDriverLoad).l
 	bsr.w	JoypadInit
 	move.b	#GameModeID_SegaScreen,(Game_Mode).w ; set Game Mode to Sega Screen
 ; loc_394:
@@ -1453,68 +1351,13 @@ ClearScreen:
 	clr.l	(Vscroll_Factor).w
 	clr.l	(unk_F61A).w
 
-	; These '+4's shouldn't be here; clearRAM accidentally clears an additional 4 bytes
-	clearRAM Sprite_Table,Sprite_Table_End+4
-	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
+	clearRAM Sprite_Table,Sprite_Table_End
+	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
 
 	startZ80
 	rts
 ; End of function ClearScreen
 
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; KiS2 (lock-on): This patches the sound driver to read data from the Sonic 2
-; ROM's new position at $200000.
-
-; JumpTo load the sound driver
-; sub_130A:
-JmpTo_SoundDriverLoad ; JmpTo
-	nop
-    if (gameRevision=3) && ~~standaloneKiS2
-	; KiS2 (lock-on): Use a 'jsr', so that we can enter the following code
-	; afterwards.
-	jsr	(SoundDriverLoad).l
-    else
-	jmp	(SoundDriverLoad).l
-    endif
-; End of function JmpTo_SoundDriverLoad
-
-; ===========================================================================
-; unused mostly-leftover subroutine to load the sound driver
-; SoundDriverLoadS1:
-	move.w	#$100,(Z80_Bus_Request).l ; stop the Z80
-	move.w	#$100,(Z80_Reset).l ; reset the Z80
-	lea	(Z80_RAM).l,a1
-
-    if (gameRevision=3) && ~~standaloneKiS2
-	; KiS2 (lock-on): Patch the sound driver's various bankswitches so that they
-	; point to the ROM's new location.
-	moveq	#signextendB($73),d0	; The Z80 'ld (hl),e' instruction
-	move.b	d0,$A0(a1)
-	move.b	d0,$D8(a1)
-	move.b	d0,$632(a1)
-	move.b	d0,$700(a1)
-	move.b	d0,$981(a1)
-	move.b	d0,$C75(a1)
-	move.b	d0,$C85(a1)
-	move.b	d0,$F45(a1)
-    else
-	move.b	#$F3,(a1)+	; di
-	move.b	#$F3,(a1)+	; di
-	move.b	#$C3,(a1)+	; jp
-	move.b	#0,(a1)+	; jp address low byte
-	move.b	#0,(a1)+	; jp address high byte
-    endif
-
-	move.w	#0,(Z80_Reset).l
-	nop
-	nop
-	nop
-	nop
-	move.w	#$100,(Z80_Reset).l ; reset the Z80
-	move.w	#0,(Z80_Bus_Request).l ; start the Z80
-	rts
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; Despite the name, this can actually be used for playing sounds.
@@ -34486,18 +34329,10 @@ ObjectsManager_Init:
 	addq.b	#2,(Obj_placement_routine).w
 	move.w	(Current_ZoneAndAct).w,d0 ; If level == $0F01 (ARZ 2)...
 	ror.b	#1,d0			; then this yields $0F80...
-    if (gameRevision=3) && ~~standaloneKiS2
-	; KiS2 (Knuckles): KiS2 features its own custom object layouts, which are stored
-	; in the S&K ROM.
-	lsr.w	#5,d0			; and this yields $007C.
-	lea	(Off_Objects_KiS2).l,a0
-	movea.l	(a0,d0.w),a0
-    else
 	lsr.w	#6,d0			; and this yields $003E.
 	lea	(Off_Objects).l,a0	; Next, we load the first pointer in the object layout list pointer index,
 	movea.l	a0,a1			; then copy it for quicker use later.
 	adda.w	(a0,d0.w),a0		; (Point1 * 2) + $003E
-    endif
     if gameRevision<>3
 	; KiS2 (no 2P): No two player.
 	tst.w	(Two_player_mode).w	; skip if not in 2-player vs mode
@@ -41867,62 +41702,10 @@ LoadSonicDynPLC:
 ; loc_1B84E:
 LoadSonicDynPLC_Part2:
 	cmp.b	(Sonic_LastLoadedDPLC).w,d0
-
-    if (gameRevision=3) && ~~standaloneKiS2
-	; KiS2 (Knuckles): This has been modified to convert Knuckles' art to Sonic 2's
-	; palette.
-	beq.w	return_1B89A
-	move.b	d0,(Sonic_LastLoadedDPLC).w
-
-	lea	(MapRUnc_Knuckles).l,a2
-	add.w	d0,d0
-	add.w	(a2,d0.w),a2
-	move.w	(a2)+,d5
-	subq.w	#1,d5
-	bmi.w	return_1B89A
-	moveq	#0,d3
-	lea	(Knuckles_Art_Conversion_Buffer).w,a3	; RAM address where the converted art will be stored.
-	lea	ArtConvTable(pc),a4			; Load art-conversion table.
-
-KPLC_ReadEntry:
-	moveq	#0,d0
-	moveq	#0,d1
-	move.w	(a2)+,d1
-	move.w	d1,d4
-	rol.w	#4,d4
-	andi.w	#$F,d4
-	addq.w	#1,d3
-	add.w	d4,d3
-	andi.w	#$FFF,d1
-	lsl.l	#5,d1
-	lea	(ArtUnc_Knuckles).l,a1
-	add.l	d1,a1
-
-KPLC_ConvertArtFromS3K:
-    rept 32 ; 32 bytes in a tile.
-	move.b	(a1)+,d0
-	move.b	(a4,d0.w),(a3)+
-    endm
-	dbf	d4,KPLC_ConvertArtFromS3K
-	dbf	d5,KPLC_ReadEntry
-	move.l	#Knuckles_Art_Conversion_Buffer&$FFFFFF,d1	; RAM address where the converted art was stored.
-	move.w	#tiles_to_bytes(ArtTile_ArtUnc_Sonic),d2	; VRAM address for Knuckles' art
-	lsl.w	#4,d3
-	jmp	(QueueDMATransfer).l
-
-return_1B89A:
-	rts
-; END OF FUNCTION CHUNK	FOR sub_333D66
-    else
 	beq.s	return_1B89A
 	move.b	d0,(Sonic_LastLoadedDPLC).w
-
-    if (gameRevision=3) && standaloneKiS2
 	; KiS2 (Knuckles): Load Knuckles' graphics instead of Sonic's.
 	lea	(MapRUnc_Knuckles).l,a2
-    else
-	lea	(MapRUnc_Sonic).l,a2
-    endif
 	add.w	d0,d0
 	adda.w	(a2,d0.w),a2
 	move.w	(a2)+,d5
@@ -41939,12 +41722,8 @@ SPLC_ReadEntry:
 	addi.w	#$10,d3
 	andi.w	#$FFF,d1
 	lsl.l	#5,d1
-    if (gameRevision=3) && standaloneKiS2
 	; KiS2 (Knuckles): Load Knuckles' graphics instead of Sonic's.
 	addi.l	#ArtUnc_Knuckles,d1
-    else
-	addi.l	#ArtUnc_Sonic,d1
-    endif
 	move.w	d4,d2
 	add.w	d3,d4
 	add.w	d3,d4
@@ -41953,51 +41732,7 @@ SPLC_ReadEntry:
 
 return_1B89A:
 	rts
-    endif
 
-    if (gameRevision=3) && ~~standaloneKiS2
-; ---------------------------------------------------------------------------
-; This table converts art using	palette	indexes	set for	S&K to palette indexes set for S2.
-; Format: The rightmost	nybble of entry	X in any row = the new index that replaces color X.
-; Similarly, the leftmost nybble of entry X in any column = the	new index that replaces	color X.
-;
-; Specific replacements:
-;
-; $0 ->	$0
-; $1 ->	$6
-; $2 ->	$5
-; $3 ->	$3
-; $4 ->	$2
-; $5 ->	$4
-; $6 ->	$C
-; $7 ->	$D
-; $8 ->	$E
-; $9 ->	$F
-; $A ->	$A
-; $B ->	$B
-; $C ->	$7
-; $D ->	$8
-; $E ->	$9
-; $F ->	$1
-; ---------------------------------------------------------------------------
-ArtConvTable:
-	dc.b $00,$06,$05,$03,$02,$04,$0C,$0D,$0E,$0F,$0A,$0B,$07,$08,$09,$01
-	dc.b $60,$66,$65,$63,$62,$64,$6C,$6D,$6E,$6F,$6A,$6B,$67,$68,$69,$61
-	dc.b $50,$56,$55,$53,$52,$54,$5C,$5D,$5E,$5F,$5A,$5B,$57,$58,$59,$51
-	dc.b $30,$36,$35,$33,$32,$34,$3C,$3D,$3E,$3F,$3A,$3B,$37,$38,$39,$31
-	dc.b $20,$26,$25,$23,$22,$24,$2C,$2D,$2E,$2F,$2A,$2B,$27,$28,$29,$21
-	dc.b $40,$46,$45,$43,$42,$44,$4C,$4D,$4E,$4F,$4A,$4B,$47,$48,$49,$41
-	dc.b $C0,$C6,$C5,$C3,$C2,$C4,$CC,$CD,$CE,$CF,$CA,$CB,$C7,$C8,$C9,$C1
-	dc.b $D0,$D6,$D5,$D3,$D2,$D4,$DC,$DD,$DE,$DF,$DA,$DB,$D7,$D8,$D9,$D1
-	dc.b $E0,$E6,$E5,$E3,$E2,$E4,$EC,$ED,$EE,$EF,$EA,$EB,$E7,$E8,$E9,$E1
-	dc.b $F0,$F6,$F5,$F3,$F2,$F4,$FC,$FD,$FE,$FF,$FA,$FB,$F7,$F8,$F9,$F1
-	dc.b $A0,$A6,$A5,$A3,$A2,$A4,$AC,$AD,$AE,$AF,$AA,$AB,$A7,$A8,$A9,$A1
-	dc.b $B0,$B6,$B5,$B3,$B2,$B4,$BC,$BD,$BE,$BF,$BA,$BB,$B7,$B8,$B9,$B1
-	dc.b $70,$76,$75,$73,$72,$74,$7C,$7D,$7E,$7F,$7A,$7B,$77,$78,$79,$71
-	dc.b $80,$86,$85,$83,$82,$84,$8C,$8D,$8E,$8F,$8A,$8B,$87,$88,$89,$81
-	dc.b $90,$96,$95,$93,$92,$94,$9C,$9D,$9E,$9F,$9A,$9B,$97,$98,$99,$91
-	dc.b $10,$16,$15,$13,$12,$14,$1C,$1D,$1E,$1F,$1A,$1B,$17,$18,$19,$11
-    endif
 ; ===========================================================================
 
     if gameRevision<>3
@@ -93570,28 +93305,6 @@ LoadDebugObjectSprite:
 ; account for its third act. Hidden Palace Zone uses Oil Ocean Zone's list.
 ; ---------------------------------------------------------------------------
 JmpTbl_DbgObjLists: zoneOrderedOffsetTable 2,1
-    if (gameRevision=3) && ~~standaloneKiS2
-	; KiS2: For some reason, the debug lists were all blanked.
-	; This was possibly done in order to save space (there are only 680
-	; bytes spare at the end of the ROM).
-	zoneOffsetTableEntry.w DbgObjList_Def	; 0
-	zoneOffsetTableEntry.w DbgObjList_Def	; 1
-	zoneOffsetTableEntry.w DbgObjList_Def	; 2
-	zoneOffsetTableEntry.w DbgObjList_Def	; 3
-	zoneOffsetTableEntry.w DbgObjList_Def	; 4
-	zoneOffsetTableEntry.w DbgObjList_Def	; 5
-	zoneOffsetTableEntry.w DbgObjList_Def	; 6
-	zoneOffsetTableEntry.w DbgObjList_Def	; 7
-	zoneOffsetTableEntry.w DbgObjList_Def	; 8
-	zoneOffsetTableEntry.w DbgObjList_Def	; 9
-	zoneOffsetTableEntry.w DbgObjList_Def	; $A
-	zoneOffsetTableEntry.w DbgObjList_Def	; $B
-	zoneOffsetTableEntry.w DbgObjList_Def	; $C
-	zoneOffsetTableEntry.w DbgObjList_Def	; $D
-	zoneOffsetTableEntry.w DbgObjList_Def	; $E
-	zoneOffsetTableEntry.w DbgObjList_Def	; $F
-	zoneOffsetTableEntry.w DbgObjList_Def	; $10
-    else
 	zoneOffsetTableEntry.w DbgObjList_EHZ	; 0
 	zoneOffsetTableEntry.w DbgObjList_Def	; 1
 	zoneOffsetTableEntry.w DbgObjList_Def	; 2
@@ -93609,7 +93322,6 @@ JmpTbl_DbgObjLists: zoneOrderedOffsetTable 2,1
 	zoneOffsetTableEntry.w DbgObjList_Def	; $E
 	zoneOffsetTableEntry.w DbgObjList_ARZ	; $F
 	zoneOffsetTableEntry.w DbgObjList_SCZ	; $10
-    endif
     zoneTableEnd
 
 ; macro for a debug object list header
@@ -93636,7 +93348,6 @@ DbgObjList_Def: dbglistheader
     endif
 DbgObjList_Def_End
 
-    if (gameRevision<>3) || standaloneKiS2
 	; KiS2: For some reason, the debug lists were all blanked.
 	; This was possibly done in order to save space (there are only 680
 	; bytes spare at the end of the ROM).
@@ -93992,7 +93703,6 @@ DbgObjList_SCZ: dbglistheader
 	dbglistobj ObjID_Nebula,	Obj99_Obj98_MapUnc_3789A, $12,   0, make_art_tile(ArtTile_ArtNem_Nebula,1,1)
 	dbglistobj ObjID_EggPrison,	Obj3E_MapUnc_3F436,   0,   0, make_art_tile(ArtTile_ArtNem_Capsule,1,0)
 DbgObjList_SCZ_End
-    endif
 
     if ~~removeJmpTos
 JmpTo66_Adjust2PArtPointer ; JmpTo
@@ -95200,20 +94910,8 @@ ArtNem_TitleBanner:	BINCLUDE	"art/nemesis/Giant banner from title screen.bin"
 ; Knuckles from title screen (part 6)
 ArtNem_TitleTheEchidnaIn:	BINCLUDE	"art/nemesis/'THE ECHIDNA IN' from title screen.bin"
 	even
-;--------------------------------------------------------------------------------------
-        if ~~standaloneKiS2
-; Casino Night Zone's object layouts. Bizarrely, only CNZ's object layouts are here: the others are in the Sonic & Knuckles ROM.
-Objects_CNZ_1:	BINCLUDE	"level/objects/CNZ_1.bin"
-	ObjectLayoutBoundary
-Objects_CNZ_2:	BINCLUDE	"level/objects/CNZ_2.bin"
-	ObjectLayoutBoundary
-        endif
-
     endif
-
-; KiS2 (lock-on): The assets and sound driver were all removed: they are instead loaded from the locked-on Sonic 2 ROM.
-    if (gameRevision<>3) || standaloneKiS2
-;---------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------
 ; Curve and resistance mapping
 ;---------------------------------------------------------------------------------------
 ColCurveMap:	BINCLUDE	"collision/Curve and resistance mapping.bin"
@@ -97836,7 +97534,6 @@ Sound6F:	include "sound/sfx/EF - Large Laser.asm"
 Sound70:	include "sound/sfx/F0 - Oil Slide.asm"
 
 	finishBank
-    endif
 
 ; end of 'ROM'
 	if padToPowerOfTwo && (*-StartOfRom)&(*-StartOfRom-1)
@@ -97857,10 +97554,6 @@ paddingSoFar	:= paddingSoFar+1
 	endif
 	; share these symbols externally (WARNING: don't rename, move or remove these labels!)
 	; KiS2: TODO: These don't work properly in non-standalone builds with the S2 and S&K ROMs at the beginning because fixpointer.exe expects the addresses to not be offset.
-	shared word_728C_user,Obj5F_MapUnc_7240,off_3A294,MapRUnc_Sonic
-    if (gameRevision<>3) || standaloneKiS2
-	; KiS2 (lock-on): 'movewZ80CompSize' doesn't need to be exported anymore.
-	shared movewZ80CompSize
-    endif
+	shared word_728C_user,Obj5F_MapUnc_7240,off_3A294,MapRUnc_Sonic,movewZ80CompSize
 EndOfRom:
 	END

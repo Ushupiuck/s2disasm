@@ -1285,9 +1285,6 @@ Underwater_palette_line2:	ds.b palette_line_size
 Underwater_palette_line3:	ds.b palette_line_size
 Underwater_palette_line4:	ds.b palette_line_size
 
-    if (gameRevision=3) && ~~standaloneKiS2
-Knuckles_Art_Conversion_Buffer:
-    endif
 				ds.b	$500	; $FFFFF100-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver (and used by it when you port it to Sonic 2)
 
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
@@ -1860,15 +1857,7 @@ CrossResetRAM_End:
     endif
 
     if gameRevision=3
-        if standaloneKiS2
 				ds.b	$C	; unused
-        else
-; KiS2: These were added. They're from Sonic & Knuckles, whose vector table points here.
-V_Int_Opcode:			ds.w	1
-V_Int_Address:			ds.l	1
-H_Int_Opcode:			ds.w	1
-H_Int_Address:			ds.l	1
-        endif
     else
 ; KiS2: These were moved to make room for the above variables.
 Demo_mode_flag:			ds.w	1 ; 1 if a demo is playing (2 bytes)
