@@ -85,9 +85,9 @@ SonicDriverVer = 2 ; Tell SMPS2ASM that we are targetting Sonic 2's sound driver
 	include "sound/_smps2asm_inc.asm"
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; Lock-On Technology ROM locations
-    if gameRevision=3
-	include "s2.lockon.asm"
-    endif
+;    if gameRevision=3
+;	include "s2.lockon.asm"
+;    endif
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; start of ROM
@@ -6793,7 +6793,9 @@ SpecialStage:
 ; ===========================================================================
 
 loc_540C:
+    if gameRevision<>3
 	move.w	#VsRSID_SS,(Results_Screen_2P).w
+    endif
 	move.b	#GameModeID_2PResults,(Game_Mode).w ; => TwoPlayerResults
 	rts
 ; ===========================================================================
@@ -36385,7 +36387,9 @@ Obj0D_Main_State4:
 	move.b	#0,(Last_star_pole_hit).w
 	move.b	#0,(Last_star_pole_hit_2P).w
 	move.b	#GameModeID_2PResults,(Game_Mode).w ; => TwoPlayerResults
+    if gameRevision<>3
 	move.w	#VsRSID_Act,(Results_Screen_2P).w
+    endif
 
 return_19532:
 	rts
