@@ -653,14 +653,7 @@ Vint_Level:
 
 	; Skip a colour.
 	move.l	#vdpComm($0042,CRAM,WRITE),(VDP_control_port).l
-
-    if fixBugs
 	move.w	#31-1,d1
-    else
-	; This does one more colour than necessary: it isn't accounting for
-	; the colour that was skipped earlier!
-	move.w	#32-1,d1
-    endif
 -	move.w	d0,(a6)
 	dbf	d1,-
 
@@ -1167,14 +1160,7 @@ sndDriverInput:
 ; loc_10C4:
 .doSFX:
 	; Process the SFX queue.
-    if fixBugs
 	moveq	#3-1,d1
-    else
-	; This is too high: there is only room for three bytes in the
-	; driver's queue. This causes the first byte of 'VoiceTblPtr' to be
-	; overwritten.
-	moveq	#4-1,d1
-    endif
 
 .loop:
 	; If there's no sound queued, skip this slot.
@@ -1340,9 +1326,8 @@ ClearScreen:
 	clr.l	(Vscroll_Factor).w
 	clr.l	(unk_F61A).w
 
-	; These '+4's shouldn't be here; clearRAM accidentally clears an additional 4 bytes
-	clearRAM Sprite_Table,Sprite_Table_End+4
-	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
+	clearRAM Sprite_Table,Sprite_Table_End
+	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
 
 	startZ80
 	rts
@@ -1437,7 +1422,6 @@ PauseGame:
 	nop
 	tst.b	(Life_count).w	; do you have any lives left?
 	beq.w	Unpause		; if not, branch
-    if fixBugs
 	; The game still lets you pause if player 2 got a Game Over, or if
 	; either player got a Time Over. The following code fixes this.
 	tst.b	(Life_count_2P).w
@@ -1446,7 +1430,6 @@ PauseGame:
 	bne.w	Unpause
 	tst.b   (Time_Over_flag_2P).w
 	bne.w   Unpause
-    endif
 	tst.w	(Game_paused).w	; is game already paused?
 	bne.s	+		; if yes, branch
 	move.b	(Ctrl_1_Press).w,d0 ; is Start button pressed?
@@ -1974,17 +1957,6 @@ RunPLC_RAM:
 	adda.w	#NemDec_WriteAndStay_XOR-NemDec_WriteAndStay,a3
 +
 	andi.w	#$7FFF,d2
-    if ~~fixBugs
-	; This is done too early: this variable is used to determine when
-	; there are PLCs to process, which means that as soon as this
-	; variable is set, PLC processing will occur during V-Int. If an
-	; interrupt occurs between here and the end of this function, then
-	; the PLC processor will begin despite it not being fully
-	; initialised yet, causing a crash. S3K fixes this bug by moving this
-	; instruction to the end of the function.
-	move.w	d2,(Plc_Buffer_Reg18).w
-    endif
-
 	bsr.w	NemDecPrepare
 	move.b	(a0)+,d5
 	asl.w	#8,d5
@@ -1998,10 +1970,7 @@ RunPLC_RAM:
 	move.l	d0,(Plc_Buffer_RegC).w
 	move.l	d5,(Plc_Buffer_Reg10).w
 	move.l	d6,(Plc_Buffer_Reg14).w
-    if fixBugs
-	; See above.
 	move.w	d2,(Plc_Buffer_Reg18).w
-    endif
 
 .return:
 	rts
@@ -2923,7 +2892,6 @@ PalCycle_SuperSonic:
 	lea	(Normal_palette+4).w,a1
 	move.l	(a0,d0.w),(a1)+
 	move.l	4(a0,d0.w),(a1)
-    if fixBugs
 	; underwater palettes
 	lea	(CyclingPal_CPZUWTransformation).l,a0
 	cmpi.b	#chemical_plant_zone,(Current_Zone).w
@@ -2934,11 +2902,6 @@ PalCycle_SuperSonic:
 +	lea	(Underwater_palette+4).w,a1
 	move.l	(a0,d0.w),(a1)+
 	move.l	4(a0,d0.w),(a1)
-    else
-	; Note: The fade in for Sonic's underwater palette is missing.
-	; Because of this, Super Sonic's transformation will be uncorrect
-	; when underwater.
-    endif
 .return:
 	rts
 ; ===========================================================================
@@ -2954,13 +2917,7 @@ PalCycle_SuperSonic:
 	move.w	(Palette_frame).w,d0
 	subq.w	#8,(Palette_frame).w	; previous frame
 	bcc.s	+			; branch, if it isn't the first frame
-    if fixBugs
 	move.w	#0,(Palette_frame).w
-    else
-	; This does not clear the full variable, causing this palette cycle
-	; to behave incorrectly the next time it is activated.
-	move.b	#0,(Palette_frame).w
-    endif
 	move.b	#0,(Super_Sonic_palette).w	; stop palette cycle
 +
 	lea	(Normal_palette+4).w,a1
@@ -2990,12 +2947,7 @@ PalCycle_SuperSonic:
 	move.w	(Palette_frame).w,d0
 	addq.w	#8,(Palette_frame).w	; next frame
 	cmpi.w	#$78,(Palette_frame).w	; is it the last frame?
-    if fixBugs
 	bls.s	+			; if not, branch
-    else
-	; This condition causes the last frame to be skipped.
-	blo.s	+			; if not, branch
-    endif
 	move.w	#$30,(Palette_frame).w	; reset frame counter (Super Sonic's normal palette cycle starts at $30. Everything before that is for the palette fade)
 +
 	lea	(Normal_palette+4).w,a1
@@ -3442,7 +3394,7 @@ Pal_FadeToWhite:
 ; Unused - dead code/data for old SEGA screen:
 
 ; ===========================================================================
-; PalCycle_Sega:
+PalCycle_Sega:
 	tst.b	(PalCycle_Timer+1).w
 	bne.s	loc_2680
 	lea	(Normal_palette_line2).w,a1
@@ -3724,13 +3676,6 @@ Pal_SS3_2p:palette Special Stage 3 2p.bin ; Special Stage 3 2p palette
 Pal_Result:palette Special Stage Results Screen.bin ; Special Stage Results Screen palette
 ; ===========================================================================
 
-    if gameRevision<2
-	nop
-    endif
-
-
-
-
 ; ---------------------------------------------------------------------------
 ; Subroutine to perform vertical synchronization
 ; ---------------------------------------------------------------------------
@@ -3865,27 +3810,14 @@ CalcAngle_Zero:
 ; ===========================================================================
 ; byte_36B4:
 Angle_Data:	BINCLUDE	"misc/angles.bin"
-
+	even
 ; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-
-
-
 ; loc_37B8:
 SegaScreen:
 	move.b	#MusID_Stop,d0
 	bsr.w	PlayMusic ; stop music
 	bsr.w	ClearPLC
 	bsr.w	Pal_FadeToBlack
-
-	clearRAM Misc_Variables,Misc_Variables_End
-
-	clearRAM Object_RAM,Object_RAM_End ; fill object RAM with 0
-
 	lea	(VDP_control_port).l,a6
 	move.w	#$8004,(a6)		; H-INT disabled
 	move.w	#$8200|(VRAM_SegaScr_Plane_A_Name_Table/$400),(a6)	; PNT A base: $C000
@@ -3901,6 +3833,8 @@ SegaScreen:
 	andi.b	#$BF,d0
 	move.w	d0,(VDP_control_port).l
 	bsr.w	ClearScreen
+	clearRAM Misc_Variables,Misc_Variables_End
+	clearRAM Object_RAM,Object_RAM_End ; fill object RAM with 0
 
 	dmaFillVRAM 0,VRAM_SegaScr_Plane_A_Name_Table,VRAM_SegaScr_Plane_Table_Size ; clear Plane A pattern name table
 
@@ -3956,7 +3890,8 @@ SegaScreen_Contin:
 Sega_WaitPalette:
 	move.b	#VintID_SEGA,(Vint_routine).w
 	bsr.w	WaitForVint
-	jsrto	RunObjects, JmpTo_RunObjects
+;	bsr.w	PalCycle_Sega
+	jsr	(RunObjects).l
 	jsr	(BuildSprites).l
 	tst.b	(SegaScr_PalDone_Flag).w
 	beq.s	Sega_WaitPalette
@@ -4011,38 +3946,13 @@ PlaneMapToVRAM_H80_Sega:
 ; End of function PlaneMapToVRAM_H80_Sega
 
 ; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-; sub_3990:
-JmpTo_RunObjects ; JmpTo
-	jmp	(RunObjects).l
-
-	align 4
-    endif
-
-
-
-
-; ===========================================================================
 ; loc_3998:
 TitleScreen:
-	; Stop music.
 	move.b	#MusID_Stop,d0
-	bsr.w	PlayMusic
-
-	; Clear the PLC queue, preventing any PLCs from before loading after this point.
-	bsr.w	ClearPLC
-
-	; Fade out.
-	bsr.w	Pal_FadeToBlack
-
-	; Disable interrupts, so that we can have exclusive access to the VDP.
-	move	#$2700,sr
-
+	bsr.w	PlayMusic	; Stop music.
+	bsr.w	ClearPLC	; Clear the PLC queue, preventing any PLCs from before loading after this point.
+	bsr.w	Pal_FadeToBlack	; Fade out.
+	move	#$2700,sr	; Disable interrupts, so that we can have exclusive access to the VDP.
 	; Configure the VDP for this screen mode.
 	lea	(VDP_control_port).l,a6
 	move.w	#$8004,(a6)		; H-INT disabled
@@ -4052,13 +3962,9 @@ TitleScreen:
 	move.w	#$9200,(a6)		; Disable window
 	move.w	#$8B03,(a6)		; EXT-INT disabled, V scroll by screen, H scroll by line
 	move.w	#$8720,(a6)		; Background palette/color: 2/0
-
 	clr.b	(Water_fullscreen_flag).w
-
 	move.w	#$8C81,(a6)		; H res 40 cells, no interlace, S/H disabled
-
-	; Reset plane maps, sprite table, and scroll tables.
-	bsr.w	ClearScreen
+	bsr.w	ClearScreen	; Reset plane maps, sprite table, and scroll tables.
 
 	; Reset a bunch of engine state.
 	clearRAM Sprite_Table_Input,Sprite_Table_Input_End ; fill $AC00-$AFFF with $0
@@ -4240,7 +4146,7 @@ TitleScreen_Loop:
 	bsr.w	WaitForVint
 
 	jsr	(RunObjects).l
-	jsrto	SwScrl_Title, JmpTo_SwScrl_Title
+	jsr	(SwScrl_Title).l
 	jsr	(BuildSprites).l
 
 	; Find the masking sprite, and move it to the proper location. The
@@ -43521,12 +43427,7 @@ CheckLeftWallDist_Part2:
 ObjCheckLeftWallDist:
 	add.w	x_pos(a0),d3
 	move.w	y_pos(a0),d2
-    if fixBugs
-	; Colliding with left walls is erratic with this function.
-	; The cause is this: a missing instruction to flip collision on the found
-	; 16x16 block; this one:
 	eori.w	#$F,d3
-    endif
 	lea	(Primary_Angle).w,a4
 	move.b	#0,(a4)
 	movea.w	#-$10,a3
@@ -72028,7 +71929,7 @@ loc_361D8:
 	clearRAM Sprite_Table,Sprite_Table_End
     else
 	; The '+4' shouldn't be here; clearRAM accidentally clears an additional 4 bytes.
-	clearRAM Sprite_Table,Sprite_Table_End+4
+	clearRAM Sprite_Table,Sprite_Table_End
     endif
 
 	rts
@@ -77899,13 +77800,7 @@ loc_3A346:
 	bchg	#0,render_flags(a0)
 	bchg	#0,status(a0)
 
-    if fixBugs
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
-    else
-	; This clears a lot more than the horizontal scroll buffer, which is $400 bytes.
-	; This is because the loop counter is erroneously set to $400, instead of ($400/4)-1.
-	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+$C04
-    endif
 
 	; Initialize streak horizontal offsets for Sonic going right.
 	; 9 full lines (8 pixels) + 7 pixels, 2-byte interleaved entries for PNT A and PNT B
@@ -77957,7 +77852,7 @@ loc_3A3E6:
 	addq.b	#2,routine(a0)
 	st.b	(SegaScr_PalDone_Flag).w
 	move.b	#SndID_SegaSound,d0
-	jsrto	PlaySound, JmpTo12_PlaySound
+	jmp	(PlaySound).l
 
 return_3A3F6:
 	rts
@@ -85653,7 +85548,7 @@ Dynamic_HTZ:
 	divu.w	#$30,d0
 	swap	d0
 	cmp.b	1(a3),d0
-	beq.s	BranchTo_loc_3FE5C
+	beq.w	loc_3FE5C
 	move.b	d0,1(a3)
 	move.w	d0,d2
 	andi.w	#7,d0
@@ -85680,7 +85575,6 @@ loc_3FD7C:
 	addi.w	#$80,d4
 	dbf	d5,loc_3FD7C
 
-BranchTo_loc_3FE5C ; BranchTo
 	bra.w	loc_3FE5C
 ; ===========================================================================
 ; HTZ mountain art main RAM addresses?
@@ -85788,9 +85682,9 @@ Dynamic_Normal:
 loc_3FF30:
 	move.w	(a2)+,d6	; Get number of scripts in list
 	; S&K checks for empty lists, here
-;	bpl.s	.listnotempty	; If there are any, continue
-;	rts
-;.listnotempty:
+	bpl.s	.listnotempty	; If there are any, continue
+	rts
+.listnotempty:
 
 ; loc_3FF32:
 .loop:
@@ -91619,13 +91513,7 @@ Off_Objects: zoneOrderedOffsetTable 2,2
 	ObjectLayoutBoundary
 Objects_EHZ_1:	BINCLUDE	"level/objects/EHZ_1.bin"
 	ObjectLayoutBoundary
-
-    if gameRevision=0
-; A collision switcher was improperly placed
-Objects_EHZ_2:	BINCLUDE	"level/objects/EHZ_2 (REV00).bin"
-    else
 Objects_EHZ_2:	BINCLUDE	"level/objects/EHZ_2.bin"
-    endif
 
 	ObjectLayoutBoundary
 Objects_MTZ_1:	BINCLUDE	"level/objects/MTZ_1.bin"
@@ -91635,20 +91523,17 @@ Objects_MTZ_2:	BINCLUDE	"level/objects/MTZ_2.bin"
 Objects_MTZ_3:	BINCLUDE	"level/objects/MTZ_3.bin"
 	ObjectLayoutBoundary
 
-    if gameRevision=0
-; The lampposts were bugged: their 'remember state' flags weren't set
-Objects_WFZ_1:	BINCLUDE	"level/objects/WFZ_1 (REV00).bin"
-    else
 Objects_WFZ_1:	BINCLUDE	"level/objects/WFZ_1.bin"
-    endif
 
 	ObjectLayoutBoundary
 Objects_WFZ_2:	BINCLUDE	"level/objects/WFZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_HTZ_1:	BINCLUDE	"level/objects/HTZ_1.bin"
 	ObjectLayoutBoundary
 Objects_HTZ_2:	BINCLUDE	"level/objects/HTZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_HPZ_1:	BINCLUDE	"level/objects/HPZ_1.bin"
 	ObjectLayoutBoundary
 Objects_HPZ_2:	BINCLUDE	"level/objects/HPZ_2.bin"
@@ -91659,39 +91544,37 @@ Objects_OOZ_1:	BINCLUDE	"level/objects/OOZ_1.bin"
 	ObjectLayoutBoundary
 Objects_OOZ_2:	BINCLUDE	"level/objects/OOZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_MCZ_1:	BINCLUDE	"level/objects/MCZ_1.bin"
 	ObjectLayoutBoundary
 Objects_MCZ_2:	BINCLUDE	"level/objects/MCZ_2.bin"
 	ObjectLayoutBoundary
 
-    if gameRevision=0
-; The signposts are too low, causing them to poke out the bottom of the ground
-Objects_CNZ_1:	BINCLUDE	"level/objects/CNZ_1 (REV00).bin"
-	ObjectLayoutBoundary
-Objects_CNZ_2:	BINCLUDE	"level/objects/CNZ_2 (REV00).bin"
-    else
 Objects_CNZ_1:	BINCLUDE	"level/objects/CNZ_1.bin"
 	ObjectLayoutBoundary
 Objects_CNZ_2:	BINCLUDE	"level/objects/CNZ_2.bin"
-    endif
 
 	ObjectLayoutBoundary
 Objects_CPZ_1:	BINCLUDE	"level/objects/CPZ_1.bin"
 	ObjectLayoutBoundary
 Objects_CPZ_2:	BINCLUDE	"level/objects/CPZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_DEZ_1:	BINCLUDE	"level/objects/DEZ_1.bin"
 	ObjectLayoutBoundary
 Objects_DEZ_2:	BINCLUDE	"level/objects/DEZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_ARZ_1:	BINCLUDE	"level/objects/ARZ_1.bin"
 	ObjectLayoutBoundary
 Objects_ARZ_2:	BINCLUDE	"level/objects/ARZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_SCZ_1:	BINCLUDE	"level/objects/SCZ_1.bin"
 	ObjectLayoutBoundary
 Objects_SCZ_2:	BINCLUDE	"level/objects/SCZ_2.bin"
 	ObjectLayoutBoundary
+
 Objects_Null:
 	ObjectLayoutBoundary
 	; Another strange space for a layout
