@@ -156,7 +156,7 @@ ss_rings_units = objoff_3E
 ss_last_angle_index = objoff_3F
 ; ---------------------------------------------------------------------------
 ; property of all objects:
-object_size =		$40 ; the size of an object
+object_size =		$4A ; the size of an object
 next_object =		object_size
 
 ; ---------------------------------------------------------------------------
@@ -937,16 +937,16 @@ AniIDSonAni_Balance		= id(SonAni_Balance_ptr)	;  6 ;   6
 AniIDSonAni_LookUp		= id(SonAni_LookUp_ptr)		;  7 ;   7
 AniIDSonAni_Duck		= id(SonAni_Duck_ptr)		;  8 ;   8
 AniIDSonAni_Spindash		= id(SonAni_Spindash_ptr)	;  9 ;   9
-AniIDSonAni_Blink		= id(SonAni_Blink_ptr)		; 10 ;  $A ; Exclusive to Sonic
-AniIDSonAni_GetUp		= id(SonAni_GetUp_ptr)		; 11 ;  $B ; Exclusive to Sonic
-AniIDSonAni_Balance2		= id(SonAni_Balance2_ptr)	; 12 ;  $C ; Exclusive to Sonic
+AniIDSonAni_Blink		= id(SonAni_Blink_ptr)		; 10 ;  $A
+AniIDSonAni_GetUp		= id(SonAni_GetUp_ptr)		; 11 ;  $B
+AniIDSonAni_Balance2		= id(SonAni_Balance2_ptr)	; 12 ;  $C
 AniIDSonAni_Stop		= id(SonAni_Stop_ptr)		; 13 ;  $D
 AniIDSonAni_Float		= id(SonAni_Float_ptr)		; 14 ;  $E
 AniIDSonAni_Float2		= id(SonAni_Float2_ptr)		; 15 ;  $F
 AniIDSonAni_Spring		= id(SonAni_Spring_ptr)		; 16 ; $10
 AniIDSonAni_Hang		= id(SonAni_Hang_ptr)		; 17 ; $11
-AniIDSonAni_Dash2		= id(SonAni_Dash2_ptr)		; 18 ; $12 ; Unused.
-AniIDSonAni_Dash3		= id(SonAni_Dash3_ptr)		; 19 ; $13 ; Unused.
+AniIDSonAni_Dash2		= id(SonAni_Dash2_ptr)		; 18 ; $12
+AniIDSonAni_Dash3		= id(SonAni_Dash3_ptr)		; 19 ; $13
 AniIDSonAni_Hang2		= id(SonAni_Hang2_ptr)		; 20 ; $14
 AniIDSonAni_Bubble		= id(SonAni_Bubble_ptr)		; 21 ; $15
 AniIDSonAni_DeathBW		= id(SonAni_DeathBW_ptr)	; 22 ; $16
@@ -971,13 +971,43 @@ AniIDSonAni_Lying		= id(SonAni_Lying_ptr)		; 32 ; $20 ; Exclusive to Sonic
 AniIDSonAni_LieDown		= id(SonAni_LieDown_ptr)	; 33 ; $21 ; Exclusive to Sonic
     endif
 
-
     if gameRevision<>3
 ; KiS2: No Tails.
 offset :=	TailsAniData
 ptrsize :=	2
 idstart :=	0
 
+AniIDTailsAni_Walk		= id(TailsAni_Walk_ptr)		;  0 ;   0
+AniIDTailsAni_Run		= id(TailsAni_Run_ptr)		;  1 ;   1
+AniIDTailsAni_Roll		= id(TailsAni_Roll_ptr)		;  2 ;   2
+AniIDTailsAni_Roll2		= id(TailsAni_Roll2_ptr)	;  3 ;   3
+AniIDTailsAni_Push		= id(TailsAni_Push_ptr)		;  4 ;   4
+AniIDTailsAni_Wait		= id(TailsAni_Wait_ptr)		;  5 ;   5
+AniIDTailsAni_Balance		= id(TailsAni_Balance_ptr)	;  6 ;   6
+AniIDTailsAni_LookUp		= id(TailsAni_LookUp_ptr)	;  7 ;   7
+AniIDTailsAni_Duck		= id(TailsAni_Duck_ptr)		;  8 ;   8
+AniIDTailsAni_Spindash		= id(TailsAni_Spindash_ptr)	;  9 ;   9
+AniIDTailsAni_Dummy1		= id(TailsAni_Dummy1_ptr)	; 10 ;  $A
+AniIDTailsAni_Dummy2		= id(TailsAni_Dummy2_ptr)	; 11 ;  $B
+AniIDTailsAni_Dummy3		= id(TailsAni_Dummy3_ptr)	; 12 ;  $C
+AniIDTailsAni_Stop		= id(TailsAni_Stop_ptr)		; 13 ;  $D
+AniIDTailsAni_Float		= id(TailsAni_Float_ptr)	; 14 ;  $E
+AniIDTailsAni_Float2		= id(TailsAni_Float2_ptr)	; 15 ;  $F
+AniIDTailsAni_Spring		= id(TailsAni_Spring_ptr)	; 16 ; $10
+AniIDTailsAni_Hang		= id(TailsAni_Hang_ptr)		; 17 ; $11
+AniIDTailsAni_Blink		= id(TailsAni_Blink_ptr)	; 18 ; $12
+AniIDTailsAni_Blink2		= id(TailsAni_Blink2_ptr)	; 19 ; $13
+AniIDTailsAni_Hang2		= id(TailsAni_Hang2_ptr)	; 20 ; $14
+AniIDTailsAni_Bubble		= id(TailsAni_Bubble_ptr)	; 21 ; $15
+AniIDTailsAni_DeathBW		= id(TailsAni_DeathBW_ptr)	; 22 ; $16
+AniIDTailsAni_Drown		= id(TailsAni_Drown_ptr)	; 23 ; $17
+AniIDTailsAni_Death		= id(TailsAni_Death_ptr)	; 24 ; $18
+AniIDTailsAni_Hurt		= id(TailsAni_Hurt_ptr)		; 25 ; $19
+AniIDTailsAni_Hurt2		= id(TailsAni_Hurt2_ptr)	; 26 ; $1A
+AniIDTailsAni_Slide		= id(TailsAni_Slide_ptr)	; 27 ; $1B
+AniIDTailsAni_Blank		= id(TailsAni_Blank_ptr)	; 28 ; $1C
+AniIDTailsAni_Dummy4		= id(TailsAni_Dummy4_ptr)	; 29 ; $1D
+AniIDTailsAni_Dummy5		= id(TailsAni_Dummy5_ptr)	; 30 ; $1E
 AniIDTailsAni_HaulAss		= id(TailsAni_HaulAss_ptr)	; 31 ; $1F
 AniIDTailsAni_Fly		= id(TailsAni_Fly_ptr)		; 32 ; $20
     endif
@@ -1120,7 +1150,7 @@ Tails_Pos_Record_Buf_End:
 
 CNZ_saucer_data:		ds.b	$40	; the number of saucer bumpers in a group which have been destroyed. Used to decide when to give 500 points instead of 10
 CNZ_saucer_data_End:
-				ds.b	$C0	; $FFFFE740-$FFFFE7FF ; unused as far as I can tell
+				ds.b	$20	; $FFFFE740-$FFFFE7FF ; unused as far as I can tell
 Ring_Positions:			ds.b	$600
 Ring_Positions_End:
 
@@ -1285,7 +1315,6 @@ Underwater_palette_line2:	ds.b palette_line_size
 Underwater_palette_line3:	ds.b palette_line_size
 Underwater_palette_line4:	ds.b palette_line_size
 
-				ds.b	$500	; $FFFFF100-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver (and used by it when you port it to Sonic 2)
 
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
 				ds.b	1	; unused
@@ -1327,7 +1356,7 @@ Sprite_count:			ds.b	1	; the number of sprites drawn in the current frame
 PalCycle_Frame:			ds.w	1	; ColorID loaded in PalCycle
 PalCycle_Timer:			ds.w	1	; number of frames until next PalCycle call
 RNG_seed:			ds.l	1	; used for random number generation
-Game_paused:			ds.w	1	
+Game_paused:			ds.w	1
 				ds.b	4	; $FFFFF63C-$FFFFF63F ; seems unused
 DMA_data_thunk:			ds.w	1	; Used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
 				ds.w	1	; $FFFFF642-$FFFFF643 ; seems unused
@@ -1388,14 +1417,14 @@ MiscLevelVariables_End
 Plc_Buffer:			ds.b	$60	; Pattern load queue (each entry is 6 bytes)
 Plc_Buffer_Only_End:
 				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
-Plc_Buffer_Reg0:		ds.l	1	
-Plc_Buffer_Reg4:		ds.l	1	
-Plc_Buffer_Reg8:		ds.l	1	
-Plc_Buffer_RegC:		ds.l	1	
-Plc_Buffer_Reg10:		ds.l	1	
-Plc_Buffer_Reg14:		ds.l	1	
+Plc_Buffer_Reg0:		ds.l	1
+Plc_Buffer_Reg4:		ds.l	1
+Plc_Buffer_Reg8:		ds.l	1
+Plc_Buffer_RegC:		ds.l	1
+Plc_Buffer_Reg10:		ds.l	1
+Plc_Buffer_Reg14:		ds.l	1
 Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
-Plc_Buffer_Reg1A:		ds.w	1	
+Plc_Buffer_Reg1A:		ds.w	1
 				ds.b	4	; seems unused
 Plc_Buffer_End:
 
