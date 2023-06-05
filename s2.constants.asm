@@ -156,7 +156,7 @@ ss_rings_units = objoff_3E
 ss_last_angle_index = objoff_3F
 ; ---------------------------------------------------------------------------
 ; property of all objects:
-object_size =		$4A ; the size of an object
+object_size =		$40 ; the size of an object
 next_object =		object_size
 
 ; ---------------------------------------------------------------------------
@@ -1150,7 +1150,7 @@ Tails_Pos_Record_Buf_End:
 
 CNZ_saucer_data:		ds.b	$40	; the number of saucer bumpers in a group which have been destroyed. Used to decide when to give 500 points instead of 10
 CNZ_saucer_data_End:
-				ds.b	$20	; $FFFFE740-$FFFFE7FF ; unused as far as I can tell
+				ds.b	$C0	; $FFFFE740-$FFFFE7FF ; unused as far as I can tell
 Ring_Positions:			ds.b	$600
 Ring_Positions_End:
 
@@ -1315,6 +1315,7 @@ Underwater_palette_line2:	ds.b palette_line_size
 Underwater_palette_line3:	ds.b palette_line_size
 Underwater_palette_line4:	ds.b palette_line_size
 
+				ds.b	$500	; $FFFFF100-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver (and used by it when you port it to Sonic 2)
 
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
 				ds.b	1	; unused
@@ -1356,7 +1357,7 @@ Sprite_count:			ds.b	1	; the number of sprites drawn in the current frame
 PalCycle_Frame:			ds.w	1	; ColorID loaded in PalCycle
 PalCycle_Timer:			ds.w	1	; number of frames until next PalCycle call
 RNG_seed:			ds.l	1	; used for random number generation
-Game_paused:			ds.w	1
+Game_paused:			ds.w	1	
 				ds.b	4	; $FFFFF63C-$FFFFF63F ; seems unused
 DMA_data_thunk:			ds.w	1	; Used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
 				ds.w	1	; $FFFFF642-$FFFFF643 ; seems unused
@@ -1417,14 +1418,14 @@ MiscLevelVariables_End
 Plc_Buffer:			ds.b	$60	; Pattern load queue (each entry is 6 bytes)
 Plc_Buffer_Only_End:
 				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
-Plc_Buffer_Reg0:		ds.l	1
-Plc_Buffer_Reg4:		ds.l	1
-Plc_Buffer_Reg8:		ds.l	1
-Plc_Buffer_RegC:		ds.l	1
-Plc_Buffer_Reg10:		ds.l	1
-Plc_Buffer_Reg14:		ds.l	1
+Plc_Buffer_Reg0:		ds.l	1	
+Plc_Buffer_Reg4:		ds.l	1	
+Plc_Buffer_Reg8:		ds.l	1	
+Plc_Buffer_RegC:		ds.l	1	
+Plc_Buffer_Reg10:		ds.l	1	
+Plc_Buffer_Reg14:		ds.l	1	
 Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
-Plc_Buffer_Reg1A:		ds.w	1
+Plc_Buffer_Reg1A:		ds.w	1	
 				ds.b	4	; seems unused
 Plc_Buffer_End:
 
