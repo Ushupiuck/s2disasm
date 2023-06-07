@@ -49,7 +49,7 @@ subtype =		$28
 inertia =		$14 ; and $15 ; directionless representation of speed... not updated in the air
     if gameRevision=3
 ; KiS2: New SSTs, related to Knuckles' abilities.
-double_jump_property =	$1F
+double_jump_property =	$20 ; Changed from $1F
 double_jump_flag =	$21
     endif
 flip_angle =		$27 ; angle about the x axis (360 degrees = 256) (twist/tumble)
@@ -568,7 +568,7 @@ ObjID_BlueBalls =		id(ObjPtr_BlueBalls)		; 1D
 ObjID_CPZSpinTube =		id(ObjPtr_CPZSpinTube)		; 1E
 ObjID_CollapsPform =		id(ObjPtr_CollapsPform)		; 1F
 ObjID_LavaBubble =		id(ObjPtr_LavaBubble)		; 20
-ObjID_2PResults =		id(ObjPtr_2PResults)		; 21
+;ObjID_2PResults =		id(ObjPtr_2PResults)		; 21
 ObjID_ArrowShooter =		id(ObjPtr_ArrowShooter)		; 22
 ObjID_FallingPillar =		id(ObjPtr_FallingPillar)	; 23
 ObjID_ARZBubbles =		id(ObjPtr_ARZBubbles)		; 24
@@ -1122,22 +1122,14 @@ Tails_InvincibilityStars:
 				ds.b	object_size
 LevelOnly_Object_RAM_End:
 
-				ds.b	$200	; unused
-
-Primary_Collision:		ds.b	$300
-Secondary_Collision:		ds.b	$300
+				ds.b	$1080	; unused
 
 SS_Shared_RAM_End:
 
 VDP_Command_Buffer:		ds.w	7*$12	; stores 18 ($12) VDP commands to issue the next time ProcessDMAQueue is called
 VDP_Command_Buffer_Slot:	ds.l	1	; stores the address of the next open slot for a queued VDP command
 
-Sprite_Table_2:			ds.b	$280	; Sprite attribute table buffer for the bottom split screen in 2-player mode
-				ds.b	$80	; unused, but SAT buffer can spill over into this area when there are too many sprites on-screen
-
-Horiz_Scroll_Buf:		ds.l	224
-				ds.l	16 	; A bug/optimisation in 'Swscrl_CPZ' causes 'Horiz_Scroll_Buf' to overflow into this.
-				ds.b	$40	; unused
+Horiz_Scroll_Buf:		ds.b	$380	; horizontal scroll table is built up here and then DMAed to VRAM
 Horiz_Scroll_Buf_End:
 
 Sonic_Stat_Record_Buf:		ds.b	$100
@@ -1288,7 +1280,7 @@ Camera_BG_Y_offset:		ds.w	1	; Used to control background scrolling in Y in WFZ e
 HTZ_Terrain_Delay:		ds.w	1	; During HTZ screen shake, this is a delay between rising and sinking terrain during which there is no shaking
 HTZ_Terrain_Direction:		ds.b	1	; During HTZ screen shake, 0 if terrain/lava is rising, 1 if lowering
 				ds.b	3	; $FFFFEEE9-$FFFFEEEB ; seems unused
-Vscroll_Factor_P2_HInt:	ds.l	1
+Vscroll_Factor_P2_HInt:		ds.l	1
 Camera_X_pos_copy:		ds.l	1
 Camera_Y_pos_copy:		ds.l	1
 
@@ -1315,8 +1307,6 @@ Underwater_palette_line2:	ds.b palette_line_size
 Underwater_palette_line3:	ds.b palette_line_size
 Underwater_palette_line4:	ds.b palette_line_size
 
-				ds.b	$500	; $FFFFF100-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver (and used by it when you port it to Sonic 2)
-
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
 				ds.b	1	; unused
 Ctrl_1_Logical:					; 2 bytes
@@ -1328,9 +1318,8 @@ Ctrl_1_Press:			ds.b	1	; 1 byte
 Ctrl_2:						; 2 bytes
 Ctrl_2_Held:			ds.b	1	; 1 byte
 Ctrl_2_Press:			ds.b	1	; 1 byte
-				ds.b	4	; $FFFFF608-$FFFFF60B ; seems unused
 VDP_Reg1_val:			ds.w	1	; normal value of VDP register #1 when display is disabled
-				ds.b	6	; $FFFFF60E-$FFFFF613 ; seems unused
+				ds.b	$A	; $FFFFF608-$FFFFF60A ; seems unused
 Demo_Time_left:			ds.w	1	; 2 bytes
 
 Vscroll_Factor:
@@ -1545,7 +1534,9 @@ Demo_press_counter:		ds.b	1	; frames remaining until next button press, for play
 				ds.b	1	; $FFFFF793 ; seems unused
 PalChangeSpeed:			ds.w	1
 Collision_addr:			ds.l	1
-				ds.b	$D	; $FFFFF79A-$FFFFF7A6 ; seems unused
+Primary_Collision:		ds.l	1
+Secondary_Collision:		ds.l	1
+				ds.b	$5	; $FFFFF79A-$FFFFF7A6 ; seems unused
 Boss_defeated_flag:		ds.b	1
 				ds.b	2	; $FFFFF7A8-$FFFFF7A9 ; seems unused
 Current_Boss_ID:		ds.b	1
@@ -1554,7 +1545,7 @@ Current_Boss_ID:		ds.b	1
 ; KiS2: 'Ending_Routine' was moved, and some variables were added.
 				ds.b	1	; unused
 Gliding_collision_flags:	ds.b	1
-Disable_wall_grab:		ds.b	1	; Leftover from S3K: only read, and never written.
+Disable_wall_grab:		ds.b	1	; Leftover from S3K: only read, and never written. (Used by Marble garden & Carnival night)
 Ending_Routine:			ds.w	1
     else
 				ds.b	5	; $FFFFF7AB-$FFFFF7AF ; seems unused
