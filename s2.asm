@@ -11663,12 +11663,11 @@ EndingSequence:
 	move.b	#VintID_Ending,(Vint_routine).w
 	bsr.w	WaitForVint
 	addq.w	#1,(Timer_frames).w
-	jsr	(RandomNumber).l
 	jsr	(RunObjects).l
 	jsr	(BuildSprites).l
 	tst.b	(Ending_PalCycle_flag).w
 	beq.s	+
-	jsrto	PalCycle_Load, JmpTo_PalCycle_Load
+	jsr	(PalCycle_Load).l
 +
 	bsr.w	EndgameCredits
 	tst.w	(Level_Inactive_flag).w
@@ -21833,7 +21832,7 @@ Obj28_Init:
 ; loc_11A2C:
 Obj28_InitRandom:
 	addq.b	#2,routine(a0)
-	jsrto	RandomNumber, JmpTo_RandomNumber
+	jsr	(RandomNumber).l
 	move.w	#make_art_tile(ArtTile_ArtNem_Animal_1,0,0),art_tile(a0)
 	andi.w	#1,d0
 	beq.s	+
@@ -22192,16 +22191,6 @@ Obj28_MapUnc_11EAC:	BINCLUDE "mappings/sprite/obj28_e.bin"
 ; sprite mappings
 ; -------------------------------------------------------------------------------
 Obj29_MapUnc_11ED0:	BINCLUDE "mappings/sprite/obj29.bin"
-
-    if ~~removeJmpTos
-JmpTo_RandomNumber ; JmpTo
-	jmp	(RandomNumber).l
-
-	align 4
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -50486,14 +50475,7 @@ Obj2C_Init:
 	move.b	Obj2C_CollisionFlags(pc,d0.w),collision_flags(a0)
 	move.l	#Obj31_MapUnc_20E74,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Powerups,0,1),art_tile(a0)
-    if fixBugs
 	move.b	#4,render_flags(a0)
-    else
-	; The high bit of 'render_flags' should not be set here: this causes
-	; this object to become visible when the player dies, because of how
-	; 'RunObjectsWhenPlayerIsDead' works.
-	move.b	#$84,render_flags(a0)
-    endif
 	move.b	#$80,width_pixels(a0)
 	move.b	#4,priority(a0)
 	move.b	subtype(a0),mapping_frame(a0)
@@ -50504,13 +50486,10 @@ Obj2C_Main:
 	sub.w	(Camera_X_pos_coarse).w,d0
 	cmpi.w	#$280,d0
 	bhi.w	JmpTo29_DeleteObject
-    if fixBugs
-	; This object never actually displays itself, even in Debug Mode.
 	tst.w	(Debug_placement_mode).w
 	beq.s	+
 	jsr	(DisplaySprite).l
 +
-    endif
 	move.b	collision_property(a0),d0
 	beq.s	loc_261C2
 	move.w	objoff_2E(a0),d0
@@ -50564,13 +50543,13 @@ loc_261E4:
 	moveq	#4-1,d6
 
 loc_261EC:
-	jsrto	SingleObjLoad, JmpTo6_SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.w	loc_26278
 	_move.b	#ObjID_LeavesGenerator,id(a1) ; load obj2C
 	move.b	#4,routine(a1)
 	move.w	x_pos(a2),x_pos(a1)
 	move.w	y_pos(a2),y_pos(a1)
-	jsrto	RandomNumber, JmpTo2_RandomNumber
+	jsr	(RandomNumber).l
 	andi.w	#$F,d0
 	subq.w	#8,d0
 	add.w	d0,x_pos(a1)
@@ -50640,7 +50619,7 @@ Obj2C_Leaf:
 	addq.w	#4,d3
 	add.w	d3,y_vel(a0)
 	move.b	angle(a0),d0
-	jsrto	CalcSine, JmpTo7_CalcSine
+	jsr	(CalcSine).l
 	asr.w	#6,d0
 	add.w	objoff_30(a0),d0
 	move.w	d0,x_pos(a0)
@@ -50654,7 +50633,7 @@ Obj2C_Leaf:
 +
 	tst.b	render_flags(a0)
 	bpl.w	JmpTo29_DeleteObject
-	jmpto	DisplaySprite, JmpTo17_DisplaySprite
+	jmp	(DisplaySprite).l
 
     if removeJmpTos
 JmpTo29_DeleteObject ; JmpTo
@@ -64587,12 +64566,12 @@ Obj89_Pillar_Shoot:
 	bset	#0,render_flags(a1)
 +
 	move.w	#$28,obj89_eyes_timer(a1)
-	jsrto	RandomNumber, JmpTo3_RandomNumber
+	jsr	(RandomNumber).l
 	andi.w	#3,d0
 	add.w	d0,d0
 	move.w	Obj89_Arrow_Offsets(pc,d0.w),y_pos(a1)
 	movea.l	a1,a2
-	jsrto	SingleObjLoad, JmpTo14_SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.s	return_30B40
 	_move.b	#ObjID_ARZBoss,id(a1) ; load obj89
     if fixBugs
@@ -65233,7 +65212,9 @@ return_313C4:
 ; ===========================================================================
 ;loc_313C6:
 Obj57_SpawnStoneSpike:	; decide whether stone or spike
-	move.b	(Vint_runcount+3).w,d1	; not so random number?
+;	move.b	(Vint_runcount+3).w,d1	; not so random number?
+	jsr	(RandomNumber).l
+	move.b	d0,d1
 	sf	d2
 	andi.b	#$1F,d1
 	beq.s	Obj57_LoadStoneSpike
@@ -65242,13 +65223,13 @@ Obj57_SpawnStoneSpike:	; decide whether stone or spike
 	st.b	d2
  ;loc_313DA:
 Obj57_LoadStoneSpike:
-	jsrto	RandomNumber, JmpTo4_RandomNumber
+	jsr	(RandomNumber).l
 	swap	d1
 	andi.w	#$1FF,d1
 	addi.w	#$20F0,d1
 	cmpi.w	#$2230,d1
 	bgt.s	Obj57_LoadStoneSpike
-	jsrto	SingleObjLoad, JmpTo15_SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.s	return_31438
 	move.b	#ObjID_MCZBoss,id(a1)	; load obj57
 	move.b	#4,boss_subtype(a1)
@@ -65317,12 +65298,11 @@ return_314B6:
 ;loc_314B8:
 Obj57_FinalDefeat:
 	moveq	#100,d0
-	jsrto	AddPoints, JmpTo6_AddPoints
+	jsr	(AddPoints).l
 	move.w	#$B3,(Boss_Countdown).w
 	move.b	#8,boss_routine(a0)	; routine boss defeated
 	moveq	#PLCID_Capsule,d0
-	jsrto	LoadPLC, JmpTo9_LoadPLC
-	rts
+	jmp	(LoadPLC).l
 ; ===========================================================================
 ;loc_314D2:
 Obj57_Main_Sub8: ; boss defeated, standing still, exploding
@@ -65355,7 +65335,7 @@ Obj57_Main_Sub8_Standard:
 	move.w	#$80*3,d0
 	jmp	(DisplaySprite3).l
     else
-	jmpto	DisplaySprite, JmpTo38_DisplaySprite
+	jmp	(DisplaySprite).l
     endif
 ; ===========================================================================
 ;loc_31526:
@@ -67739,7 +67719,7 @@ Obj55_LaserShooter_ChooseTarget:
 	bne.w	Obj55_LaserShooter_End	; branch, as long as wait isn't over
 	subi_.b	#1,Obj55_shot_count(a0)		; decrement number of shots left
 	bmi.s	Obj55_LaserShooter_DoneShooting	; branch, if no shots left
-	jsrto	RandomNumber, JmpTo5_RandomNumber
+	jsr	(RandomNumber).l
 
 -	; find first valid firing position
 	addq.b	#1,d0			; next position
@@ -80283,7 +80263,7 @@ ObjC3_Index:	offsetTable
 ObjC3_Init:
 	bsr.w	LoadSubObject
 	move.b	#7,anim_frame_duration(a0)
-	jsrto	RandomNumber, JmpTo6_RandomNumber
+	jsr	(RandomNumber).l
 	move.w	(RNG_seed).w,d0
 	andi.w	#$1C,d0
 	sub.w	d0,x_pos(a0)
@@ -84019,7 +83999,7 @@ loc_3F212:
 ; ===========================================================================
 
 loc_3F220:
-	jsrto	SingleObjLoad, JmpTo20_SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.s	loc_3F272
 	move.w	a1,(a3)+
 
