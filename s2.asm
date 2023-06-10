@@ -387,61 +387,19 @@ MainGameLoop:
 	bra.s	MainGameLoop	; loop indefinitely
 ; ===========================================================================
 ; loc_3A2:
-GameModesArray: ;;
+GameModesArray:
 GameMode_SegaScreen:	bra.w	SegaScreen		; SEGA screen mode
 GameMode_TitleScreen:	bra.w	TitleScreen		; Title screen mode
 GameMode_Demo:		bra.w	Level			; Demo mode
 GameMode_Level:		bra.w	Level			; Zone play mode
 GameMode_SpecialStage:	bra.w	SpecialStage		; Special stage play mode
 GameMode_ContinueScreen:bra.w	ContinueScreen		; Continue mode
-GameMode_2PResults:	bra.w	TwoPlayerResults	; 2P results mode
-GameMode_2PLevelSelect:	bra.w	LevelSelectMenu2P	; 2P level select mode
+GameMode_2PResults:	bra.w	LevelSelectMenu		; Doesn't exists
+GameMode_2PLevelSelect:	bra.w	LevelSelectMenu		; Doesn't exists
 GameMode_EndingSequence:bra.w	JmpTo_EndingSequence	; End sequence mode
 GameMode_OptionsMenu:	bra.w	OptionsMenu		; Options mode
 GameMode_LevelSelect:	bra.w	LevelSelectMenu		; Level select mode
 ; ===========================================================================
-    if gameRevision=3
-; KiS2: For some reason these were moved from below.
-; loc_3F0:
-LevelSelectMenu2P: ;;
-	jmp	(MenuScreen).l
-; ===========================================================================
-; loc_3F6:
-JmpTo_EndingSequence ; JmpTo
-	jmp	(EndingSequence).l
-; ===========================================================================
-; loc_3FC:
-OptionsMenu: ;;
-	jmp	(MenuScreen).l
-; ===========================================================================
-    if gameRevision=3
-; KiS2: Redirected to here.
-TwoPlayerResults:
-    endif
-; loc_402:
-LevelSelectMenu: ;;
-	jmp	(MenuScreen).l
-    endif
-; ===========================================================================
-    if skipChecksumCheck=0	; checksum error code
-; loc_3CE:
-ChecksumError:
-	move.l	d1,-(sp)
-	bsr.w	VDPSetupGame
-	move.l	(sp)+,d1
-	move.l	#vdpComm($0000,CRAM,WRITE),(VDP_control_port).l ; set VDP to CRAM write
-	moveq	#$3F,d7
-; loc_3E2:
-Checksum_Red:
-	move.w	#$E,(VDP_data_port).l ; fill palette with red
-	dbf	d7,Checksum_Red	; repeat $3F more times
-; loc_3EE:
-ChecksumFailed_Loop:
-	bra.s	ChecksumFailed_Loop
-    endif
-; ===========================================================================
-    if gameRevision<>3
-; KiS2: For some reason these were moved to above.
 ; loc_3F0:
 LevelSelectMenu2P: ;;
 	jmp	(MenuScreen).l
@@ -457,18 +415,12 @@ OptionsMenu: ;;
 ; loc_402:
 LevelSelectMenu: ;;
 	jmp	(MenuScreen).l
-    endif
 ; ===========================================================================
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; vertical and horizontal interrupt handlers
 ; VERTICAL INTERRUPT HANDLER:
 V_Int:
-    if gameRevision=3
-	; KiS2: A NOP was added here, for some reason.
-	nop
-    endif
-
 	movem.l	d0-a6,-(sp)
 	tst.b	(Vint_routine).w
 	beq.w	Vint_Lag
@@ -592,7 +544,7 @@ Vint_SEGA:
 	bsr.w	Do_ControllerPal
 
 	dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
-	jsrto	SegaScr_VInt, JmpTo_SegaScr_VInt
+	jsr	(SegaScr_VInt).l
 	tst.w	(Demo_Time_left).w	; is there time left on the demo?
 	beq.w	+	; if not, return
 	subq.w	#1,(Demo_Time_left).w	; subtract 1 from time left in demo
@@ -709,7 +661,7 @@ loc_748:
 
 ; sub_7E6: Demo_Time:
 Do_Updates:
-	jsrto	LoadTilesAsYouMove, JmpTo_LoadTilesAsYouMove
+	jsr	(LoadTilesAsYouMove).l
 	jsr	(HudUpdate).l
 	bsr.w	ProcessDPLC2
 	tst.w	(Demo_Time_left).w	; is there time left on the demo?
@@ -725,7 +677,7 @@ Vint_Pause_specialStage:
 	stopZ80
 
 	bsr.w	ReadJoypads
-	jsr	(sndDriverInput).l
+	bsr.w	sndDriverInput
 	tst.b	(SS_Last_Alternate_HorizScroll_Buf).w
 	beq.s	loc_84A
 
@@ -803,7 +755,7 @@ SS_PNTA_Transfer_Table:	offsetTable
 	eori.b	#1,(SS_Alternate_PNT).w			; Toggle flag
 +
 	bsr.w	ProcessDMAQueue
-	jsr	(sndDriverInput).l
+	bsr.w	sndDriverInput
 
 	startZ80
 
@@ -930,7 +882,7 @@ loc_BD6:
 
 	bsr.w	ProcessDMAQueue
 	jsr	(DrawLevelTitleCard).l
-	jsr	(sndDriverInput).l
+	bsr	sndDriverInput
 
 	startZ80
 
@@ -939,8 +891,7 @@ loc_BD6:
 	movem.l	(Scroll_flags).w,d0-d1
 	movem.l	d0-d1,(Scroll_flags_copy).w
 	move.l	(Vscroll_Factor_P2).w,(Vscroll_Factor_P2_HInt).w
-	bsr.w	ProcessDPLC
-	rts
+	bra.w	ProcessDPLC
 ; ===========================================================================
 ;VintSubE
 Vint_UnusedE:
@@ -971,7 +922,7 @@ Vint_Ending:
 	movem.l	d0-d7,(Camera_RAM_copy).w
 	movem.l	(Scroll_flags).w,d0-d3
 	movem.l	d0-d3,(Scroll_flags_copy).w
-	jsrto	LoadTilesAsYouMove, JmpTo_LoadTilesAsYouMove
+	jsr	(LoadTilesAsYouMove).l
 
 	startZ80
 
@@ -979,7 +930,7 @@ Vint_Ending:
 	beq.s	+	; rts
 	clr.w	(Ending_VInt_Subrout).w
 	move.w	off_D3C-2(pc,d0.w),d0
-	jsr	off_D3C(pc,d0.w)
+	jmp	off_D3C(pc,d0.w)
 +
 	rts
 ; ===========================================================================
@@ -1003,24 +954,18 @@ off_D3C:	offsetTable
 	move.l	#vdpComm(VRAM_EndSeq_Plane_A_Name_Table + planeLocH40($16,$21),VRAM,WRITE),d0	;$50AC0003
 	moveq	#$16,d1
 	moveq	#$E,d2
-	jsrto	PlaneMapToVRAM_H40, PlaneMapToVRAM_H40
-	rts
+	jmp	(PlaneMapToVRAM_H40).l
 ; ===========================================================================
 ;VintSub16
 Vint_Menu:
 	stopZ80
-
 	bsr.w	ReadJoypads
-
 	dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
 	dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 	dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
-
 	bsr.w	ProcessDMAQueue
 	bsr.w	sndDriverInput
-
 	startZ80
-
 	bsr.w	ProcessDPLC
 	tst.w	(Demo_Time_left).w
 	beq.w	+	; rts
@@ -1033,11 +978,9 @@ Vint_Menu:
 ;sub_E98
 Do_ControllerPal:
 	stopZ80
-
 	bsr.w	ReadJoypads
 	tst.b	(Water_fullscreen_flag).w
 	bne.s	loc_EDA
-
 	dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
 	bra.s	loc_EFE
 ; ---------------------------------------------------------------------------
@@ -1048,11 +991,8 @@ loc_EDA:
 loc_EFE:
 	dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 	dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
-
 	bsr.w	sndDriverInput
-
 	startZ80
-
 	rts
 ; End of function sub_E98
 ; ||||||||||||||| E N D   O F   V - I N T |||||||||||||||||||||||||||||||||||
@@ -1151,19 +1091,6 @@ sndDriverInput:
 
 	rts
 ; End of function sndDriverInput
-
-    if ~~removeJmpTos
-; sub_10E0:
-JmpTo_LoadTilesAsYouMove ; JmpTo
-	jmp	(LoadTilesAsYouMove).l
-JmpTo_SegaScr_VInt ; JmpTo
-	jmp	(SegaScr_VInt).l
-
-	align 4
-    endif
-
-
-
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to initialize joypads
@@ -1291,11 +1218,6 @@ ClearScreen:
 	dmaFillVRAM 0,VRAM_Plane_A_Name_Table,VRAM_Plane_Table_Size	; Clear Plane A pattern name table
 	dmaFillVRAM 0,VRAM_Plane_B_Name_Table,VRAM_Plane_Table_Size	; Clear Plane B pattern name table
 
-	tst.w	(Two_player_mode).w
-	beq.s	+
-
-	dmaFillVRAM 0,VRAM_Plane_A_Name_Table_2P,VRAM_Plane_Table_Size
-+
 	clr.l	(Vscroll_Factor).w
 	clr.l	(unk_F61A).w
 
@@ -2370,13 +2292,6 @@ Kos_Done:
 ; End of function KosDec
 
 ; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-
-
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -4303,19 +4218,20 @@ TitleScreen_Loop:
 TitleScreen_CheckIfChose2P:
 	subq.b	#1,d0
 	bne.s	TitleScreen_ChoseOptions
+	bra.s	TitleScreen_ChoseOptions
 
-	moveq	#1,d1
-	move.w	d1,(Two_player_mode_copy).w
-	move.w	d1,(Two_player_mode).w
+;	moveq	#1,d1
+;	move.w	d1,(Two_player_mode_copy).w
+;	move.w	d1,(Two_player_mode).w
 
-	moveq	#0,d0
-	move.w	d0,(Got_Emerald).w
-	move.l	d0,(Got_Emeralds_array).w
-	move.l	d0,(Got_Emeralds_array+4).w
+;	moveq	#0,d0
+;	move.w	d0,(Got_Emerald).w
+;	move.l	d0,(Got_Emeralds_array).w
+;	move.l	d0,(Got_Emeralds_array+4).w
 
-	move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
-	move.b	#emerald_hill_zone,(Current_Zone_2P).w
-	rts
+;	move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
+;	move.b	#emerald_hill_zone,(Current_Zone_2P).w
+;	rts
 ; ---------------------------------------------------------------------------
 ; loc_3D20:
 TitleScreen_ChoseOptions:
@@ -22733,6 +22649,7 @@ Obj37_MapUnc_123E6:	BINCLUDE "mappings/sprite/obj37_b.bin"
 Obj37_MapUnc_124E6:	BINCLUDE "mappings/sprite/obj37_c.bin"
     endif
 
+	include "_incObj/Goddess Statue.asm"
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object DC - Ring prize from Casino Night Zone
@@ -28110,7 +28027,7 @@ ObjPtr_BlueBalls:	dc.l Obj1D	; Blue balls in CPZ (jumping droplets hazard)
 ObjPtr_CPZSpinTube:	dc.l Obj1E	; Spin tube from CPZ
 ObjPtr_CollapsPform:	dc.l Obj1F	; Collapsing platform from ARZ, MCZ and OOZ (and MZ, SLZ and SBZ)
 ObjPtr_LavaBubble:	dc.l Obj20	; Lava bubble from Hill Top Zone (boss weapon)
-			dc.l ObjNull	; Obj21
+ObjPtr_GoddessStatue:	dc.l ObjGoddessStatue	; Obj21
 ObjPtr_ArrowShooter:	dc.l Obj22	; Arrow shooter from ARZ
 ObjPtr_FallingPillar:	dc.l Obj23	; Pillar that drops its lower part from ARZ
 ObjPtr_ARZBubbles:	dc.l Obj24	; Bubbles in Aquatic Ruin Zone
