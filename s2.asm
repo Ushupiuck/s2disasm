@@ -3895,7 +3895,7 @@ TitleScreen:
 	clearRAM Misc_Variables,Misc_Variables_End ; clear CPU player RAM and following variables
 	clearRAM Camera_RAM,Camera_RAM_End ; clear camera RAM and following variables
 
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): No 'Sonic the Hedgehog & Miles "Tails" Prower in' text.
 	; Load the credit font for the following text.
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_CreditText),VRAM,WRITE),(VDP_control_port).l
@@ -3911,7 +3911,7 @@ TitleScreen:
 	moveq	#PalID_BGND,d0
 	bsr.w	PalLoad_ForFade
 	bsr.w	Pal_FadeFromBlack
-    endif
+;    endif
 
 	; 'Pal_FadeFromBlack' enabled the interrupts, so disable them again
 	; so that we have exclusive access to the VDP for the following calls
@@ -3923,32 +3923,32 @@ TitleScreen:
 	lea	(ArtNem_Title).l,a0
 	bsr.w	NemDec
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Load new title screen assets.
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleKnuckles),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleSprites_Knuckles).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleKnuckles),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleSprites_Knuckles).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleStars),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleStars).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleStars),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleStars).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleEmblemTop),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleEmblemTop).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleEmblemTop),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleEmblemTop).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleOtherText),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleOtherText).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleOtherText),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleOtherText).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleBanner),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleBanner).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleBanner),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleBanner).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleTheEchidnaIn),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleTheEchidnaIn).l,a0
-	bsr.w	NemDec
-    else
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleTheEchidnaIn),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleTheEchidnaIn).l,a0
+;	bsr.w	NemDec
+;    else
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleSprites),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_TitleSprites).l,a0
 	bsr.w	NemDec
@@ -3960,7 +3960,7 @@ TitleScreen:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Player1VS2),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_Player1VS2).l,a0
 	bsr.w	NemDec
-    endif
+;    endif
 
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_FontStuff_TtlScr),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_FontStuff).l,a0
@@ -3976,7 +3976,7 @@ TitleScreen:
 	move.w	#0,(Two_player_mode).w
 	move.b	#0,(Level_started_flag).w
 
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): No need to fade since there's no screen here anymore.
 	; And finally fade out.
 	bsr.w	Pal_FadeToBlack
@@ -3985,7 +3985,7 @@ TitleScreen:
 	; so that we have exclusive access to the VDP for the following calls
 	; to the plane map loader.
 	move	#$2700,sr
-    endif
+;    endif
 
 	; Decompress the first part of the title screen background plane map...
 	lea	(Chunk_Table).l,a1
@@ -4143,12 +4143,12 @@ TitleScreen_Loop:
 
 	; If the intro is still playing, then don't let the start button
 	; begin the game.
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): The intro's completion is detected with a different variable.
-	tst.b	(Title_Intro_Complete).w
-    else
+;	tst.b	(Title_Intro_Complete).w
+;    else
 	tst.b	(IntroSonic+obj0e_intro_complete).w
-    endif
+;    endif
 	beq.w	TitleScreen_Loop
 
 	; If the start button has not been pressed, then loop back and keep
@@ -4181,14 +4181,14 @@ TitleScreen_Loop:
 	move.b	#MusID_FadeOut,d0 ; prepare to stop music (fade out)
 	bsr.w	PlaySound
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): KiS2 (no Tails): There is no title screen menu. Also forces 'Sonic Alone' mode.
-	move.w	#1,(Player_option).w
-    else
+;	move.w	#1,(Player_option).w
+;    else
 	moveq	#0,d0
 	move.b	(Title_screen_option).w,d0
 	bne.s	TitleScreen_CheckIfChose2P	; branch if not a 1-player game
-    endif
+;    endif
 
 	moveq	#0,d0
 	move.w	d0,(Two_player_mode_copy).w
@@ -4212,7 +4212,7 @@ TitleScreen_Loop:
 	move.l	d0,(Got_Emeralds_array+4).w
 	rts
 ; ===========================================================================
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): There is no title screen menu.
 ; loc_3CF6:
 TitleScreen_CheckIfChose2P:
@@ -4238,7 +4238,7 @@ TitleScreen_ChoseOptions:
 	move.b	#GameModeID_OptionsMenu,(Game_Mode).w ; => OptionsMenu
 	move.b	#0,(Options_menu_box).w
 	rts
-    endif
+;    endif
 ; ===========================================================================
 ; loc_3D2E:
 TitleScreen_Demo:
@@ -4328,29 +4328,29 @@ TailsNameCheat:
 ; ===========================================================================
 ; byte_3DEE:
 TailsNameCheat_Buttons:
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different cheat code.
-	dc.b	button_up_mask
-	dc.b	button_up_mask
-	dc.b	button_up_mask
-	dc.b	button_down_mask
-	dc.b	button_down_mask
-	dc.b	button_down_mask
-	dc.b	button_left_mask
-	dc.b	button_right_mask
-	dc.b	button_left_mask
-	dc.b	button_right_mask
-	dc.b	0	; end
+;	dc.b	button_up_mask
+;	dc.b	button_up_mask
+;	dc.b	button_up_mask
+;	dc.b	button_down_mask
+;	dc.b	button_down_mask
+;	dc.b	button_down_mask
+;	dc.b	button_left_mask
+;	dc.b	button_right_mask
+;	dc.b	button_left_mask
+;	dc.b	button_right_mask
+;	dc.b	0	; end
 	; For some reason this is here, even though it has no purpose.
-	dc.b	$FF
-    else
+;	dc.b	$FF
+;    else
 	dc.b	button_up_mask
 	dc.b	button_down_mask
 	dc.b	button_down_mask
 	dc.b	button_down_mask
 	dc.b	button_up_mask
 	dc.b	0	; end
-    endif
+;    endif
 	even
 ; ---------------------------------------------------------------------------------
 ; Nemesis compressed art
@@ -4855,12 +4855,12 @@ Level_SetPlayerMode:
 	move.w	(Player_option).w,(Player_mode).w ; use the option chosen in the Options screen
 	rts
 +
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (no Tails): Force Sonic Alone, since Knuckles is alone.
-	move.w	#1,(Player_mode).w	; force Sonic
-    else
+;	move.w	#1,(Player_mode).w	; force Sonic
+;    else
 	move.w	#0,(Player_mode).w	; force Sonic and Tails
-    endif
+;    endif
 	rts
 ; End of function Level_SetPlayerMode
 
@@ -10088,11 +10088,11 @@ ContinueScreen:
 	clr.l	(Camera_X_pos_copy).w
 	move.l	#$1000000,(Camera_Y_pos_copy).w
 	move.b	#ObjID_ContinueChars,(MainCharacter+id).w ; load ObjDB (Sonic on continue screen)
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails on the Continue screen.
 	move.b	#ObjID_ContinueChars,(Sidekick+id).w ; load ObjDB (Tails on continue screen)
 	move.b	#6,(Sidekick+routine).w ; => ObjDB_Tails_Init
-    endif
+;    endif
 	move.b	#ObjID_ContinueText,(ContinueText+id).w ; load ObjDA (continue screen text)
 	move.b	#ObjID_ContinueIcons,(ContinueIcons+id).w ; load ObjDA (continue icons)
 	move.b	#4,(ContinueIcons+routine).w ; => loc_7AD0
@@ -10118,12 +10118,12 @@ ContinueScreen:
 +
 	jsr	(RunObjects).l
 	jsr	(BuildSprites).l
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (no Tails): No Tails on the Continue screen.
-	cmpi.w	#$180,(MainCharacter+x_pos).w
-    else
+;	cmpi.w	#$180,(MainCharacter+x_pos).w
+;    else
 	cmpi.w	#$180,(Sidekick+x_pos).w
-    endif
+;    endif
 	bhs.s	+
 	cmpi.b	#4,(MainCharacter+routine).w
 	bhs.s	-
@@ -10318,12 +10318,12 @@ ObjDB_Index:	offsetTable
 		offsetTableEntry.w ObjDB_Sonic_Init	;  0
 		offsetTableEntry.w ObjDB_Sonic_Wait	;  2
 		offsetTableEntry.w ObjDB_Sonic_Run	;  4
-    if gameRevision<>3
+;    if gameRevision<>3
 		; KiS2 (no Tails): No Tails on the Continue screen.
 		offsetTableEntry.w ObjDB_Tails_Init	;  6
 		offsetTableEntry.w ObjDB_Tails_Wait	;  8
 		offsetTableEntry.w ObjDB_Tails_Run	; $A
-    endif
+;    endif
 ; ===========================================================================
 ; loc_7BA2:
 ObjDB_Sonic_Init:
@@ -10380,7 +10380,7 @@ ObjDB_Sonic_Run:
 	jsr	(Sonic_Animate).l
 	jmp	(LoadSonicDynPLC).l
 ; ===========================================================================
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails on the Continue screen.
 ; loc_7C22:
 ObjDB_Tails_Init:
@@ -10423,7 +10423,7 @@ ObjDB_Tails_Run:
 	jsr	(ObjectMove).l
 	jsr	(Tails_Animate).l
 	jmp	(LoadTailsDynPLC).l
-    endif
+;    endif
 ; ===========================================================================
 ; animation script for continue screen Tails nagging
 ; off_7CB0
@@ -10477,12 +10477,12 @@ MenuScreen:
 	move.l	#vdpComm(VRAM_Plane_B_Name_Table,VRAM,WRITE),d0
 	moveq	#$27,d1
 	moveq	#$1B,d2
-	jsrto	PlaneMapToVRAM_H40, JmpTo_PlaneMapToVRAM_H40	; fullscreen background
+	jsr	(PlaneMapToVRAM_H40).l	; fullscreen background
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (no 2P): KiS2 (no options): No two player mode nor options menu.
 	; Fall straight through to 'MenuScreen_LevelSelect'.
-    else
+;    else
 	cmpi.b	#GameModeID_OptionsMenu,(Game_Mode).w	; options menu?
 	beq.w	MenuScreen_Options	; if yes, branch
 
@@ -10531,11 +10531,11 @@ MenuScreen_Options:
 	clr.b	(Level_started_flag).w
 	clr.w	(Anim_Counters).w
 	lea	(Anim_SonicMilesBG).l,a2
-	jsrto	Dynamic_Normal, JmpTo2_Dynamic_Normal
+	jsr	(Dynamic_Normal).l
 	moveq	#PalID_Menu,d0
 	bsr.w	PalLoad_ForFade
 	move.b	#MusID_Options,d0
-	jsrto	PlayMusic, JmpTo_PlayMusic
+	jsr	(PlayMusic).l
 	clr.w	(Two_player_mode).w
 	clr.l	(Camera_X_pos).w
 	clr.l	(Camera_Y_pos).w
@@ -10732,7 +10732,7 @@ OptionScreen_DrawSelected:
 	move.l	(a3)+,d0
 	moveq	#$15,d1
 	moveq	#7,d2
-	jmpto	PlaneMapToVRAM_H40, JmpTo_PlaneMapToVRAM_H40
+	jmp	(PlaneMapToVRAM_H40).l
 ; ===========================================================================
 
 ;loc_91F8
@@ -10771,7 +10771,7 @@ OptionScreen_DrawUnselected:
 	move.l	(a3)+,d0
 	moveq	#$15,d1
 	moveq	#7,d2
-	jmpto	PlaneMapToVRAM_H40, JmpTo_PlaneMapToVRAM_H40
+	jmp	(PlaneMapToVRAM_H40).l
 ; ===========================================================================
 
 ;loc_9268
@@ -10840,7 +10840,6 @@ off_92EA:
 	dc.l TextOptScr_TeleportOnly
 off_92F2:
 	dc.l TextOptScr_0
-    endif
 ; ===========================================================================
 ; loc_92F6:
 MenuScreen_LevelSelect:
@@ -10899,10 +10898,10 @@ MenuScreen_LevelSelect:
 
 	move.w	#(30*60)-1,(Demo_Time_left).w	; 30 seconds
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (no Tails): Force 'Sonic alone'.
-	move.w	#1,(Player_option).w
-    endif
+;	move.w	#1,(Player_option).w
+;    endif
 
 	clr.w	(Two_player_mode).w
 	clr.l	(Camera_X_pos).w
@@ -11034,7 +11033,7 @@ LevelSelect_StartZone:
 	move.l	#5000,(Next_Extra_life_score).w
 	move.l	#5000,(Next_Extra_life_score_2P).w
 	move.b	#MusID_FadeOut,d0
-	jsrto	PlaySound, JmpTo_PlaySound
+	jsr	(PlaySound).l
 	moveq	#0,d0
 	move.w	d0,(Two_player_mode_copy).w
 	move.w	d0,(Two_player_mode).w
@@ -11375,7 +11374,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 +
 	move.w	#7,(Got_Emerald).w		; Give 7 emeralds to the player
 	move.b	#MusID_Emerald,d0		; Play the emerald jingle
-	jsrto	PlayMusic, JmpTo_PlayMusic
+	jsr	(PlayMusic).l
 +
 	move.w	#0,(Correct_cheat_entries_2).w	; Clear the number of correct entries
 +
@@ -11433,7 +11432,7 @@ super_sonic_cheat:
 	rev02even
     endif
 
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no options): No two player mode, no Sonic and Tails, and no options menu.
 	; set the character set for menu text
 	charset '@',"\27\30\31\32\33\34\35\36\37\38\39\40\41\42\43\44\45\46\47\48\49\50\51\52\53\54\55"
@@ -11458,13 +11457,13 @@ TextOptScr_SoundTest:		menutxt	"*  SOUND TEST   *"	; byte_985E:
 TextOptScr_0:			menutxt	"      00       "	; byte_9870:
 
 	charset ; reset character set
-    endif
+;    endif
 
 ; level select picture palettes
 ; byte_9880:
 Pal_LevelIcons:	BINCLUDE "art/palettes/Level Select Icons.bin"
 
-    if gameRevision<>3
+;    if gameRevision<>3
 ; KiS2 (no 2P): KiS2 (no options): No two player mode or options menu.
 ; 2-player level select screen mappings (Enigma compressed)
 ; byte_9A60:
@@ -11475,7 +11474,7 @@ MapEng_LevSel2P:	BINCLUDE "mappings/misc/Level Select 2P.bin"
 ; byte_9AB2:
 	even
 MapEng_Options:	BINCLUDE "mappings/misc/Options Screen.bin"
-    endif
+;    endif
 
 ; level select screen mappings (Enigma compressed)
 ; byte_9ADE:
@@ -11560,10 +11559,10 @@ EndingSequence:
 	move.b	#$F,(Palette_timer).w
 	move.w	#$30,(Palette_frame).w
 +
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): All endings play out similarly.
-	clr.w	(Ending_Routine).w
-    else
+;	clr.w	(Ending_Routine).w
+;    else
 	moveq	#0,d0
 	cmpi.w	#2,(Player_mode).w
 	beq.s	+
@@ -11578,28 +11577,28 @@ EndingSequence:
 	addq.w	#2,d0
 +
 	move.w	d0,(Ending_Routine).w
-    endif
+;    endif
 	bsr.w	EndingSequence_LoadCharacterArt
 	bsr.w	EndingSequence_LoadFlickyArt
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_EndingFinalTornado),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingFinalTornado).l,a0
-	jsrto	NemDec, JmpTo_NemDec
+	jsr	(NemDec).l
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_EndingPics),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingPics).l,a0
-	jsrto	NemDec, JmpTo_NemDec
+	jsr	(NemDec).l
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_EndingMiniTornado),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingMiniTornado).l,a0
-	jsrto	NemDec, JmpTo_NemDec
+	jsr	(NemDec).l
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Tornado),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_Tornado).l,a0
-	jsrto	NemDec, JmpTo_NemDec
+	jsr	(NemDec).l
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Clouds),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_Clouds).l,a0
-	jsrto	NemDec, JmpTo_NemDec
+	jsr	(NemDec).l
 	move.w	#death_egg_zone_act_1,(Current_ZoneAndAct).w
 	move	#$2300,sr
 	moveq	#signextendB(MusID_Ending),d0
-	jsrto	PlayMusic, JmpTo2_PlayMusic
+	jsr	(PlayMusic).l
 	move.l	#$EEE0EEE,d1
 	lea	(Normal_palette).w,a1
 
@@ -11708,16 +11707,16 @@ EndgameCredits:
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
 
 	moveq	#signextendB(MusID_Credits),d0
-	jsrto	PlaySound, JmpTo2_PlaySound
+	jsr	(PlaySound).l
 	clr.w	(Target_palette).w
 	move.w	#$EEE,(Target_palette+$C).w
 	move.w	#$EE,(Target_palette_line2+$C).w
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_CreditText_CredScr),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_CreditText).l,a0
-	jsrto	NemDec, JmpTo_NemDec
+	jsr	(NemDec).l
 	clr.w	(CreditsScreenIndex).w
 -
-	jsrto	ClearScreen, JmpTo_ClearScreen
+	jsr	(ClearScreen).l
 	bsr.w	ShowCreditsScreen
 	bsr.w	Pal_FadeFromBlack
 
@@ -11749,102 +11748,102 @@ EndgameCredits:
 	move.l	(a1,d0.w),d0
 	bpl.s	--
 	bsr.w	Pal_FadeToBlack
-	jsrto	ClearScreen, JmpTo_ClearScreen
+	jsr	(ClearScreen).l
 	move.l	#vdpComm($0000,VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingTitle).l,a0
-	jsrto	NemDec, JmpTo_NemDec
-    if gameRevision=3
+	jsr	(NemDec).l
+;    if gameRevision=3
 	; KiS2 (ending): Load the giant 'KNUCKLES THE ECHIDNA IN' banner.
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleOtherText),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleOtherText).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleOtherText),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleOtherText).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleBanner),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleBanner).l,a0
-	bsr.w	NemDec
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleBanner),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleBanner).l,a0
+;	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleTheEchidnaIn),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_TitleTheEchidnaIn).l,a0
-	bsr.w	NemDec
-    endif
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleTheEchidnaIn),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_TitleTheEchidnaIn).l,a0
+;	bsr.w	NemDec
+;    endif
 	lea	(MapEng_EndGameLogo).l,a0
 	lea	(Chunk_Table).l,a1
 	move.w	#0,d0
-	jsrto	EniDec, JmpTo_EniDec
+	jsr	(EniDec).l
 	lea	(Chunk_Table).l,a1
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Sonic 2's logo was moved down to make room for the 'KNUCKLES IN' banner.
-	move.l	#vdpComm(VRAM_Plane_A_Name_Table+planeLocH40(12,15),VRAM,WRITE),d0
-    else
+;	move.l	#vdpComm(VRAM_Plane_A_Name_Table+planeLocH40(12,15),VRAM,WRITE),d0
+;    else
 	move.l	#vdpComm(VRAM_Plane_A_Name_Table+planeLocH40(12,11),VRAM,WRITE),d0
-    endif
+;    endif
 	moveq	#$F,d1
 	moveq	#5,d2
-	jsrto	PlaneMapToVRAM_H40, JmpTo2_PlaneMapToVRAM_H40
+	jsr	(PlaneMapToVRAM_H40).l
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Create the objects that display the 'KNUCKLES IN' banner.
-	lea	(MainCharacter).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$16,subtype(a1)	; Obj0E_CreditsBanner
+;	lea	(MainCharacter).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$16,subtype(a1)	; Obj0E_CreditsBanner
 
 	; Create trademark object if this is not a Japanese console.
-	tst.b	(Graphics_Flags).w
-	bpl.s	+
-	lea	(Sidekick).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$18,subtype(a1)	; Obj0E_CreditsTrademark
-+
-    endif
+;	tst.b	(Graphics_Flags).w
+;	bpl.s	+
+;	lea	(Sidekick).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$18,subtype(a1)	; Obj0E_CreditsTrademark
+;+
+;    endif
 
 	clr.w	(CreditsScreenIndex).w
 	bsr.w	EndgameLogoFlash
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Load the extra palette for the 'KNUCKLES IN' banner.
-	lea	Pal_KiS2_Ending(pc),a1
-	lea	(Normal_palette_line4).w,a2
-	moveq	#bytesToLcnt(palette_line_size),d0
+;	lea	Pal_KiS2_Ending(pc),a1
+;	lea	(Normal_palette_line4).w,a2
+;	moveq	#bytesToLcnt(palette_line_size),d0
 
--	move.l	(a1)+,(a2)+
-	dbf	d0,-
-    endif
+;-	move.l	(a1)+,(a2)+
+;	dbf	d0,-
+;    endif
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Due to the added function calls, the counter is stored in a
 	; variable instead of being kept in a register.
-	move.w	#$3B,(Endgame_Logo_Timer).w
-    else
+;	move.w	#$3B,(Endgame_Logo_Timer).w
+;    else
 	move.w	#$3B,d0
-    endif
+;    endif
 -	move.b	#VintID_Ending,(Vint_routine).w
 	bsr.w	WaitForVint
-    if gameRevision=3
+;    if gameRevision=3
 	; Function calls are added for updating and displaying the objects
 	; that are responsible for managing the 'KNUCKLES IN' banner.
-	jsr	(RunObjects).l
-	jsr	(BuildSprites).l
-	subq.w	#1,(Endgame_Logo_Timer).w
-	bpl.s	-
-    else
+;	jsr	(RunObjects).l
+;	jsr	(BuildSprites).l
+;	subq.w	#1,(Endgame_Logo_Timer).w
+;	bpl.s	-
+;    else
 	dbf	d0,-
-    endif
+;    endif
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Due to the added function calls, the counter is stored in a
 	; variable instead of being kept in a register.
-	move.w	#$257,(Endgame_Logo_Timer).w
-    else
+;	move.w	#$257,(Endgame_Logo_Timer).w
+;    else
 	move.w	#$257,d6
-    endif
+;    endif
 -	move.b	#VintID_Ending,(Vint_routine).w
 	bsr.w	WaitForVint
-    if gameRevision=3
+;    if gameRevision=3
 	; Function calls are added for updating and displaying the objects
 	; that are responsible for managing the 'KNUCKLES IN' banner.
-	jsr	(RunObjects).l
-	jsr	(BuildSprites).l
-    endif
+;	jsr	(RunObjects).l
+;	jsr	(BuildSprites).l
+;    endif
 	addq.w	#1,(CreditsScreenIndex).w
 	bsr.w	EndgameLogoFlash
 	cmpi.w	#$5E,(CreditsScreenIndex).w
@@ -11852,14 +11851,14 @@ EndgameCredits:
 	move.b	(Ctrl_1_Press).w,d1
 	andi.b	#button_B_mask|button_C_mask|button_A_mask|button_start_mask,d1
 	bne.s	+
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Due to the added function calls, the counter is stored in a
 	; variable instead of being kept in a register.
-	subq.w	#1,(Endgame_Logo_Timer).w
-	bpl.s	-
-    else
+;	subq.w	#1,(Endgame_Logo_Timer).w
+;	bpl.s	-
+;    else
 	dbf	d6,-
-    endif
+;    endif
 +
 	st.b	(Level_Inactive_flag).w
 	move.b	#GameModeID_SegaScreen,(Game_Mode).w ; => SegaScreen
@@ -11917,10 +11916,10 @@ byte_A0EC:
 ; palette cycle for the end-of-game logo
 pal_A0FE:	BINCLUDE	"art/palettes/Ending Cycle.bin"
 
-    if gameRevision=3
+;    if gameRevision=3
 ; KiS2 (ending): A new palette, for the giant 'KNUCKLES THE ECHIDNA IN' banner.
-Pal_KiS2_Ending:	BINCLUDE	"art/palettes/Ending Knuckles Banner.bin"
-    endif
+;Pal_KiS2_Ending:	BINCLUDE	"art/palettes/Ending Knuckles Banner.bin"
+;    endif
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -12002,13 +12001,13 @@ loc_A256:
 	movea.l	off_A29C(pc,d0.w),a0
 	lea	(Chunk_Table).l,a1
 	move.w	#make_art_tile(ArtTile_ArtNem_EndingPics,0,0),d0
-	jsrto	EniDec, JmpTo_EniDec
+	jsr	(EniDec).l
 	move	#$2700,sr
 	lea	(Chunk_Table).l,a1
 	move.l	#vdpComm(VRAM_Plane_A_Name_Table + planeLocH40(14,8),VRAM,WRITE),d0
 	moveq	#$B,d1
 	moveq	#8,d2
-	jsrto	PlaneMapToVRAM_H40, JmpTo2_PlaneMapToVRAM_H40
+	jsr	(PlaneMapToVRAM_H40).l
 	move	#$2300,sr
 	movea.l	(sp)+,a0 ; load 0bj address
 	rts
@@ -12117,7 +12116,7 @@ loc_A38E:
 	subq.w	#1,objoff_3C(a0)
 	bne.s	+
 	lea	(word_AD62).l,a2
-	jsrto	LoadChildObject, JmpTo_LoadChildObject
+	jsr	(LoadChildObject).l
 +
 	bra.w	loc_AB9C
 ; ===========================================================================
@@ -12132,7 +12131,7 @@ loc_A3BE:
 ; ----------------------------------------------------------------------------
 ; Sprite_A3C8:
 ObjCC:
-	jsrto	ObjB2_Animate_Pilot, JmpTo_ObjB2_Animate_Pilot
+	jsr	(ObjB2_Animate_Pilot).l
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	ObjCC_Index(pc,d0.w),d1
@@ -12566,12 +12565,12 @@ loc_A90E:
 	move.w	d0,y_pos(a0)
 
 BranchTo_JmpTo5_DisplaySprite ; BranchTo
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	clr.w	objoff_3C(a0)
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_A936:
@@ -12596,11 +12595,11 @@ loc_A936:
 	addq.b	#1,mapping_frame(a0)
 
 BranchTo2_JmpTo5_DisplaySprite
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 byte_A980:
 	dc.b   -8,   0
@@ -12627,7 +12626,7 @@ ObjCF_Index:	offsetTable
 ; loc_A99A:
 ObjCF_Init:
 	lea	(ObjB3_SubObjData).l,a1
-	jsrto	LoadSubObject_Part3, JmpTo_LoadSubObject_Part3
+	jsr	(LoadSubObject_Part3).l
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
 	move.b	#3,priority(a0)
@@ -12644,7 +12643,7 @@ ObjCF_Init:
 ; loc_A9E4:
 ObjCF_Animate:
 	lea	(Ani_objCF).l,a1
-	jsrto	AnimateSprite, JmpTo_AnimateSprite
+	jsr	(AnimateSprite).l
 	bra.w	loc_A90E
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -12666,7 +12665,7 @@ ObjCB_Index:	offsetTable
 ; loc_AA06:
 ObjCB_Init:
 	lea	(ObjB3_SubObjData).l,a1
-	jsrto	LoadSubObject_Part3, JmpTo_LoadSubObject_Part3
+	jsr	(LoadSubObject_Part3).l
 	move.w	art_tile(a0),d0
 	andi.w	#$1FFF,d0
 	ori.w	#palette_mask,d0
@@ -12716,17 +12715,17 @@ loc_AA76:
 	clr.w	y_vel(a0)
 
 loc_AA8A:
-	jsrto	ObjectMove, JmpTo2_ObjectMove
+	jsr	(ObjectMove).l
 	tst.b	(CutScene+objoff_34).w
 	beq.s	+
 	cmpi.w	#-$20,x_pos(a0)
 	blt.w	JmpTo3_DeleteObject
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 +
 	tst.w	y_pos(a0)
 	bmi.w	JmpTo3_DeleteObject
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jmp	(DisplaySprite).l
 
     if gameRevision=3
 	; KiS2 (JmpTo cleanup): Moved.
@@ -12785,10 +12784,10 @@ ObjCD_Main:
 	move.b	routine_secondary(a0),d0
 	move.w	ObjCD_Main_States(pc,d0.w),d1
 	jsr	ObjCD_Main_States(pc,d1.w)
-	jsrto	ObjectMove, JmpTo2_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(Ani_objCD).l,a1
-	jsrto	AnimateSprite, JmpTo_AnimateSprite
-	jmpto	DisplaySprite, JmpTo5_DisplaySprite
+	jsr	(AnimateSprite).l
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 ObjCD_Main_States:	offsetTable
 	offsetTableEntry.w loc_AB34	; 0
@@ -12844,7 +12843,7 @@ JmpTo3_DeleteObject ; JmpTo
     endif
     endif
 
-	jmpto	DeleteObject, JmpTo3_DeleteObject
+	jmp	(DeleteObject).l
 ; ===========================================================================
 
 loc_AB9C:
@@ -12854,8 +12853,8 @@ loc_AB9C:
 	andi.w	#$1F,d0
 	move.w	d0,objoff_30(a0)
 	lea	(word_AD5E).l,a2
-	jsrto	LoadChildObject, JmpTo_LoadChildObject
-+
+	jmp	(LoadChildObject).l
+/
 	rts
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -12863,16 +12862,15 @@ loc_AB9C:
 
 sub_ABBA:
 	subq.w	#1,objoff_30(a0)
-	bpl.s	+	; rts
+	bpl.s	-	; rts
 	tst.b	objoff_35(a0)
-	beq.s	+	; rts
+	beq.s	-	; rts
 	subq.b	#1,objoff_35(a0)
 	move.l	(RNG_seed).w,d0
 	andi.w	#$F,d0
 	move.w	d0,objoff_30(a0)
 	lea	(word_AD66).l,a2
-	jsrto	LoadChildObject, JmpTo_LoadChildObject
-+	rts
+	jmp	(LoadChildObject).l
 ; End of function sub_ABBA
 
 
@@ -12881,14 +12879,14 @@ sub_ABBA:
 
 ; sub_ABE2:
 EndingSequence_LoadCharacterArt:
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): Since Knuckles is the only character in the game, and there's
 	; no unique art for his Super form, there's no need to decide which
 	; art to load.
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_EndingKnuckles).l,a0
-	jmpto	NemDec, JmpTo_NemDec
-    else
+;	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
+;	lea	(ArtNem_EndingKnuckles).l,a0
+;	jmp	(NemDec).l
+;    else
 	move.w	(Ending_Routine).w,d0
 	move.w	EndingSequence_LoadCharacterArt_Characters(pc,d0.w),d0
 	jmp	EndingSequence_LoadCharacterArt_Characters(pc,d0.w)
@@ -12904,38 +12902,38 @@ EndingSequence_LoadCharacterArt_Characters: offsetTable
 EndingSequence_LoadCharacterArt_Sonic:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingSonic).l,a0
-	jmpto	NemDec, JmpTo_NemDec
+	jmp	(NemDec).l
 ; ===========================================================================
 ; loc_AC08:
 EndingSequence_LoadCharacterArt_SuperSonic:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingSuperSonic).l,a0
-	jmpto	NemDec, JmpTo_NemDec
+	jmp	(NemDec).l
 ; ===========================================================================
 ; loc_AC1C:
 EndingSequence_LoadCharacterArt_Tails:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingTails).l,a0
-	jmpto	NemDec, JmpTo_NemDec
-    endif
+	jmp	(NemDec).l
+;    endif
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 
 ; sub_AC30:
 EndingSequence_LoadFlickyArt:
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (ending): This has been hardcoded, so that it no longer depends on
 	; 'Ending_Routine'. If Knuckles has all of the emeralds, then load
 	; eagles. If not, then load Flickies.
-	moveq	#0,d0
-	cmpi.b	#7,(Emerald_count).w
-	bne.s	+
-	moveq	#2,d0
-+
-    else
+;	moveq	#0,d0
+;	cmpi.b	#7,(Emerald_count).w
+;	bne.s	+
+;	moveq	#2,d0
+;+
+;    else
 	move.w	(Ending_Routine).w,d0
-    endif
+;    endif
 	move.w	EndingSequence_LoadFlickyArt_Flickies(pc,d0.w),d0
 	jmp	EndingSequence_LoadFlickyArt_Flickies(pc,d0.w)
 ; End of function EndingSequence_LoadFlickyArt
@@ -12944,31 +12942,31 @@ EndingSequence_LoadFlickyArt:
 EndingSequence_LoadFlickyArt_Flickies: offsetTable
 	offsetTableEntry.w EndingSequence_LoadFlickyArt_Bird	; 0
 	offsetTableEntry.w EndingSequence_LoadFlickyArt_Eagle	; 2
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (ending): The code for Tails' chickens has been completely removed.
 	offsetTableEntry.w EndingSequence_LoadFlickyArt_Chicken	; 4
-    endif
+;    endif
 ; ===========================================================================
 ; loc_AC42:
 EndingSequence_LoadFlickyArt_Bird:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Animal_2),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_Bird).l,a0
-	jmpto	NemDec, JmpTo_NemDec
+	jmp	(NemDec).l
 ; ===========================================================================
 ; loc_AC56:
 EndingSequence_LoadFlickyArt_Eagle:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Animal_2),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_Eagle).l,a0
-	jmpto	NemDec, JmpTo_NemDec
+	jmp	(NemDec).l
 ; ===========================================================================
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (ending): The code for Tails' chickens has been completely removed.
 ; loc_AC6A:
 EndingSequence_LoadFlickyArt_Chicken:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Animal_2),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_Chicken).l,a0
-	jmpto	NemDec, JmpTo_NemDec
-    endif
+	jmp	(NemDec).l
+;    endif
 ; ===========================================================================
 ; KiS2 (ending): This has been modified to feature Knuckles' colours.
 Pal_AC7E:	BINCLUDE	"art/palettes/Ending Sonic.bin"
@@ -13048,7 +13046,8 @@ loc_B272:
 	lea	(VDP_data_port).l,a6
 -
 	move.l	(a1)+,d0
-	bmi.s	++
+;	bmi.s	++
+	bmi.s	+
 	movea.l	d0,a2
 	move.w	(a1)+,d0
 	bsr.s	sub_B29E
@@ -13057,11 +13056,12 @@ loc_B272:
 	lsl.w	#8,d0
 -
 	move.b	(a2)+,d0
-	bmi.s	+
+;	bmi.s	+
+	bmi.s	--
 	move.w	d0,(a6)
 	bra.s	-
 ; ===========================================================================
-+	bra.s	--
+;+	bra.s	--
 ; ===========================================================================
 +
 	move	#$2300,sr
@@ -13244,11 +13244,7 @@ byte_BA81:	creditText 0,"YOUICHI  TAKAHASHI"
 byte_BAA2:	creditText 1,"SUPPORTERS"
 byte_BAB8:	creditText 0,"DAIZABUROU  SAKURAI"
 byte_BADC:	creditText 0,"HISASHI  SUZUKI"
-    if gameRevision=0
-byte_BAF7:	creditText 0,"TOHMAS  KALINSKE"	; typo
-    else
 byte_BAF7:	creditText 0,"THOMAS  KALINSKE"
-    endif
 byte_BB16:	creditText 0,"FUJIO  MINEGISHI"
 byte_BB32:	creditText 0,"TAKAHARU UTSUNOMIYA"
 byte_BB58:	creditText 1,"SPECIAL  THANKS"
@@ -23140,17 +23136,17 @@ super_shoes:
 	addq.w	#1,(a2)
 	bset	#status_sec_hasSpeedShoes,status_secondary(a1)	; give super sneakers status
 	move.w	#$4B0,speedshoes_time(a1)
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	cmpa.w	#MainCharacter,a1	; did the main character break the monitor?
 	bne.s	super_shoes_Tails	; if not, branch
 	cmpi.w	#2,(Player_mode).w	; is player using Tails?
 	beq.s	super_shoes_Tails	; if yes, branch
-    endif
+;    endif
 	move.w	#$C00,(Sonic_top_speed).w	; set stats
 	move.w	#$18,(Sonic_acceleration).w
 	move.w	#$80,(Sonic_deceleration).w
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	bra.s	+
 ; ---------------------------------------------------------------------------
@@ -23160,7 +23156,7 @@ super_shoes_Tails:
 	move.w	#$18,(Tails_acceleration).w
 	move.w	#$80,(Tails_deceleration).w
 +
-    endif
+;    endif
 	move.w	#MusID_SpeedUp,d0
 	jmp	(PlayMusic).l	; Speed up tempo
 ; ===========================================================================
@@ -23527,41 +23523,41 @@ Obj0E:
 Obj0E_Index: offsetTable
 	offsetTableEntry.w Obj0E_Init		;   0
 	offsetTableEntry.w Obj0E_Sonic		;   2
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	offsetTableEntry.w Obj0E_LowerTheEmblem	;   4
-    else
+;	offsetTableEntry.w Obj0E_LowerTheEmblem	;   4
+;    else
 	offsetTableEntry.w Obj0E_Tails		;   4
-    endif
+;    endif
 	offsetTableEntry.w Obj0E_LogoTop	;   6
 	offsetTableEntry.w Obj0E_FlashingStar	;   8
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	offsetTableEntry.w Obj0E_KnucklesHand	;  $A
-    else
+;	offsetTableEntry.w Obj0E_KnucklesHand	;  $A
+;    else
 	offsetTableEntry.w Obj0E_SonicHand	;  $A
-    endif
+;    endif
 	offsetTableEntry.w Obj0E_FallingStar	;  $C
 	offsetTableEntry.w Obj0E_MaskingSprite	;  $E
 	offsetTableEntry.w Obj0E_TailsHand	; $10
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	offsetTableEntry.w Obj0E_Copyright	; $12
-	offsetTableEntry.w Obj0E_Banner		; $14
-	offsetTableEntry.w Obj0E_CreditsBanner	; $16
-	offsetTableEntry.w Obj0E_CreditsTrademark	; $18
-    endif
+;	offsetTableEntry.w Obj0E_Copyright	; $12
+;	offsetTableEntry.w Obj0E_Banner		; $14
+;	offsetTableEntry.w Obj0E_CreditsBanner	; $16
+;	offsetTableEntry.w Obj0E_CreditsTrademark	; $18
+;    endif
 ; ===========================================================================
 ; loc_12E38:
 Obj0E_Init:
 	addq.b	#2,routine(a0)	; useless, because it's overwritten with the subtype below
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Different intro.
 	move.l	#Obj0E_MapUnc_136A8,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_TitleSprites,0,0),art_tile(a0)
-    else
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleKnuckles,0,0),art_tile(a0)
-    endif
+;    else
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleKnuckles,0,0),art_tile(a0)
+;    endif
 	move.b	#4,priority(a0)
 	move.b	subtype(a0),routine(a0)
 	bra.s	Obj0E
@@ -23586,10 +23582,10 @@ Obj0E_Sonic_Index: offsetTable
 	offsetTableEntry.w Obj0E_Sonic_Move			;   6
 	offsetTableEntry.w Obj0E_Animate			;   8
 	offsetTableEntry.w Obj0E_Sonic_AnimationFinished	;  $A
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Different intro.
 	offsetTableEntry.w Obj0E_Sonic_SpawnTails		;  $C
-    endif
+;    endif
 	offsetTableEntry.w Obj0E_Sonic_FlashBackground		;  $E
 	offsetTableEntry.w Obj0E_Sonic_SpawnFallingStar		; $10
 	offsetTableEntry.w Obj0E_Sonic_MakeStarSparkle		; $12
@@ -23598,14 +23594,14 @@ Obj0E_Sonic_Index: offsetTable
 Obj0E_Sonic_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_Sonic_FadeInAndPlayMusic
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	move.l	#Obj0E_MapUnc_Knuckles,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleKnuckles,0,1),art_tile(a0)
-	move.b	#0,mapping_frame(a0)
-    else
+;	move.l	#Obj0E_MapUnc_Knuckles,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleKnuckles,0,1),art_tile(a0)
+;	move.b	#0,mapping_frame(a0)
+;    else
 	move.b	#5,mapping_frame(a0)
-    endif
+;    endif
 
 	move.w	#128+144,x_pixel(a0)
 	move.w	#128+96,y_pixel(a0)
@@ -23620,16 +23616,16 @@ Obj0E_Sonic_Init:
 	move.b	#ObjID_TitleIntro,id(a1)
 	move.b	#6,subtype(a1)
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Load copyright text object.
-	lea	(IntroCopyright).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$12,subtype(a1)	; Obj0E_Copyright
-    endif
+;	lea	(IntroCopyright).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$12,subtype(a1)	; Obj0E_Copyright
+;    endif
 
 	; Play twinkling sound.
 	moveq	#signextendB(SndID_Sparkle),d0
-	jmpto	PlaySound, JmpTo4_PlaySound
+	jmp	(PlaySound).l
 ; ===========================================================================
 ; loc_12EC2:
 Obj0E_Sonic_FadeInAndPlayMusic:
@@ -23649,7 +23645,7 @@ Obj0E_Sonic_FadeInAndPlayMusic:
 	; Play title screen music.
 	st.b	obj0e_music_playing(a0)
 	moveq	#signextendB(MusID_Title),d0
-	jmpto	PlayMusic, JmpTo4_PlayMusic
+	jmp	(PlayMusic).l
 ; ===========================================================================
 ; loc_12EE8:
 Obj0E_Sonic_LoadPalette:
@@ -23708,20 +23704,20 @@ Obj0E_Move:
 +
 	bra.w	DisplaySprite
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro; different positions.
-Obj0E_Sonic_Positions:
+;Obj0E_Sonic_Positions:
 	;           X,      Y
-	dc.w  128+116, 128+80
-	dc.w  128+120, 128+64
-	dc.w  128+124, 128+50
-	dc.w  128+128, 128+38
-	dc.w  128+132, 128+30
-	dc.w  128+126, 128+24
-	dc.w  128+120, 128+20
-	dc.w  128+116, 128+18
-Obj0E_Sonic_Positions_End:
-    endif
+;	dc.w  128+116, 128+80
+;	dc.w  128+120, 128+64
+;	dc.w  128+124, 128+50
+;	dc.w  128+128, 128+38
+;	dc.w  128+132, 128+30
+;	dc.w  128+126, 128+24
+;	dc.w  128+120, 128+20
+;	dc.w  128+116, 128+18
+;Obj0E_Sonic_Positions_End:
+;    endif
 ; ===========================================================================
 ; loc_12F52:
 Obj0E_Animate:
@@ -23732,13 +23728,13 @@ Obj0E_Animate:
 ; Obj0E_Sonic_LastFrame:
 Obj0E_Sonic_AnimationFinished:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_Sonic_SpawnTails
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	move.b	#4,mapping_frame(a0)
-	move.w	y_pixel(a0),obj0e_base_y_pos(a0)
-    else
+;	move.b	#4,mapping_frame(a0)
+;	move.w	y_pixel(a0),obj0e_base_y_pos(a0)
+;    else
 	move.b	#$12,mapping_frame(a0)
-    endif
+;    endif
 
 	; Load Sonic's hand object.
 	lea	(IntroSonicHand).w,a1
@@ -23747,7 +23743,7 @@ Obj0E_Sonic_AnimationFinished:
 
 	bra.w	DisplaySprite
 ; ===========================================================================
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Different intro.
 ; loc_12F7C:
 Obj0E_Sonic_SpawnTails:
@@ -23761,7 +23757,7 @@ Obj0E_Sonic_SpawnTails:
 	move.b	#4,subtype(a1)
 +
 	bra.w	DisplaySprite
-    endif
+;    endif
 ; ===========================================================================
 ; loc_12F9A:
 Obj0E_Sonic_FlashBackground:
@@ -23769,12 +23765,12 @@ Obj0E_Sonic_FlashBackground:
 	blo.s	+
 	addq.b	#2,routine_secondary(a0)	; Obj0E_Sonic_SpawnFallingStar
 	clr.w	obj0e_array_index(a0)
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different variable.
-	st.b	(Title_Intro_Complete).w
-    else
+;	st.b	(Title_Intro_Complete).w
+;    else
 	st.b	obj0e_intro_complete(a0)
-    endif
+;    endif
 
 	; Fill palette line 3 with white.
 	lea	(Normal_palette_line3).w,a1
@@ -23791,10 +23787,10 @@ Obj0E_Sonic_FlashBackground:
 	; Load title screen menu object.
 	move.b	#ObjID_TitleMenu,(TitleScreenMenu+id).w
 +
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	bsr.w	Obj0E_OffsetYPosition
-    endif
+;	bsr.w	Obj0E_OffsetYPosition
+;    endif
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_12FD6:
@@ -23805,19 +23801,19 @@ Obj0E_Sonic_SpawnFallingStar:
 	beq.s	+
 	cmpi.w	#400,obj0e_current_frame(a0)
 	beq.s	++
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	bsr.w	Obj0E_OffsetYPosition
-    endif
+;	bsr.w	Obj0E_OffsetYPosition
+;    endif
 	bra.w	DisplaySprite
 ; ===========================================================================
 +
 	cmpi.w	#464,obj0e_current_frame(a0)
 	beq.s	+
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	bsr.w	Obj0E_OffsetYPosition
-    endif
+;	bsr.w	Obj0E_OffsetYPosition
+;    endif
 	bra.w	DisplaySprite
 ; ===========================================================================
 +
@@ -23828,17 +23824,17 @@ Obj0E_Sonic_SpawnFallingStar:
 
 	addq.b	#2,routine_secondary(a0)	; Obj0E_Sonic_MakeStarSparkle
 
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Different intro.
 	; Delete sprite mask object.
 	lea	(IntroMaskingSprite).w,a1
 	bsr.w	DeleteObject2
-    endif
+;    endif
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	bsr.w	Obj0E_OffsetYPosition
-    endif
+;	bsr.w	Obj0E_OffsetYPosition
+;    endif
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_13014:
@@ -23861,10 +23857,10 @@ Obj0E_Sonic_MakeStarSparkle:
 	; Obtain colour from the array and apply it to the palette line.
 	move.w	CyclingPal_TitleStar(pc,d0.w),(Normal_palette_line3+5*2).w
 +
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	bsr.w	Obj0E_OffsetYPosition
-    endif
+;	bsr.w	Obj0E_OffsetYPosition
+;    endif
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; word_1303A:
@@ -23872,7 +23868,7 @@ CyclingPal_TitleStar:
 	binclude "art/palettes/Title Star Cycle.bin"
 CyclingPal_TitleStar_End
 
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Different intro.
 ;word_13046:
 Obj0E_Sonic_Positions:
@@ -23886,69 +23882,69 @@ Obj0E_Sonic_Positions:
 	dc.w  128+132, 128+25
 	dc.w  128+136, 128+24
 Obj0E_Sonic_Positions_End
-    endif
+;    endif
 ; ===========================================================================
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-Obj0E_LowerTheEmblem:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj0E_LowerTheEmblem_Index(pc,d0.w),d1
-	jmp	Obj0E_LowerTheEmblem_Index(pc,d1.w)
+;Obj0E_LowerTheEmblem:
+;	moveq	#0,d0
+;	move.b	routine_secondary(a0),d0
+;	move.w	Obj0E_LowerTheEmblem_Index(pc,d0.w),d1
+;	jmp	Obj0E_LowerTheEmblem_Index(pc,d1.w)
 ; ---------------------------------------------------------------------------
-Obj0E_LowerTheEmblem_Index: offsetTable
-	offsetTableEntry.w Obj0E_LowerTheEmblem_Main
-	offsetTableEntry.w return_310122
-; ---------------------------------------------------------------------------
-
-Obj0E_LowerTheEmblem_Main:
-	subq.w	#1,obj0e_counter(a0)
-	bpl.s	return_3100F6
-	move.w	#1,obj0e_counter(a0)
-
-	move.w	obj0e_array_index(a0),d0
-	move.w	Obj0E_LowerTheEmblem_Positions(pc,d0.w),d1
-	move.w	d1,(Vscroll_Factor_FG).w
-	move.w	d1,(Title_Screen_Something).w
-	addq.w	#2,d0
-	move.w	d0,obj0e_array_index(a0)
-
-	cmpi.w	#Obj0E_LowerTheEmblem_Positions_End-Obj0E_LowerTheEmblem_Positions,d0
-	blo.s	return_3100F6
-
-	addq.b	#2,routine_secondary(a0)
-
-return_3100F6:
-	rts
-; ---------------------------------------------------------------------------
-Obj0E_LowerTheEmblem_Positions:
-	dc.w    0
-	dc.w   -1
-	dc.w   -3
-	dc.w   -6
-	dc.w  -10
-	dc.w  -16
-	dc.w  -24
-	dc.w  -20
-	dc.w  -18
-	dc.w  -14
-	dc.w  -13
-	dc.w  -12
-	dc.w  -13
-	dc.w  -14
-	dc.w  -16
-	dc.w  -20
-	dc.w  -24
-	dc.w  -22
-	dc.w  -21
-	dc.w  -22
-	dc.w  -24
-Obj0E_LowerTheEmblem_Positions_End
+;Obj0E_LowerTheEmblem_Index: offsetTable
+;	offsetTableEntry.w Obj0E_LowerTheEmblem_Main
+;	offsetTableEntry.w return_310122
 ; ---------------------------------------------------------------------------
 
-return_310122:
-		rts
-    else
+;Obj0E_LowerTheEmblem_Main:
+;	subq.w	#1,obj0e_counter(a0)
+;	bpl.s	return_3100F6
+;	move.w	#1,obj0e_counter(a0)
+
+;	move.w	obj0e_array_index(a0),d0
+;	move.w	Obj0E_LowerTheEmblem_Positions(pc,d0.w),d1
+;	move.w	d1,(Vscroll_Factor_FG).w
+;	move.w	d1,(Title_Screen_Something).w
+;	addq.w	#2,d0
+;	move.w	d0,obj0e_array_index(a0)
+
+;	cmpi.w	#Obj0E_LowerTheEmblem_Positions_End-Obj0E_LowerTheEmblem_Positions,d0
+;	blo.s	return_3100F6
+
+;	addq.b	#2,routine_secondary(a0)
+
+;return_3100F6:
+;	rts
+; ---------------------------------------------------------------------------
+;Obj0E_LowerTheEmblem_Positions:
+;	dc.w    0
+;	dc.w   -1
+;	dc.w   -3
+;	dc.w   -6
+;	dc.w  -10
+;	dc.w  -16
+;	dc.w  -24
+;	dc.w  -20
+;	dc.w  -18
+;	dc.w  -14
+;	dc.w  -13
+;	dc.w  -12
+;	dc.w  -13
+;	dc.w  -14
+;	dc.w  -16
+;	dc.w  -20
+;	dc.w  -24
+;	dc.w  -22
+;	dc.w  -21
+;	dc.w  -22
+;	dc.w  -24
+;Obj0E_LowerTheEmblem_Positions_End
+; ---------------------------------------------------------------------------
+
+;return_310122:
+;		rts
+;    else
 Obj0E_Tails:
 	moveq	#0,d0
 	move.b	routine_secondary(a0),d0
@@ -24007,59 +24003,59 @@ Obj0E_Tails_Positions:
 	dc.w   128+73, 128+33
 	dc.w   128+72, 128+32
 Obj0E_Tails_Positions_End
-    endif
+;    endif
 ; ===========================================================================
 
 Obj0E_LogoTop:
 	moveq	#0,d0
 	move.b	routine_secondary(a0),d0
 	move.w	Obj0E_LogoTop_Index(pc,d0.w),d1
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	jsr	Obj0E_LogoTop_Index(pc,d1.w)
-	bra.w	DisplaySprite
-    else
+;	jsr	Obj0E_LogoTop_Index(pc,d1.w)
+;	bra.w	DisplaySprite
+;    else
 	jmp	Obj0E_LogoTop_Index(pc,d1.w)
-    endif
+;    endif
 ; ===========================================================================
 ; off_130E2:
 Obj0E_LogoTop_Index: offsetTable
 	offsetTableEntry.w Obj0E_LogoTop_Init		; 0
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	offsetTableEntry.w Obj0E_OffsetYPosition	; 2
-	offsetTableEntry.w return_3101E2		; 4
-    else
+;	offsetTableEntry.w Obj0E_OffsetYPosition	; 2
+;	offsetTableEntry.w return_3101E2		; 4
+;    else
 	offsetTableEntry.w BranchTo11_DisplaySprite	; 2
-    endif
+;    endif
 ; ===========================================================================
 
 Obj0E_LogoTop_Init:
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): This was modified to initialise the object in a
 	; different slot to its own, use separate mappings to the rest of the
 	; object, and store the initial Y coordinate in the object's scratch
 	; RAM.
-	addq.b	#2,routine_secondary(a0)	; Obj0E_OffsetYPosition
-	lea	(IntroEmblemTop).w,a1
+;	addq.b	#2,routine_secondary(a0)	; Obj0E_OffsetYPosition
+;	lea	(IntroEmblemTop).w,a1
 
-Obj0E_LogoTop_Init_Part2:
-	move.l	#Obj0E_MapUnc_EmblemTopAndSpriteMask,mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,0),art_tile(a1)
+;Obj0E_LogoTop_Init_Part2:
+;	move.l	#Obj0E_MapUnc_EmblemTopAndSpriteMask,mappings(a1)
+;	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,0),art_tile(a1)
 	; Don't show the trademark symbol on Japanese consoles.
-	move.b	#1,mapping_frame(a1)
-	tst.b	(Graphics_Flags).w
-	bmi.s	+
-	move.b	#0,mapping_frame(a1)
-+
-	move.b	#2,priority(a1)
-	move.w	#128+320/2,x_pixel(a1)
-	move.w	#128+104,d0
-	move.w	d0,y_pixel(a1)
-	move.w	d0,obj0e_base_y_pos(a1)
+;	move.b	#1,mapping_frame(a1)
+;	tst.b	(Graphics_Flags).w
+;	bmi.s	+
+;	move.b	#0,mapping_frame(a1)
+;+
+;	move.b	#2,priority(a1)
+;	move.w	#128+320/2,x_pixel(a1)
+;	move.w	#128+104,d0
+;	move.w	d0,y_pixel(a1)
+;	move.w	d0,obj0e_base_y_pos(a1)
 
-	rts
-    else
+;	rts
+;    else
 	; Don't show the trademark symbol on Japanese consoles.
 	move.b	#$B,mapping_frame(a0)
 	tst.b	(Graphics_Flags).w
@@ -24075,24 +24071,24 @@ Obj0E_NextRoutineSecondary:
 
 BranchTo11_DisplaySprite
 	bra.w	DisplaySprite
-    endif
+;    endif
 
 
-    if gameRevision=3
+;    if gameRevision=3
 ; =============== S U B	R O U T	I N E =======================================
 ; sub_31017E:
-Obj0E_OffsetYPosition:
-	tst.b	(Title_Intro_Complete).w
-	bne.s	+
-	move.w	(Title_Screen_Something).w,d0
-	neg.w	d0
-	move.w	obj0e_base_y_pos(a0),d1
-	add.w	d0,d1
-	move.w	d1,y_pixel(a0)
-+
-	rts
+;Obj0E_OffsetYPosition:
+;	tst.b	(Title_Intro_Complete).w
+;	bne.s	+
+;	move.w	(Title_Screen_Something).w,d0
+;	neg.w	d0
+;	move.w	obj0e_base_y_pos(a0),d1
+;	add.w	d0,d1
+;	move.w	d1,y_pixel(a0)
+;+
+;	rts
 ; End of function Obj0E_OffsetYPosition
-    endif
+;    endif
 
 ; ===========================================================================
 ; Obj0E_SkyPiece:
@@ -24100,52 +24096,52 @@ Obj0E_MaskingSprite:
 	moveq	#0,d0
 	move.b	routine_secondary(a0),d0
 	move.w	Obj0E_MaskingSprite_Index(pc,d0.w),d1
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	jsr	Obj0E_MaskingSprite_Index(pc,d1.w)
-	bra.w	DisplaySprite
-    else
+;	jsr	Obj0E_MaskingSprite_Index(pc,d1.w)
+;	bra.w	DisplaySprite
+;    else
 	jmp	Obj0E_MaskingSprite_Index(pc,d1.w)
-    endif
+;    endif
 ; ===========================================================================
 ; off_13120:
 Obj0E_MaskingSprite_Index: offsetTable
 	offsetTableEntry.w Obj0E_MaskingSprite_Init	; 0
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	offsetTableEntry.w Obj0E_OffsetYPosition	; 2
-	offsetTableEntry.w return_3101E2		; 4
-    else
+;	offsetTableEntry.w Obj0E_OffsetYPosition	; 2
+;	offsetTableEntry.w return_3101E2		; 4
+;    else
 	offsetTableEntry.w BranchTo12_DisplaySprite	; 2
-    endif
+;    endif
 ; ===========================================================================
 
 Obj0E_MaskingSprite_Init:
 	addq.b	#2,routine_secondary(a0)	; BranchTo12_DisplaySprite
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): This was modified to initialise the object in a
 	; different slot to its own, use separate mappings to the rest of the
 	; object, and store the initial Y coordinate in the object's scratch
 	; RAM.
-	lea	(IntroMaskingSprite).w,a1
+;	lea	(IntroMaskingSprite).w,a1
 
-Obj0E_MaskingSprite_Init_Part2:
-	move.l	#Obj0E_MapUnc_EmblemTopAndSpriteMask,mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,0),art_tile(a1)
-	move.b	#2,mapping_frame(a1)
-	move.b	#2,priority(a1)
+;Obj0E_MaskingSprite_Init_Part2:
+;	move.l	#Obj0E_MapUnc_EmblemTopAndSpriteMask,mappings(a1)
+;	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,0),art_tile(a1)
+;	move.b	#2,mapping_frame(a1)
+;	move.b	#2,priority(a1)
 	; Masking sprites normally must have an X coordinate of 0. I don't
 	; know why it isn't set to that here, but it is corrected to 0 in
 	; 'TitleScreen_Loop'.
-	move.w	#128+128,x_pixel(a1)
-	move.w	#128+224/2,d0
-	move.w	d0,y_pixel(a1)
-	move.w	d0,obj0e_base_y_pos(a1)
+;	move.w	#128+128,x_pixel(a1)
+;	move.w	#128+224/2,d0
+;	move.w	d0,y_pixel(a1)
+;	move.w	d0,obj0e_base_y_pos(a1)
 
-return_3101E2:
-	rts
-    else
+;return_3101E2:
+;	rts
+;    else
 	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,0),art_tile(a0)
 	move.b	#$11,mapping_frame(a0)
 	move.b	#2,priority(a0)
@@ -24157,7 +24153,7 @@ return_3101E2:
 
 BranchTo12_DisplaySprite
 	bra.w	DisplaySprite
-    endif
+;    endif
 ; ===========================================================================
 ; Obj0E_LargeStar:
 Obj0E_FlashingStar:
@@ -24176,15 +24172,15 @@ Obj0E_FlashingStar_Index: offsetTable
 
 Obj0E_FlashingStar_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_Animate
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): This subobject now uses its own graphics.
-	move.b	#0,mapping_frame(a0)
-	move.l	#Obj0E_MapUnc_Stars,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleStars,1,1),art_tile(a0)
-    else
+;	move.b	#0,mapping_frame(a0)
+;	move.l	#Obj0E_MapUnc_Stars,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleStars,1,1),art_tile(a0)
+;    else
 	move.b	#$C,mapping_frame(a0)
 	ori.w	#high_priority,art_tile(a0)
-    endif
+;    endif
 	move.b	#2,anim(a0)
 	move.b	#1,priority(a0)
 	move.w	#128+128,x_pixel(a0)
@@ -24225,7 +24221,7 @@ Obj0E_FlashingStar_Move:
 
 	; Play twinkling sound.
 	moveq	#signextendB(SndID_Sparkle),d0
-	jmpto	PlaySound, JmpTo4_PlaySound
+	jmp	(PlaySound).l
 ; ===========================================================================
 ; word_131DC:
 Obj0E_FlashingStar_Positions:
@@ -24241,119 +24237,119 @@ Obj0E_FlashingStar_Positions:
 Obj0E_FlashingStar_Positions_End
 ; ===========================================================================
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-Obj0E_KnucklesHand:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj0E_KnucklesHand_Index(pc,d0.w),d1
-	jsr	Obj0E_KnucklesHand_Index(pc,d1.w)
-	bra.w	DisplaySprite
+;Obj0E_KnucklesHand:
+;	moveq	#0,d0
+;	move.b	routine_secondary(a0),d0
+;	move.w	Obj0E_KnucklesHand_Index(pc,d0.w),d1
+;	jsr	Obj0E_KnucklesHand_Index(pc,d1.w)
+;	bra.w	DisplaySprite
 ; ---------------------------------------------------------------------------
-Obj0E_KnucklesHand_Index: offsetTable
-	offsetTableEntry.w Obj0E_KnucklesHand_Init		; 0
-	offsetTableEntry.w Obj0E_KnucklesHand_Raise		; 2
-	offsetTableEntry.w Obj0E_Animate			; 4
-	offsetTableEntry.w Obj0E_KnucklesHand_Lower		; 6
-	offsetTableEntry.w Obj0E_KnucklesHand_FallWithEmblem	; 8
-	offsetTableEntry.w Obj0E_Animate			; $A
-	offsetTableEntry.w Obj0E_KnucklesHand_CreateBanner	; $C
-	offsetTableEntry.w Obj0E_KnucklesHand_Return		; $E
+;Obj0E_KnucklesHand_Index: offsetTable
+;	offsetTableEntry.w Obj0E_KnucklesHand_Init		; 0
+;	offsetTableEntry.w Obj0E_KnucklesHand_Raise		; 2
+;	offsetTableEntry.w Obj0E_Animate			; 4
+;	offsetTableEntry.w Obj0E_KnucklesHand_Lower		; 6
+;	offsetTableEntry.w Obj0E_KnucklesHand_FallWithEmblem	; 8
+;	offsetTableEntry.w Obj0E_Animate			; $A
+;	offsetTableEntry.w Obj0E_KnucklesHand_CreateBanner	; $C
+;	offsetTableEntry.w Obj0E_KnucklesHand_Return		; $E
 ; ---------------------------------------------------------------------------
 
-Obj0E_KnucklesHand_Init:
-	addq.b	#2,routine_secondary(a0)
-	move.w	#3,obj0e_counter(a0)
+;Obj0E_KnucklesHand_Init:
+;	addq.b	#2,routine_secondary(a0)
+;	move.w	#3,obj0e_counter(a0)
 
-Obj0E_KnucklesHand_Init_Part2:
-	lea	(IntroSonicHand).w,a1
-	move.l	#Obj0E_MapUnc_Knuckles,mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleKnuckles,0,1),art_tile(a1)
-	move.b	#5,mapping_frame(a1)
-	move.b	#3,priority(a1)
+;Obj0E_KnucklesHand_Init_Part2:
+;	lea	(IntroSonicHand).w,a1
+;	move.l	#Obj0E_MapUnc_Knuckles,mappings(a1)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleKnuckles,0,1),art_tile(a1)
+;	move.b	#5,mapping_frame(a1)
+;	move.b	#3,priority(a1)
 
-	lea	(IntroSonic).w,a2
-	move.w	x_pixel(a2),x_pixel(a1)
-	move.w	y_pixel(a2),d0
-	addi.w	#48,d0
-	move.w	d0,y_pixel(a1)
+;	lea	(IntroSonic).w,a2
+;	move.w	x_pixel(a2),x_pixel(a1)
+;	move.w	y_pixel(a2),d0
+;	addi.w	#48,d0
+;	move.w	d0,y_pixel(a1)
 
-	rts
+;	rts
 ; End of function Obj0E_KnucklesHand_Init
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-Obj0E_KnucklesHand_Raise:
-	subq.w	#2,y_pixel(a0)
-	subq.w	#1,obj0e_counter(a0)
-	bpl.s	+
+;Obj0E_KnucklesHand_Raise:
+;	subq.w	#2,y_pixel(a0)
+;	subq.w	#1,obj0e_counter(a0)
+;	bpl.s	+
 
-	addq.b	#2,routine_secondary(a0)
-	move.b	#4,anim(a0)
-	move.w	#3,obj0e_counter(a0)
-+
-	rts
+;	addq.b	#2,routine_secondary(a0)
+;	move.b	#4,anim(a0)
+;	move.w	#3,obj0e_counter(a0)
+;+
+;	rts
 ; End of function Obj0E_KnucklesHand_Raise
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-Obj0E_KnucklesHand_Lower:
-	addq.w	#2,y_pixel(a0)
-	subq.w	#1,obj0e_counter(a0)
-	bpl.s	+
+;Obj0E_KnucklesHand_Lower:
+;	addq.w	#2,y_pixel(a0)
+;	subq.w	#1,obj0e_counter(a0)
+;	bpl.s	+
 
-	addq.b	#2,routine_secondary(a0)
-	move.w	y_pixel(a0),obj0e_base_y_pos(a0)
+;	addq.b	#2,routine_secondary(a0)
+;	move.w	y_pixel(a0),obj0e_base_y_pos(a0)
 
-	lea	(IntroEmblemLowerer).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#4,subtype(a1)	; Obj0E_LowerTheEmblem
-+
-	rts
+;	lea	(IntroEmblemLowerer).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#4,subtype(a1)	; Obj0E_LowerTheEmblem
+;+
+;	rts
 ; End of function Obj0E_KnucklesHand_Lower
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-Obj0E_KnucklesHand_FallWithEmblem:
-	bsr.w	Obj0E_OffsetYPosition
-	cmpi.w	#293,(IntroSonic+obj0e_current_frame).w
-	bne.s	+
-	addq.b	#2,routine_secondary(a0)
-	move.w	#$400,anim(a0)
-+
-	rts
+;Obj0E_KnucklesHand_FallWithEmblem:
+;	bsr.w	Obj0E_OffsetYPosition
+;	cmpi.w	#293,(IntroSonic+obj0e_current_frame).w
+;	bne.s	+
+;	addq.b	#2,routine_secondary(a0)
+;	move.w	#$400,anim(a0)
+;+
+;	rts
 ; End of function Obj0E_KnucklesHand_FallWithEmblem
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-Obj0E_KnucklesHand_CreateBanner:
-	addq.b	#2,routine_secondary(a0)
+;Obj0E_KnucklesHand_CreateBanner:
+;	addq.b	#2,routine_secondary(a0)
 
 	; Create banner object.
-	lea	(IntroBanner).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$14,subtype(a1)	; Obj0E_Banner
+;	lea	(IntroBanner).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$14,subtype(a1)	; Obj0E_Banner
 
-	rts
+;	rts
 ; End of function Obj0E_KnucklesHand_CreateBanner
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-Obj0E_KnucklesHand_Return:
-	rts
+;Obj0E_KnucklesHand_Return:
+;	rts
 ; End of function Obj0E_KnucklesHand_Return
 
-    else
+;    else
 
 Obj0E_SonicHand:
 	moveq	#0,d0
@@ -24397,7 +24393,7 @@ Obj0E_SonicHand_Positions:
 	dc.w  128+193, 128+65
 Obj0E_SonicHand_Positions_End
 ; ===========================================================================
-    endif
+;    endif
 
 Obj0E_TailsHand:
 	moveq	#0,d0
@@ -24413,10 +24409,10 @@ Obj0E_TailsHand_Index: offsetTable
 ; ===========================================================================
 
 Obj0E_TailsHand_Init:
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Despite being unused, this sub-object was modified.
-	addq.b	#2,routine_secondary(a0)	; Obj0E_TailsHand_Move
-    endif
+;	addq.b	#2,routine_secondary(a0)	; Obj0E_TailsHand_Move
+;    endif
 	move.b	#$13,mapping_frame(a0)
     if fixBugs
 	; This matches 'TitleScreen_SetFinalState'.
@@ -24429,11 +24425,11 @@ Obj0E_TailsHand_Init:
 	move.w	#128+143,x_pixel(a0)
 	move.w	#128+85,y_pixel(a0)
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Despite being unused, this sub-object was modified.
-Obj0E_NextRoutineSecondary:
+;Obj0E_NextRoutineSecondary:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_TailsHand_Move
-    endif
+;    endif
 
 BranchTo14_DisplaySprite
 	bra.w	DisplaySprite
@@ -24465,14 +24461,14 @@ Obj0E_FallingStar_Index: offsetTable
 ; Obj0E_SmallStar_Init:
 Obj0E_FallingStar_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_FallingStar_Main
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	move.l	#Obj0E_MapUnc_Stars,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleStars,1,0),art_tile(a0)
-	move.b	#0,mapping_frame(a0)
-    else
+;	move.l	#Obj0E_MapUnc_Stars,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleStars,1,0),art_tile(a0)
+;	move.b	#0,mapping_frame(a0)
+;    else
 	move.b	#$C,mapping_frame(a0)
-    endif
+;    endif
 	move.b	#5,priority(a0)
 	move.w	#128+240,x_pixel(a0)
 	move.w	#128+0,y_pixel(a0)
@@ -24484,13 +24480,13 @@ Obj0E_FallingStar_Init:
 Obj0E_FallingStar_Main:
 	subq.w	#1,obj0e_counter(a0)
 	bmi.w	DeleteObject
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
-	cmpi.w	#60,obj0e_counter(a0)
-	bne.s	+
-	move.b	#1,priority(a0)
-+
-    endif
+;	cmpi.w	#60,obj0e_counter(a0)
+;	bne.s	+
+;	move.b	#1,priority(a0)
+;+
+;    endif
 	; Make the star fall.
 	subq.w	#2,x_pixel(a0)
 	addq.w	#1,y_pixel(a0)
@@ -24499,166 +24495,166 @@ Obj0E_FallingStar_Main:
 	bsr.w	AnimateSprite
 	bra.w	DisplaySprite
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different intro.
 ; loc_310434:
-Obj0E_Copyright:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj0E_Copyright_Index(pc,d0.w),d1
-	jmp	Obj0E_Copyright_Index(pc,d1.w)
+;Obj0E_Copyright:
+;	moveq	#0,d0
+;	move.b	routine_secondary(a0),d0
+;	move.w	Obj0E_Copyright_Index(pc,d0.w),d1
+;	jmp	Obj0E_Copyright_Index(pc,d1.w)
 ; ---------------------------------------------------------------------------
-Obj0E_Copyright_Index: offsetTable
-	offsetTableEntry.w Obj0E_Copyright_Init	; 0
-	offsetTableEntry.w Obj0E_Copyright_Main	; 2
+;Obj0E_Copyright_Index: offsetTable
+;	offsetTableEntry.w Obj0E_Copyright_Init	; 0
+;	offsetTableEntry.w Obj0E_Copyright_Main	; 2
 ; ---------------------------------------------------------------------------
 
-Obj0E_Copyright_Init:
-	addq.b	#2,routine_secondary(a0)
-	move.l	#Obj0E_MapUnc_OtherText,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleOtherText,3,1),art_tile(a0)
-	move.b	#1,mapping_frame(a0)
-	move.b	#1,priority(a0)
-	move.w	#128+320/2+64,x_pixel(a0)
-	move.w	#128+200,y_pixel(a0)
+;Obj0E_Copyright_Init:
+;	addq.b	#2,routine_secondary(a0)
+;	move.l	#Obj0E_MapUnc_OtherText,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleOtherText,3,1),art_tile(a0)
+;	move.b	#1,mapping_frame(a0)
+;	move.b	#1,priority(a0)
+;	move.w	#128+320/2+64,x_pixel(a0)
+;	move.w	#128+200,y_pixel(a0)
 
-Obj0E_Copyright_Main:
-	bra.w	DisplaySprite
+;Obj0E_Copyright_Main:
+;	bra.w	DisplaySprite
 ; ---------------------------------------------------------------------------
 ; loc_310474:
-Obj0E_Banner:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj0E_Banner_Index(pc,d0.w),d1
-	jsr	Obj0E_Banner_Index(pc,d1.w)
-	bra.w	DisplaySprite
+;Obj0E_Banner:
+;	moveq	#0,d0
+;	move.b	routine_secondary(a0),d0
+;	move.w	Obj0E_Banner_Index(pc,d0.w),d1
+;	jsr	Obj0E_Banner_Index(pc,d1.w)
+;	bra.w	DisplaySprite
 ; ---------------------------------------------------------------------------
 ; off_310486:
-Obj0E_Banner_Index: offsetTable
-	offsetTableEntry.w Obj0E_Banner_Init	; 0
-	offsetTableEntry.w Obj0E_Banner_Move	; 2
-	offsetTableEntry.w return_3101E2	; 4
+;Obj0E_Banner_Index: offsetTable
+;	offsetTableEntry.w Obj0E_Banner_Init	; 0
+;	offsetTableEntry.w Obj0E_Banner_Move	; 2
+;	offsetTableEntry.w return_3101E2	; 4
 ; ---------------------------------------------------------------------------
 ; loc_31048C:
-Obj0E_Banner_Init:
-	addq.b	#2,routine_secondary(a0)
-	move.w	#$200,y_vel(a0)
-	lea	(IntroBanner).w,a1
+;Obj0E_Banner_Init:
+;	addq.b	#2,routine_secondary(a0)
+;	move.w	#$200,y_vel(a0)
+;	lea	(IntroBanner).w,a1
 
-Obj0E_Banner_Init_Part2:
-	move.l	#Obj0E_MapUnc_Banner,mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,1),art_tile(a1)
-	clr.b	mapping_frame(a1)
-	move.b	#1,priority(a1)
-	move.w	#128+320/2,d0
-	move.w	d0,x_pixel(a1)
-	move.w	d0,$2A(a1)
-	move.w	#128-24,d0
-	move.w	d0,y_pixel(a1)
-	move.w	d0,$2E(a1)
-	rts
+;Obj0E_Banner_Init_Part2:
+;	move.l	#Obj0E_MapUnc_Banner,mappings(a1)
+;	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,1),art_tile(a1)
+;	clr.b	mapping_frame(a1)
+;	move.b	#1,priority(a1)
+;	move.w	#128+320/2,d0
+;	move.w	d0,x_pixel(a1)
+;	move.w	d0,$2A(a1)
+;	move.w	#128-24,d0
+;	move.w	d0,y_pixel(a1)
+;	move.w	d0,$2E(a1)
+;	rts
 ; End of function Obj0E_Banner_Init
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 ; sub_3104CC:
-Obj0E_Banner_Move:
-	move.l	$2A(a0),d2
-	move.l	$2E(a0),d3
+;Obj0E_Banner_Move:
+;	move.l	$2A(a0),d2
+;	move.l	$2E(a0),d3
 
 	; Apply X velocity.
-	move.w	x_vel(a0),d0
-	ext.l	d0
-	asl.l	#8,d0
-	add.l	d0,d2
+;	move.w	x_vel(a0),d0
+;	ext.l	d0
+;	asl.l	#8,d0
+;	add.l	d0,d2
 
 	; Apply Y velocity.
-	move.w	y_vel(a0),d0
-	add.w	#$38,y_vel(a0)
-	ext.l	d0
-	asl.l	#8,d0
-	add.l	d0,d3
+;	move.w	y_vel(a0),d0
+;	add.w	#$38,y_vel(a0)
+;	ext.l	d0
+;	asl.l	#8,d0
+;	add.l	d0,d3
 
-	move.l	d2,$2A(a0)
-	move.l	d3,$2E(a0)
+;	move.l	d2,$2A(a0)
+;	move.l	d3,$2E(a0)
 
-	swap	d2
-	swap	d3
-	move.w	d2,x_pixel(a0)
-	move.w	d3,y_pixel(a0)
+;	swap	d2
+;	swap	d3
+;	move.w	d2,x_pixel(a0)
+;	move.w	d3,y_pixel(a0)
 
 	; If currently moving upwards, return.
-	move.w	y_vel(a0),d0
-	bmi.s	return_310528
+;	move.w	y_vel(a0),d0
+;	bmi.s	return_310528
 
 	; Once the banner has reached Y position 36, then make it bounce
 	; upwards.
-	move.w	#128+36,d1
-	cmp.w	y_pixel(a0),d1
-	bhi.s	return_310528
-	move.w	d1,y_pixel(a0)
+;	move.w	#128+36,d1
+;	cmp.w	y_pixel(a0),d1
+;	bhi.s	return_310528
+;	move.w	d1,y_pixel(a0)
 
-	asr.w	#2,d0
-	neg.w	d0
-	move.w	d0,y_vel(a0)
+;	asr.w	#2,d0
+;	neg.w	d0
+;	move.w	d0,y_vel(a0)
 
-	cmpi.w	#-$100,d0
-	blt.s	return_310528
+;	cmpi.w	#-$100,d0
+;	blt.s	return_310528
 
-	addq.b	#2,routine_secondary(a0)
+;	addq.b	#2,routine_secondary(a0)
 
-return_310528:
-	rts
+;return_310528:
+;	rts
 ; End of function Obj0E_Banner_Move
 
 ; ---------------------------------------------------------------------------
 ; loc_31052A:
-Obj0E_CreditsBanner:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj0E_CreditsBanner_Index(pc,d0.w),d1
-	jsr	Obj0E_CreditsBanner_Index(pc,d1.w)
-	bra.w	DisplaySprite
+;Obj0E_CreditsBanner:
+;	moveq	#0,d0
+;	move.b	routine_secondary(a0),d0
+;	move.w	Obj0E_CreditsBanner_Index(pc,d0.w),d1
+;	jsr	Obj0E_CreditsBanner_Index(pc,d1.w)
+;	bra.w	DisplaySprite
 ; ---------------------------------------------------------------------------
-Obj0E_CreditsBanner_Index: offsetTable
-	offsetTableEntry.w Obj0E_CreditsBanner_Init	; 0
-	offsetTableEntry.w return_3101E2		; 2
+;Obj0E_CreditsBanner_Index: offsetTable
+;	offsetTableEntry.w Obj0E_CreditsBanner_Init	; 0
+;	offsetTableEntry.w return_3101E2		; 2
 ; ---------------------------------------------------------------------------
 
-Obj0E_CreditsBanner_Init:
-	addq.b	#2,routine_secondary(a0)
-	move.l	#Obj0E_MapUnc_Banner,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,1),art_tile(a0)
-	clr.b	mapping_frame(a0)
-	move.b	#1,priority(a0)
-	move.w	#128+320/2,x_pixel(a0)
-	move.w	#128+68,y_pixel(a0)
-	rts
+;Obj0E_CreditsBanner_Init:
+;	addq.b	#2,routine_secondary(a0)
+;	move.l	#Obj0E_MapUnc_Banner,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,1),art_tile(a0)
+;	clr.b	mapping_frame(a0)
+;	move.b	#1,priority(a0)
+;	move.w	#128+320/2,x_pixel(a0)
+;	move.w	#128+68,y_pixel(a0)
+;	rts
 ; ---------------------------------------------------------------------------
 ; loc_31056A:
-Obj0E_CreditsTrademark:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj0E_CreditsTrademark_Index(pc,d0.w),d1
-	jsr	Obj0E_CreditsTrademark_Index(pc,d1.w)
-	bra.w	DisplaySprite
+;Obj0E_CreditsTrademark:
+;	moveq	#0,d0
+;	move.b	routine_secondary(a0),d0
+;	move.w	Obj0E_CreditsTrademark_Index(pc,d0.w),d1
+;	jsr	Obj0E_CreditsTrademark_Index(pc,d1.w)
+;	bra.w	DisplaySprite
 ; ---------------------------------------------------------------------------
-Obj0E_CreditsTrademark_Index: offsetTable
-	offsetTableEntry.w Obj0E_CreditsTrademark_Init	; 0
-	offsetTableEntry.w return_3101E2		; 2
+;Obj0E_CreditsTrademark_Index: offsetTable
+;	offsetTableEntry.w Obj0E_CreditsTrademark_Init	; 0
+;	offsetTableEntry.w return_3101E2		; 2
 ; ---------------------------------------------------------------------------
 
-Obj0E_CreditsTrademark_Init:
-	addq.b	#2,routine_secondary(a0)
-	move.l	#Obj0E_MapUnc_OtherText,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleOtherText,3,1),art_tile(a0)
-	move.b	#2,mapping_frame(a0)
-	move.b	#1,priority(a0)
-	move.w	#128+292,x_pixel(a0)
-	move.w	#128+48,y_pixel(a0)
-	rts
-    endif
+;Obj0E_CreditsTrademark_Init:
+;	addq.b	#2,routine_secondary(a0)
+;	move.l	#Obj0E_MapUnc_OtherText,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleOtherText,3,1),art_tile(a0)
+;	move.b	#2,mapping_frame(a0)
+;	move.b	#1,priority(a0)
+;	move.w	#128+292,x_pixel(a0)
+;	move.w	#128+48,y_pixel(a0)
+;	rts
+;    endif
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object C9 - "Palette changing handler" from title screen
@@ -24829,12 +24825,12 @@ loc_134B6:
 
 
 TitleScreen_SetFinalState:
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different variable.
-	tst.b	(Title_Intro_Complete).w
-    else
+;	tst.b	(Title_Intro_Complete).w
+;    else
 	tst.b	obj0e_intro_complete(a0)
-    endif
+;    endif
 	bne.w	+	; rts
 
 	move.b	(Ctrl_1_Press).w,d0
@@ -24845,66 +24841,66 @@ TitleScreen_SetFinalState:
 	beq.w	+	; rts
 
 	; Initialise Sonic object.
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Different variable.
-	st.b	(Title_Intro_Complete).w
-    else
+;	st.b	(Title_Intro_Complete).w
+;    else
 	st.b	obj0e_intro_complete(a0)
-    endif
+;    endif
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Notably, a lot of duplicate code was avoided by
 	; calling the init function of each object here.
 
 	; Lower the emblem.
-	move.w	#-24,(Vscroll_Factor_FG).w
+;	move.w	#-24,(Vscroll_Factor_FG).w
 
 	; Delete the emblem-lowering object.
-	lea	(IntroEmblemLowerer).w,a1
-	jsr	DeleteObject2
+;	lea	(IntroEmblemLowerer).w,a1
+;	jsr	DeleteObject2
 
-	move.b	#$E,routine_secondary(a0)
-	move.b	#4,mapping_frame(a0)
-	move.w	#128+116,x_pixel(a0)
-	move.w	#128+42,y_pixel(a0)
+;	move.b	#$E,routine_secondary(a0)
+;	move.b	#4,mapping_frame(a0)
+;	move.w	#128+116,x_pixel(a0)
+;	move.w	#128+42,y_pixel(a0)
 
 	; Initialise Knuckles's hand object.
-	lea	(IntroSonicHand).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$A,routine(a1)	; Obj0E_KnucklesHand
-	bsr.w	Obj0E_KnucklesHand_Init_Part2
-	move.b	#$E,routine_secondary(a1)
+;	lea	(IntroSonicHand).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$A,routine(a1)	; Obj0E_KnucklesHand
+;	bsr.w	Obj0E_KnucklesHand_Init_Part2
+;	move.b	#$E,routine_secondary(a1)
 
 	; Initialise top-of-emblem object.
-	lea	(IntroEmblemTop).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#6,d0	; Obj0E_LogoTop
-	move.b	d0,subtype(a1)
-	move.b	d0,routine(a1)
-	bsr.w	Obj0E_LogoTop_Init_Part2
-	addi.w	#24,y_pixel(a1)
-	move.b	#4,routine_secondary(a1)
+;	lea	(IntroEmblemTop).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#6,d0	; Obj0E_LogoTop
+;	move.b	d0,subtype(a1)
+;	move.b	d0,routine(a1)
+;	bsr.w	Obj0E_LogoTop_Init_Part2
+;	addi.w	#24,y_pixel(a1)
+;	move.b	#4,routine_secondary(a1)
 
 	; Initialise sprite mask object.
-	lea	(IntroMaskingSprite).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$E,d0	; Obj0E_MaskingSprite
-	move.b	d0,subtype(a1)
-	move.b	d0,routine(a1)
-	bsr.w	Obj0E_MaskingSprite_Init_Part2
-	addi.w	#24,y_pixel(a1)
-	move.b	#4,routine_secondary(a1)
+;	lea	(IntroMaskingSprite).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$E,d0	; Obj0E_MaskingSprite
+;	move.b	d0,subtype(a1)
+;	move.b	d0,routine(a1)
+;	bsr.w	Obj0E_MaskingSprite_Init_Part2
+;	addi.w	#24,y_pixel(a1)
+;	move.b	#4,routine_secondary(a1)
 
 	; Initialise 'KNUCKLES' banner object.
-	lea	(IntroBanner).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
-	move.b	#$14,d0	; Obj0E_Banner
-	move.b	d0,subtype(a1)
-	move.b	d0,routine(a1)
-	bsr.w	Obj0E_Banner_Init_Part2
-	addi.w	#56,y_pixel(a1)
-	move.b	#4,routine_secondary(a1)
-    else
+;	lea	(IntroBanner).w,a1
+;	move.b	#ObjID_TitleIntro,id(a1)
+;	move.b	#$14,d0	; Obj0E_Banner
+;	move.b	d0,subtype(a1)
+;	move.b	d0,routine(a1)
+;	bsr.w	Obj0E_Banner_Init_Part2
+;	addi.w	#56,y_pixel(a1)
+;	move.b	#4,routine_secondary(a1)
+;    else
 	move.b	#$10,routine_secondary(a0)
 	move.b	#$12,mapping_frame(a0)
 	move.w	#128+136,x_pixel(a0)
@@ -24950,7 +24946,7 @@ TitleScreen_SetFinalState:
 
 	; Initialise sprite mask object.
 	bsr.w	Obj0E_LoadMaskingSprite
-    endif
+;    endif
 
 	; Initialise title screen menu object.
 	move.b	#ObjID_TitleMenu,(TitleScreenMenu+id).w
@@ -24984,7 +24980,7 @@ TitleScreen_SetFinalState:
 	tst.b	obj0e_music_playing(a0)
 	bne.s	+
 	moveq	#signextendB(MusID_Title),d0
-	jsrto	PlayMusic, JmpTo4_PlayMusic
+	jmp	(PlayMusic).l
 +
 	rts
 ; End of function TitleScreen_SetFinalState
@@ -24992,7 +24988,7 @@ TitleScreen_SetFinalState:
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): Different intro.
 ; sub_135EA:
 TitleScreen_InitSprite:
@@ -25000,7 +24996,7 @@ TitleScreen_InitSprite:
 	move.w	#make_art_tile(ArtTile_ArtNem_TitleSprites,0,0),art_tile(a1)
 	move.b	#4,priority(a1)
 	rts
-    endif
+;    endif
 ; End of function TitleScreen_InitSprite
 
 ; ===========================================================================
@@ -25023,29 +25019,29 @@ Obj0F_Index:	offsetTable
 ; loc_13616:
 Obj0F_Init:
 	addq.b	#2,routine(a0) ; => Obj0F_Main
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (title): Repositioned.
-	move.w	#128+320/2,x_pixel(a0)
-	move.w	#128+224/2+84,y_pixel(a0)
-	move.l	#Obj0E_MapUnc_OtherText,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_TitleOtherText,3,1),art_tile(a0)
-    else
+;	move.w	#128+320/2,x_pixel(a0)
+;	move.w	#128+224/2+84,y_pixel(a0)
+;	move.l	#Obj0E_MapUnc_OtherText,mappings(a0)
+;	move.w	#make_art_tile(ArtTile_ArtNem_TitleOtherText,3,1),art_tile(a0)
+;    else
 	move.w	#128+320/2+8,x_pixel(a0)
 	move.w	#128+224/2+92,y_pixel(a0)
 	move.l	#Obj0F_MapUnc_13B70,mappings(a0)
 	move.w	#make_art_tile(ArtTile_VRAM_Start,0,0),art_tile(a0)
-    endif
-    if gameRevision=3
+;    endif
+;    if gameRevision=3
 	; KiS2 (title): Dummied-out.
-	move.b	#0,(Title_screen_option).w
-    else
+;	move.b	#0,(Title_screen_option).w
+;    else
 	andi.b	#1,(Title_screen_option).w
-    endif
+;    endif
 	move.b	(Title_screen_option).w,mapping_frame(a0)
 
 ; loc_13644:
 Obj0F_Main:
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (title): The title screen menu has been reduced to a simple
 	; 'press start' prompt.
 	moveq	#0,d2
@@ -25070,69 +25066,69 @@ Obj0F_Main:
 	andi.b	#button_up_mask|button_down_mask,d0
 	beq.s	+	; rts
 	moveq	#signextendB(SndID_Blip),d0 ; selection blip sound
-	jsrto	PlaySound, JmpTo4_PlaySound
+	jmp	(PlaySound).l
 +
-    endif
+;    endif
 	rts
 ; ===========================================================================
 ; animation script
 ; off_13686:
-    if gameRevision=3
+;    if gameRevision=3
 ; KiS2 (title): The animation scripts were modified to suit the new intro.
-Ani_obj0E:	offsetTable
-		offsetTableEntry.w Ani_obj0E_Knuckles		; 0
-		offsetTableEntry.w Ani_obj0E_Tails		; 1
-		offsetTableEntry.w Ani_obj0E_FlashingStar	; 2
-		offsetTableEntry.w Ani_obj0E_FallingStar	; 3
-		offsetTableEntry.w Ani_obj0E_Unknown		; 4
+;Ani_obj0E:	offsetTable
+;		offsetTableEntry.w Ani_obj0E_Knuckles		; 0
+;		offsetTableEntry.w Ani_obj0E_Tails		; 1
+;		offsetTableEntry.w Ani_obj0E_FlashingStar	; 2
+;		offsetTableEntry.w Ani_obj0E_FallingStar	; 3
+;		offsetTableEntry.w Ani_obj0E_Unknown		; 4
 ; byte_1368E:
-Ani_obj0E_Knuckles:
-	dc.b   3
-	dc.b   0
-	dc.b   1
-	dc.b   2
-	dc.b   3
-	dc.b $FA
-	even
+;Ani_obj0E_Knuckles:
+;	dc.b   3
+;	dc.b   0
+;	dc.b   1
+;	dc.b   2
+;	dc.b   3
+;	dc.b $FA
+;	even
 ; byte_13694:
-Ani_obj0E_Tails:
-	dc.b   1
-	dc.b   0
-	dc.b   1
-	dc.b   2
-	dc.b   3
-	dc.b   4
-	dc.b $FA
-	even
+;Ani_obj0E_Tails:
+;	dc.b   1
+;	dc.b   0
+;	dc.b   1
+;	dc.b   2
+;	dc.b   3
+;	dc.b   4
+;	dc.b $FA
+;	even
 ; byte_1369C:
-Ani_obj0E_FlashingStar:
-	dc.b   1
-	dc.b   0
-	dc.b   1
-	dc.b   2
-	dc.b   1
-	dc.b   0
-	dc.b $FA
-	even
+;Ani_obj0E_FlashingStar:
+;	dc.b   1
+;	dc.b   0
+;	dc.b   1
+;	dc.b   2
+;	dc.b   1
+;	dc.b   0
+;	dc.b $FA
+;	even
 ; byte_136A4:
-Ani_obj0E_FallingStar:
-	dc.b   3
-	dc.b   0
-	dc.b   3
-	dc.b $FF
-	even
+;Ani_obj0E_FallingStar:
+;	dc.b   3
+;	dc.b   0
+;	dc.b   3
+;	dc.b $FF
+;	even
 
-Ani_obj0E_Unknown:
-	dc.b   3
-	dc.b   5
-	dc.b   6
-	dc.b   7
-	dc.b   7
-	dc.b   6
-	dc.b   5
-	dc.b $FA
-	even
-    else
+;Ani_obj0E_Unknown:
+;	dc.b   3
+;	dc.b   5
+;	dc.b   6
+;	dc.b   7
+;	dc.b   7
+;	dc.b   6
+;	dc.b   5
+;	dc.b $FA
+;	even
+;    else
 Ani_obj0E:	offsetTable
 		offsetTableEntry.w Ani_obj0E_Sonic		; 0
 		offsetTableEntry.w Ani_obj0E_Tails		; 1
@@ -25180,16 +25176,16 @@ Ani_obj0E_FallingStar:
 	dc.b  $F
 	dc.b $FF
 	even
-    endif
+;    endif
 
-    if gameRevision=3
+;    if gameRevision=3
 ; KiS2 (title): New title screen mappings.
-Obj0E_MapUnc_Stars:	BINCLUDE "mappings/sprite/obj0E_stars.bin"
-Obj0E_MapUnc_EmblemTopAndSpriteMask:	BINCLUDE "mappings/sprite/obj0E_emblem_top_and_sprite_mask.bin"
-Obj0E_MapUnc_Knuckles:	BINCLUDE "mappings/sprite/obj0E_knuckles.bin"
-Obj0E_MapUnc_Banner:	BINCLUDE "mappings/sprite/obj0E_banner.bin"
-Obj0E_MapUnc_OtherText:	BINCLUDE "mappings/sprite/obj0E_other_text.bin"
-    else
+;Obj0E_MapUnc_Stars:	BINCLUDE "mappings/sprite/obj0E_stars.bin"
+;Obj0E_MapUnc_EmblemTopAndSpriteMask:	BINCLUDE "mappings/sprite/obj0E_emblem_top_and_sprite_mask.bin"
+;Obj0E_MapUnc_Knuckles:	BINCLUDE "mappings/sprite/obj0E_knuckles.bin"
+;Obj0E_MapUnc_Banner:	BINCLUDE "mappings/sprite/obj0E_banner.bin"
+;Obj0E_MapUnc_OtherText:	BINCLUDE "mappings/sprite/obj0E_other_text.bin"
+;    else
 ; -----------------------------------------------------------------------------
 ; Sprite Mappings - Flashing stars from intro (Obj0E)
 ; -----------------------------------------------------------------------------
@@ -25198,7 +25194,7 @@ Obj0E_MapUnc_136A8:	BINCLUDE "mappings/sprite/obj0E.bin"
 ; sprite mappings
 ; -----------------------------------------------------------------------------
 Obj0F_MapUnc_13B70:	BINCLUDE "mappings/sprite/obj0F.bin"
-    endif
+;    endif
 
     if ~~removeJmpTos
 JmpTo4_PlaySound ; JmpTo
@@ -26243,11 +26239,11 @@ Obj6F_TallyScore:
 	move.b	#$78,anim_frame_duration(a0)
 	tst.w	(Perfect_rings_flag).w
 	bne.s	+
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails
 	cmpi.w	#2,(Player_mode).w
 	beq.s	++		; rts
-    endif
+;    endif
 	tst.b	(Got_Emerald).w
 	beq.s	++		; rts
 	cmpi.b	#7,(Emerald_count).w
@@ -26298,11 +26294,11 @@ Obj6F_TallyPerfect:
 	jsr	(PlaySound).l
 	addq.b	#4,routine(a0)
 	move.b	#$78,anim_frame_duration(a0)
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	cmpi.w	#2,(Player_mode).w
 	beq.s	+		; rts
-    endif
+;    endif
 	tst.b	(Got_Emerald).w
 	beq.s	+		; rts
 	cmpi.b	#7,(Emerald_count).w
@@ -27958,20 +27954,10 @@ RunObjectDisplayOnly:
 ; ---------------------------------------------------------------------------
 Obj_Index: ; ObjPtrs: ; loc_1600C:
 ObjPtr_Sonic:		dc.l Obj01	; Sonic
-    if gameRevision=3
-	; KiS2 (no Tails): No Tails.
-ObjPtr_Tails:		dc.l ObjNull	; Tails
-    else
 ObjPtr_Tails:		dc.l Obj02	; Tails
-    endif
 ObjPtr_PlaneSwitcher:	dc.l Obj03	; Collision plane/layer switcher
 ObjPtr_WaterSurface:	dc.l Obj04	; Surface of the water
-    if gameRevision=3
-	; KiS2 (no Tails): No Tails.
-ObjPtr_TailsTails:	dc.l ObjNull	; Tails' tails
-    else
 ObjPtr_TailsTails:	dc.l Obj05	; Tails' tails
-    endif
 ObjPtr_Spiral:		dc.l Obj06	; Rotating cylinder in MTZ, twisting spiral pathway in EHZ
 ObjPtr_Oil:		dc.l Obj07	; Oil in OOZ
 ObjPtr_SpindashDust:
@@ -31844,7 +31830,7 @@ SolidObject:
 	; Collide player 1.
 	lea	(MainCharacter).w,a1
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)	; Backup input registers.
 	bsr.s	+
@@ -31856,7 +31842,7 @@ SolidObject:
 	bpl.w	return_19776	; Don't bother if Tails is not on-screen.
 	addq.b	#p2_standing_bit-p1_standing_bit,d6
 +
-    endif
+;    endif
 	btst	d6,status(a0)
 	beq.w	SolidObject_OnScreenTest
 	move.w	d1,d2
@@ -31893,14 +31879,14 @@ return_19776:
 SolidObject_Always:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	SolidObject_Always_SingleCharacter
 	movem.l	(sp)+,d1-d4
 	lea	(Sidekick).w,a1 ; a1=character
 	addq.b	#1,d6
-    endif
+;    endif
 ;loc_1978E:
 SolidObject_Always_SingleCharacter:
 	btst	d6,status(a0)
@@ -31948,14 +31934,14 @@ loc_197C6:
 SlopedSolid:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	SlopedSolid_SingleCharacter
 	movem.l	(sp)+,d1-d4
 	lea	(Sidekick).w,a1 ; a1=character
 	addq.b	#1,d6
-    endif
+;    endif
 
 ; this gets called from a few more places...
 ; loc_197E6: SolidObject_Simple:
@@ -31994,7 +31980,7 @@ loc_1981E:
 	; a0=object
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails. Heh, they edited this unused code...
 	movem.l	d1-d4,-(sp)
 	bsr.s	+
@@ -32002,7 +31988,7 @@ loc_1981E:
 	lea	(Sidekick).w,a1 ; a1=character
 	addq.b	#1,d6
 +
-    endif
+;    endif
 	btst	d6,status(a0)
 	beq.w	DoubleSlopedSolid_cont
 	move.w	d1,d2
@@ -32034,7 +32020,7 @@ loc_19876:
 SolidObject45:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	loc_19896
@@ -32043,7 +32029,7 @@ SolidObject45:
 	addq.b	#1,d6
 
 loc_19896:
-    endif
+;    endif
 	btst	d6,status(a0)
 	beq.w	SolidObject45_cont
 	btst	#1,status(a1)
@@ -32555,14 +32541,14 @@ loc_19C2C:
 PlatformObject:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	PlatformObject_SingleCharacter
 	movem.l	(sp)+,d1-d4
 	lea	(Sidekick).w,a1 ; a1=character
 	addq.b	#1,d6
-    endif
+;    endif
 ; loc_19C48:
 PlatformObject_SingleCharacter:
 	btst	d6,status(a0)
@@ -32611,14 +32597,14 @@ loc_19C80:
 SlopedPlatform:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	SlopedPlatform_SingleCharacter
 	movem.l	(sp)+,d1-d4
 	lea	(Sidekick).w,a1 ; a1=character
 	addq.b	#1,d6
-    endif
+;    endif
 ; loc_19CA0:
 SlopedPlatform_SingleCharacter:
 	btst	d6,status(a0)
@@ -32652,7 +32638,7 @@ loc_19CD8:
 PlatformObject2:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	loc_19CF8
@@ -32661,7 +32647,7 @@ PlatformObject2:
 	addq.b	#1,d6
 
 loc_19CF8:
-    endif
+;    endif
 	btst	d6,status(a0)
 	beq.w	PlatformObject2_cont
 	move.w	d1,d2
@@ -32696,7 +32682,7 @@ loc_19D30:
 PlatformObjectD5:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	movem.l	d1-d4,-(sp)
 	bsr.s	loc_19D50
@@ -32705,7 +32691,7 @@ PlatformObjectD5:
 	addq.b	#1,d6
 
 loc_19D50:
-    endif
+;    endif
 	btst	d6,status(a0)
 	bne.s	loc_19D62
 	btst	#3,status(a1)
@@ -32820,10 +32806,10 @@ loc_19E30:
 	beq.s	loc_19E7E
 	move.l	a0,-(sp)
 	movea.l	a1,a0
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (no Tails): No Tails.
-	jsr	(Sonic_ResetOnFloor_Part2).l
-    else
+;	jsr	(Sonic_ResetOnFloor_Part2).l
+;    else
 	move.w	a0,d1
 	subi.w	#Object_RAM,d1
 	bne.s	loc_19E76
@@ -32837,7 +32823,7 @@ loc_19E76:
 	jsr	(Tails_ResetOnFloor_Part2).l
 
 loc_19E7C:
-    endif
+;    endif
 	movea.l	(sp)+,a0 ; a0=character
 
 loc_19E7E:
@@ -32907,7 +32893,7 @@ loc_19F08:
 	bclr	#p1_standing_bit,status(a0)
 
 loc_19F1E:
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	lea	(Sidekick).w,a1 ; a1=character
 	btst	#p2_standing_bit,status(a0)
@@ -32924,7 +32910,7 @@ loc_19F36:
 	bclr	#p2_standing_bit,status(a0)
 
 loc_19F4C:
-    endif
+;    endif
 	moveq	#0,d4
 	rts
 
@@ -36096,13 +36082,13 @@ Sonic_ResetOnFloor:
 	move.b	#AniIDSonAni_Walk,anim(a0)
 ; loc_1B0AC:
 Sonic_ResetOnFloor_Part2:
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	; some routines outside of Tails' code can call Sonic_ResetOnFloor_Part2
 	; when they mean to call Tails_ResetOnFloor_Part2, so fix that here
 	_cmpi.b	#ObjID_Sonic,id(a0)	; is this object ID Sonic (obj01)?
 	bne.w	Tails_ResetOnFloor_Part2	; if not, branch to the Tails version of this code
-    endif
+;    endif
 
     if gameRevision=3
 	; KiS2 (Knuckles): The logic for pushing Sonic out of the ground was updated to
@@ -37014,11 +37000,6 @@ JmpTo_KillCharacter ; JmpTo
 	align 4
     endif
 
-
-
-
-    if gameRevision<>3
-	; KiS2 (no Tails): No Tails. RIP.
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 02 - Tails
@@ -38424,7 +38405,7 @@ Tails_Boundary_CheckBottom:
 	rts
 ; ---------------------------------------------------------------------------
 Tails_Boundary_Bottom: ;;
-	jmpto	KillCharacter, JmpTo2_KillCharacter
+	jmp	(KillCharacter).l
 ; ===========================================================================
 
 ; loc_1C5A0:
@@ -39174,7 +39155,7 @@ Tails_HurtStop:
 	move.w	(Tails_Max_Y_pos).w,d0
 	addi.w	#$E0,d0
 	cmp.w	y_pos(a0),d0
-	blt.w	JmpTo2_KillCharacter
+	blt.w	Tails_Boundary_Bottom ; another jmpto
 	bsr.w	Tails_DoLevelCollision
 	btst	#1,status(a0)
 	bne.s	return_1CC4E
@@ -39702,7 +39683,6 @@ LoadTailsTailsDynPLC:
 LoadTailsDynPLC:
 	moveq	#0,d0
 	move.b	mapping_frame(a0),d0	; load frame number
-    endif
 ; loc_1D1B2:
 LoadTailsDynPLC_Part2:
 	cmp.b	(Tails_LastLoadedDPLC).w,d0
@@ -39735,8 +39715,6 @@ TPLC_ReadEntry:
 return_1D1FE:
 	rts
 
-    if gameRevision<>3
-	; KiS2 (no Tails): No Tails.
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 05 - Tails' tails
@@ -39807,8 +39785,7 @@ Obj05_Main:
 	lea	(Obj05AniData).l,a1
 	bsr.w	Tails_Animate_Part2
 	bsr.w	LoadTailsTailsDynPLC
-	jsr	(DisplaySprite).l
-	rts
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 ; animation master script table for the tails
 ; chooses which animation script to run depending on what Tails is doing
@@ -39878,16 +39855,6 @@ Obj05Ani_Pushing:	dc.b   9,$87,$88,$89,$8A,$FF
 	rev02even
 Obj05Ani_Hanging:	dc.b   9,$81,$82,$83,$84,$FF
 	even
-
-; ===========================================================================
-
-JmpTo2_KillCharacter ; JmpTo
-	jmp	(KillCharacter).l
-; ===========================================================================
-	align 4
-    endif
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -84667,17 +84634,17 @@ Touch_Hurt:
 ; loc_3F878: HurtSonic:
 HurtCharacter:
 	move.w	(Ring_count).w,d0
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (no Tails): No Tails.
 	; KiS2 (no 2P): No two player mode.
 	cmpa.w	#MainCharacter,a0
 	beq.s	loc_3F88C
-	tst.w	(Two_player_mode).w
-	beq.s	Hurt_Sidekick
-	move.w	(Ring_count_2P).w,d0
+;	tst.w	(Two_player_mode).w
+	bra.s	Hurt_Sidekick
+;	move.w	(Ring_count_2P).w,d0
 
 loc_3F88C:
-    endif
+;    endif
 	btst	#status_sec_hasShield,status_secondary(a0)
 	bne.s	Hurt_Shield
 	tst.w	d0
@@ -89220,7 +89187,7 @@ PlrList_ResultsTails: plrlistheader
 	plreq ArtTile_ArtNem_Perfect, ArtNem_Perfect
 PlrList_ResultsTails_End
 
-    if gameRevision=3
+;    if gameRevision=3
 	; KiS2 (Knuckles): KiS2 (title): Assets unique to this game go here.
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
@@ -89260,34 +89227,34 @@ ArtNem_SpecialSonicAndTails:	BINCLUDE	"art/nemesis/Knuckles animation frames in 
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Knuckles from title screen
-ArtNem_TitleSprites_Knuckles:	BINCLUDE	"art/nemesis/Knuckles from title screen.bin"
-	even
+;ArtNem_TitleSprites_Knuckles:	BINCLUDE	"art/nemesis/Knuckles from title screen.bin"
+;	even
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Stars from title screen
-ArtNem_TitleStars:	BINCLUDE	"art/nemesis/Stars from title screen.bin"
-	even
+;ArtNem_TitleStars:	BINCLUDE	"art/nemesis/Stars from title screen.bin"
+;	even
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Top of emblem from title screen
-ArtNem_TitleEmblemTop:	BINCLUDE	"art/nemesis/Top of emblem from title screen.bin"
-	even
+;ArtNem_TitleEmblemTop:	BINCLUDE	"art/nemesis/Top of emblem from title screen.bin"
+;	even
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Knuckles from title screen (part 4)
-ArtNem_TitleOtherText:	BINCLUDE	"art/nemesis/Other text from title screen.bin"
-	even
+;ArtNem_TitleOtherText:	BINCLUDE	"art/nemesis/Other text from title screen.bin"
+;	even
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Knuckles from title screen (part 5)
-ArtNem_TitleBanner:	BINCLUDE	"art/nemesis/Giant banner from title screen.bin"
-	even
+;ArtNem_TitleBanner:	BINCLUDE	"art/nemesis/Giant banner from title screen.bin"
+;	even
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Knuckles from title screen (part 6)
-ArtNem_TitleTheEchidnaIn:	BINCLUDE	"art/nemesis/'THE ECHIDNA IN' from title screen.bin"
-	even
-    endif
+;ArtNem_TitleTheEchidnaIn:	BINCLUDE	"art/nemesis/'THE ECHIDNA IN' from title screen.bin"
+;	even
+;    endif
 ;--------------------------------------------------------------------------------------
 ; Curve and resistance mapping
 ;---------------------------------------------------------------------------------------
@@ -89655,17 +89622,17 @@ ArtNem_Title:	BINCLUDE	"art/nemesis/Main patterns from title screen.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (674 blocks)
 ; Sonic and Tails from title screen	; ArtNem_7667A:
-    if gameRevision<>3 ; KiS2 (title): This isn't needed by anything.
+;    if gameRevision<>3 ; KiS2 (title): This isn't needed by anything.
 	even
 ArtNem_TitleSprites:	BINCLUDE	"art/nemesis/Sonic and Tails from title screen.bin"
-    endif
+;    endif
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (10 blocks)
 ; A few menu patterns	; ArtNem_78CBC:
-    if gameRevision<>3 ; KiS2 (title): This isn't needed by anything.
+;    if gameRevision<>3 ; KiS2 (title): This isn't needed by anything.
 	even
 ArtNem_MenuJunk:	BINCLUDE	"art/nemesis/A few menu blocks.bin"
-    endif
+;    endif
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (16 blocks)
 ; Button			ArtNem_78DAC:
@@ -90468,13 +90435,13 @@ ArtNem_EndingFinalTornado:	BINCLUDE	"art/nemesis/Final image of Tornado with it 
 	even
 ArtNem_EndingMiniTornado:	BINCLUDE	"art/nemesis/Small pictures of Tornado in final ending sequence.bin"
 
-    if gameRevision=3 ; KiS2 (Knuckles): Knuckles' ending pose sprite from S&K.
+;    if gameRevision=3 ; KiS2 (Knuckles): Knuckles' ending pose sprite from S&K.
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Final image of Knuckles
 	even
 ArtNem_EndingKnuckles:	BINCLUDE	"art/nemesis/Final image of Knuckles.bin"
-    else
+;    else
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art (135 blocks)
 ; Mini pictures of Sonic and final image of Sonic
@@ -90490,7 +90457,7 @@ ArtNem_EndingSuperSonic:	BINCLUDE	"art/nemesis/Small pictures of Sonic and final
 ; Final image of Tails		; ArtNem_93F3C:
 	even
 ArtNem_EndingTails:	BINCLUDE	"art/nemesis/Final image of Tails.bin"
-    endif
+;    endif
 
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art (72 blocks)
@@ -90918,11 +90885,11 @@ ArtNem_SpecialMessages:	BINCLUDE	"art/nemesis/Special stage messages and icons.b
 ; Sonic and Tails animation frames from special stage
 ; [fixBugs] In this file, Tails' arms are tan instead of orange.
 ; Art for Obj09 and Obj10 and Obj88	; ArtNem_DEEAE:
-    if gameRevision<>3
+;    if gameRevision<>3
 	; KiS2 (Knuckles): KiS2 (no Tails): This isn't needed by anything.
 	even
-ArtNem_SpecialSonicAndTails:	BINCLUDE	"art/nemesis/Sonic and Tails animation frames in special stage.bin"
-    endif
+;ArtNem_SpecialSonicAndTails:	BINCLUDE	"art/nemesis/Sonic and Tails animation frames in special stage.bin"
+;    endif
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art (5 blocks)
 ; "Tails" patterns from special stage	; ArtNem_E247E:
