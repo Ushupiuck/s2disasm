@@ -11337,16 +11337,12 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	bne.s	+				; If they're different, branch
 	addq.w	#1,(Correct_cheat_entries).w	; Add 1 to the number of correct entries
 	tst.b	1(a0)				; Is the next entry 0?
-    if gameRevision=3
 	; KiS2: Cheat codes are teminated with $FF instead of $00 now, so
 	; that sound 00 can be used in cheat codes.
-	bpl.s	++
-    else
-	bne.s	++				; If not, branch
-    endif
+	bpl.s	++				; If not, branch
 	move.w	#$101,(a1)			; Enable the cheat
 	move.b	#SndID_Ring,d0			; Play the ring sound
-	jsrto	PlaySound, JmpTo_PlaySound
+	jsr	(PlaySound).l
 +
 	move.w	#0,(Correct_cheat_entries).w	; Clear the number of correct entries
 +
@@ -11357,18 +11353,12 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	bne.s	++
 	addq.w	#1,(Correct_cheat_entries_2).w
 	tst.b	1(a2)
-    if gameRevision=3
-	; KiS2: Cheat codes are teminated with $FF instead of $00 now, so
-	; that sound 00 can be used in cheat codes.
 	bpl.s	+++	; rts
-    else
-	bne.s	+++	; rts
-    endif
 	tst.w	d2				; Test this to determine which cheat to enable
 	bne.s	+				; If not 0, branch
 	move.b	#$F,(Continue_count).w		; Give 15 continues
 	move.b	#SndID_ContinueJingle,d0	; Play the continue jingle
-	jsrto	PlayMusic, JmpTo_PlayMusic
+	jsr	(PlayMusic).l
 	bra.s	++
 ; ===========================================================================
 +
@@ -11380,57 +11370,26 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 +
 	rts
 ; ===========================================================================
-    if gameRevision=3
 	; KiS2: The terminating byte has been changed from 0 to $FF, so that
-	; sound 00 can be used as part of the cheat code. Speaking of which,
-	; the cheat codes have been changed.
+	; sound 00 can be used as part of the cheat code.
 level_select_cheat:
 	; 17th September 1965, the birthdate of one of Sonic 2's developers,
 	; Yuji Naka.
 	dc.b $19, $65,   9, $17, $FF
-	rev02even
 ; byte_97B7
 continues_cheat:
 	; November 24th, which was Sonic 2's release date in the EU and US.
 	dc.b   1,   1,   2,   4, $FF
-	rev02even
-debug_cheat:
-	; 18th October 1994, which was Sonic & Knuckles' release date in the
-	; EU(?) and US.
-	dc.b   1,   9,   9,   4,   1,   0,   1,   8, $FF
-	rev02even
-; byte_97C5
-super_sonic_cheat:
-	; 16777216 is 2^24. It's unclear what the significance of '24' is,
-	; but the Motorola 68000 *does* have a 24-bit address bus. It could
-	; also be a reference to Sonic 2's release date in the EU and US,
-	; which was the 24th of November.
-	dc.b   1,   6,   7,   7,   7,   2,   1,   6, $FF
-	rev02even
-    else
-level_select_cheat:
-	; 17th September 1965, the birthdate of one of Sonic 2's developers,
-	; Yuji Naka.
-	dc.b $19, $65,   9, $17,   0
-	rev02even
-; byte_97B7
-continues_cheat:
-	; November 24th, which was Sonic 2's release date in the EU and US.
-	dc.b   1,   1,   2,   4,   0
-	rev02even
 debug_cheat:
 	; 24th November 1992 (also known as "Sonic 2sday"), which was
 	; Sonic 2's release date in the EU and US.
-	dc.b   1,   9,   9,   2,   1,   1,   2,   4,   0
-	rev02even
+	dc.b   1,   9,   9,   2,   1,   1,   2,   4, $FF
 ; byte_97C5
 super_sonic_cheat:
 	; Book of Genesis, 41:26, which makes frequent reference to the
 	; number 7. 7 happens to be the number of Chaos Emeralds.
 	; The Mega Drive is known as the Genesis in the US.
-	dc.b   4,   1,   2,   6,   0
-	rev02even
-    endif
+	dc.b   4,   1,   2,   6, $FF
 
 ;    if gameRevision<>3
 	; KiS2 (no options): No two player mode, no Sonic and Tails, and no options menu.
@@ -13181,7 +13140,6 @@ l := lowstring("char")
 	endcase
 	endm
 	dc.b -1
-	rev02even
     endm
 
 ; credits text data (palette index followed by a string)
@@ -21145,37 +21103,30 @@ Obj1A_CreateFragments:
 Obj1A_DelayData:
 	dc.b $1C,$18,$14,$10,$1A,$16,$12, $E, $A,  6,$18,$14,$10, $C,  8,  4
 	dc.b $16,$12, $E, $A,  6,  2,$14,$10, $C; 16
-	rev02even
 ; Delay data for obj1A in HPZ:
 ;byte_10C0B:
 Obj1A_HPZ_DelayData:
 	dc.b $18,$1C,$20,$1E,$1A,$16,  6, $E,$14,$12, $A,  2
-	rev02even
 ; Delay data for obj1F even subtypes in all levels without more specific data:
 ;byte_10C17:
 Obj1F_DelayData_EvenSubtype:
 	dc.b $1E,$16, $E,  6,$1A,$12, $A,  2
-	rev02even
 ; Delay data for obj1F odd subtypes in all levels without more specific data:
 ;byte_10C1F:
 Obj1F_DelayData_OddSubtype:
 	dc.b $16,$1E,$1A,$12,  6, $E, $A,  2
-	rev02even
 ; Delay data for obj1F in OOZ:
 ;byte_10C27:
 Obj1F_OOZ_DelayData:
 	dc.b $1A,$12, $A,  2,$16, $E,  6
-	rev02even
 ; Delay data for obj1F in MCZ:
 ;byte_10C2E:
 Obj1F_MCZ_DelayData:
 	dc.b $1A,$16,$12, $E, $A,  2
-	rev02even
 ; Delay data for obj1F in ARZ:
 ;byte_10C34:
 Obj1F_ARZ_DelayData:
 	dc.b $16,$1A,$18,$12,  6, $E, $A,  2
-	rev02even
 ; S1 remnant: Height data for GHZ collapsing platform (unused):
 ;byte_10C3C:
 Obj1A_GHZ_SlopeData:
@@ -21388,11 +21339,8 @@ Ani_obj71:	offsetTable
 		offsetTableEntry.w byte_11389	; 2
 		offsetTableEntry.w byte_11392	; 3
 byte_11372:	dc.b   8,  3,  3,  4,  5,  5,  4,$FF
-	rev02even
 byte_1137A:	dc.b   5,  0,  0,  0,  1,  2,  3,  3,  2,  1,  2,  3,  3,  1,$FF
-	rev02even
 byte_11389:	dc.b  $B,  0,  1,  2,  3,  4,  5,$FD,  3
-	rev02even
 byte_11392:	dc.b $7F,  6,$FD,  2
 	even
 
@@ -31180,7 +31128,6 @@ byte_18FEE:
 	dc.b  $F
 	dc.b   0	; 1
 	dc.b $FF	; 2
-	rev02even
 byte_18FF1:
 	dc.b   0
 	dc.b   1	; 1
@@ -31194,12 +31141,10 @@ byte_18FF1:
 	dc.b   2	; 9
 	dc.b $FD	; 10
 	dc.b   0	; 11
-	rev02even
 byte_18FFD:
 	dc.b  $F
 	dc.b   3	; 1
 	dc.b $FF	; 2
-	rev02even
 byte_19000:
 	dc.b   0
 	dc.b   4	; 1
@@ -31213,12 +31158,10 @@ byte_19000:
 	dc.b   5	; 9
 	dc.b $FD	; 10
 	dc.b   2	; 11
-	rev02even
 byte_1900C:
 	dc.b  $F
 	dc.b   7	; 1
 	dc.b $FF	; 2
-	rev02even
 byte_1900F:
 	dc.b   0
 	dc.b   8	; 1
@@ -31776,13 +31719,9 @@ Ani_obj0D:	offsetTable
 		offsetTableEntry.w byte_195B7	; 3
 		offsetTableEntry.w byte_195BA	; 4
 byte_19598:	dc.b	$0F, $02, $FF
-	rev02even
 byte_1959B:	dc.b	$01, $02, $03, $04, $05, $01, $03, $04, $05, $00, $03, $04, $05, $FF
-	rev02even
 byte_195A9:	dc.b	$01, $02, $03, $04, $05, $01, $03, $04, $05, $00, $03, $04, $05, $FF
-	rev02even
 byte_195B7:	dc.b	$0F, $00, $FF
-	rev02even
 byte_195BA:	dc.b	$0F, $01, $FF
 	even
 ; -------------------------------------------------------------------------------
@@ -36707,19 +36646,14 @@ KnuxAni_ShadowBox_ptr:		offsetTableEntry.w KnucklesAni_Badass		; 36 ; $24
 
 SonAni_Walk:
 KnucklesAni_Walk:	dc.b $FF,  7,  8,  1,  2,  3,  4,  5,  6,$FF
-	rev02even
 SonAni_Run:
 KnucklesAni_Run:	dc.b $FF,$21,$22,$23,$24,$FF,$FF,$FF,$FF,$FF
-	rev02even
 SonAni_Roll:
 KnucklesAni_Roll:	dc.b $FE,$9A,$96,$9A,$97,$9A,$98,$9A,$99,$FF
-	rev02even
 SonAni_Roll2:
 KnucklesAni_Roll2:	dc.b $FE,$9A,$96,$9A,$97,$9A,$98,$9A,$99,$FF
-	rev02even
 SonAni_Push:
 KnucklesAni_Push:	dc.b $FD,$CE,$CF,$D0,$D1,$FF,$FF,$FF,$FF,$FF
-	rev02even
 KnucklesAni_Wait:
 	dc.b   5,$56,$56,$56,$56,$56,$56,$56,$56,$56,$56,$56,$56
 	dc.b $56,$56,$56,$56,$56,$56,$56,$56,$56,$56,$56,$56,$56
@@ -36733,83 +36667,52 @@ KnucklesAni_Wait:
 	dc.b $DA,$DB,$D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB,$D8,$D9,$DA
 	dc.b $DB,$D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB
 	dc.b $DC,$DD,$DC,$DD,$DE,$DE,$D8,$D7,$FF
-	rev02even
 KnucklesAni_Balance:
 	dc.b   3,$9F,$9F,$A0,$A0,$A1,$A1,$A2,$A2,$A3,$A3,$A4,$A4
 	dc.b $A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5
 	dc.b $A5,$A5,$A6,$A6,$A6,$A7,$A7,$A7,$A8,$A8,$A9,$A9,$AA
 	dc.b $AA,$FE,  6
-	rev02even
 KnucklesAni_LookUp:	dc.b   5,$D5,$D6,$FE,  1
-	rev02even
 KnucklesAni_Duck:	dc.b   5,$9B,$9C,$FE,  1
-	rev02even
 KnucklesAni_Spindash:	dc.b   0,$86,$87,$86,$88,$86,$89,$86,$8A,$86,$8B,$FF
-	rev02even
 KnucklesAni_Unused:
 	dc.b   9,$BA,$C5,$C6,$C6,$C6,$C6,$C6,$C6,$C7,$C7,$C7,$C7
 	dc.b $C7,$C7,$C7,$C7,$C7,$C7,$C7,$C7,$FD,  0
-	rev02even
 KnucklesAni_Pull:	dc.b  $F,$8F,$FF
-	rev02even
 KnucklesAni_Balance2:
 	dc.b   3,$A1,$A1,$A2,$A2,$A3,$A3,$A4,$A4,$A5,$A5,$A5,$A5
 	dc.b $A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A5,$A6,$A6
 	dc.b $A6,$A7,$A7,$A7,$A8,$A8,$A9,$A9,$AA,$AA,$FE
 	dc.b   6
-	rev02even
 KnucklesAni_Stop:	dc.b   3,$9D,$9E,$9F,$A0,$FD,	0
-	rev02even
 KnucklesAni_Float:	dc.b   7,$C0,$FF
-	rev02even
 KnucklesAni_Float2:	dc.b   5,$C0,$C1,$C2,$C3,$C4,$C5,$C6,$C7,$C8,$C9,$FF
-	rev02even
 KnucklesAni_Spring:	dc.b $2F,$8E,$FD,  0
-	rev02even
 KnucklesAni_Hang:	dc.b   1,$AE,$AF,$FF
-	rev02even
 KnucklesAni_Unused_0:	dc.b  $F,$43,$43,$43,$FE,  1
-	rev02even
 KnucklesAni_S3EndingPose:
 	dc.b   5,$B1,$B2,$B2,$B2,$B3,$B4,$FE,  1,  7,$B1,$B3,$B3
 	dc.b $B3,$B3,$B3,$B3,$B2,$B3,$B4,$B3,$FE,  4
-	rev02even
 KnucklesAni_WFZHang:	dc.b $13,$91,$FF
-	rev02even
 KnucklesAni_Bubble:	dc.b  $B,$B0,$B0,  3,  4,$FD,  0
-	rev02even
 KnucklesAni_DeathBW:	dc.b $20,$AC,$FF
-	rev02even
 KnucklesAni_Drown:	dc.b $20,$AD,$FF
-	rev02even
 KnucklesAni_Death:	dc.b $20,$AB,$FF
-	rev02even
 KnucklesAni_OilSlide:	dc.b   9,$8C,$FF
-	rev02even
 KnucklesAni_Hurt:	dc.b $40,$8D,$FF
-	rev02even
 KnucklesAni_OilSlide_0:	dc.b   9,$8C,$FF
-	rev02even
 KnucklesAni_Blank:	dc.b $77,  0,$FF
-	rev02even
 KnucklesAni_Unused_1:	dc.b $13,$D0,$D1,$FF
-	rev02even
 KnucklesAni_Unused_2:	dc.b   3,$CF,$C8,$C9,$CA,$CB,$FE,  4
-	rev02even
 KnucklesAni_Gliding:	dc.b $1F,$C0,$FF
-	rev02even
 KnucklesAni_FallFromGlide:	dc.b   7,$CA,$CB,$FE,	 1
-	rev02even
 KnucklesAni_GetUp:	dc.b  $F,$CD,$FD,  0
-	rev02even
 KnucklesAni_HardFall:	dc.b  $F,$9C,$FD,  0
-	rev02even
 KnucklesAni_Badass:
 	dc.b   5,$D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB
 	dc.b $D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB,$D8,$D9,$DA,$DB,$D8
 	dc.b $D9,$DA,$DB,$D8,$D9,$DA,$DB,$DC,$DD,$DC,$DD,$DE,$DE
 	dc.b $FF
-	rev02even
 KnucklesAni_Transform:
 	dc.b   2,$EB,$EB,$EC,$ED,$EC,$ED,$EC,$ED,$EC,$ED,$EC,$ED
 	dc.b $FD,  0
@@ -39834,25 +39737,15 @@ Obj05AniData:	offsetTable
 		offsetTableEntry.w Obj05Ani_Hanging	; $A
 
 Obj05Ani_Blank:		dc.b $20,  0,$FF
-	rev02even
 Obj05Ani_Swish:		dc.b   7,  9, $A, $B, $C, $D,$FF
-	rev02even
 Obj05Ani_Flick:		dc.b   3,  9, $A, $B, $C, $D,$FD,  1
-	rev02even
 Obj05Ani_Directional:	dc.b $FC,$49,$4A,$4B,$4C,$FF ; Tails is moving right
-	rev02even
 Obj05Ani_DownLeft:	dc.b   3,$4D,$4E,$4F,$50,$FF ; Tails is moving up-right
-	rev02even
 Obj05Ani_Down:		dc.b   3,$51,$52,$53,$54,$FF ; Tails is moving up
-	rev02even
 Obj05Ani_DownRight:	dc.b   3,$55,$56,$57,$58,$FF ; Tails is moving up-left
-	rev02even
 Obj05Ani_Spindash:	dc.b   2,$81,$82,$83,$84,$FF
-	rev02even
 Obj05Ani_Skidding:	dc.b   2,$87,$88,$89,$8A,$FF
-	rev02even
 Obj05Ani_Pushing:	dc.b   9,$87,$88,$89,$8A,$FF
-	rev02even
 Obj05Ani_Hanging:	dc.b   9,$81,$82,$83,$84,$FF
 	even
 
@@ -40342,33 +40235,19 @@ Ani_obj0A:	offsetTable
 		offsetTableEntry.w byte_1D8E9	; $D
 		offsetTableEntry.w byte_1D8EB	; $E
 byte_1D87E:	dc.b   5,  0,  1,  2,  3,  4,  8,  8,$FC
-	rev02even
 byte_1D887:	dc.b   5,  0,  1,  2,  3,  4,  9,  9,$FC
-	rev02even
 byte_1D890:	dc.b   5,  0,  1,  2,  3,  4, $A, $A,$FC
-	rev02even
 byte_1D899:	dc.b   5,  0,  1,  2,  3,  4, $B, $B,$FC
-	rev02even
 byte_1D8A2:	dc.b   5,  0,  1,  2,  3,  4, $C, $C,$FC
-	rev02even
 byte_1D8AB:	dc.b   5,  0,  1,  2,  3,  4, $D, $D,$FC
-	rev02even
 byte_1D8B4:	dc.b  $E,  0,  1,  2,$FC
-	rev02even
 byte_1D8B9:	dc.b   7,$10,  8,$10,  8,$10,  8,$FC
-	rev02even
 byte_1D8C1:	dc.b   7,$10,  9,$10,  9,$10,  9,$FC
-	rev02even
 byte_1D8C9:	dc.b   7,$10, $A,$10, $A,$10, $A,$FC
-	rev02even
 byte_1D8D1:	dc.b   7,$10, $B,$10, $B,$10, $B,$FC
-	rev02even
 byte_1D8D9:	dc.b   7,$10, $C,$10, $C,$10, $C,$FC
-	rev02even
 byte_1D8E1:	dc.b   7,$10, $D,$10, $D,$10, $D,$FC
-	rev02even
 byte_1D8E9:	dc.b  $E,$FC
-	rev02even
 byte_1D8EB:	dc.b  $E,  1,  2,  3,  4,$FC
 	even
 
@@ -40617,13 +40496,10 @@ byte_1DB42:	dc.w   $F00,  $F03,  $E06,  $D08,  $B0B,  $80D,  $60E,  $30F
 		dc.w   -$10,  $3F0,  $6F1,  $8F2,  $BF4,  $DF7,  $EF9,  $FFC
 
 byte_1DB82:	dc.b   8,  5,  7,  6,  6,  7,  5,  8,  6,  7,  7,  6,$FF
-	rev02even
 byte_1DB8F:	dc.b   8,  7,  6,  5,  4,  3,  4,  5,  6,  7,$FF
 		dc.b   3,  4,  5,  6,  7,  8,  7,  6,  5,  4
-	rev02even
 byte_1DBA4:	dc.b   8,  7,  6,  5,  4,  3,  2,  3,  4,  5,  6,  7,$FF
 		dc.b   2,  3,  4,  5,  6,  7,  8,  7,  6,  5,  4,  3
-	rev02even
 byte_1DBBD:	dc.b   7,  6,  5,  4,  3,  2,  1,  2,  3,  4,  5,  6,$FF
 		dc.b   1,  2,  3,  4,  5,  6,  7,  6,  5,  4,  3,  2
 	even
@@ -40870,11 +40746,8 @@ Ani_obj08:	offsetTable
 		offsetTableEntry.w Obj08Ani_Dash	; 2
 		offsetTableEntry.w Obj08Ani_Skid	; 3
 Obj08Ani_Null:	dc.b $1F,  0,$FF
-	rev02even
 Obj08Ani_Splash:dc.b   3,  1,  2,  3,  4,  5,  6,  7,  8,  9,$FD,  0
-	rev02even
 Obj08Ani_Dash:	dc.b   1, $A, $B, $C, $D, $E, $F,$10,$FF
-	rev02even
 Obj08Ani_Skid:	dc.b   3,$11,$12,$13,$14,$FC
 	even
 ; -------------------------------------------------------------------------------
@@ -42765,10 +42638,8 @@ Ani_obj79:	offsetTable
 		offsetTableEntry.w byte_1F420	; 2
 byte_1F41A:
 	dc.b  $F,  0,$FF
-	rev02even
 byte_1F41D:
 	dc.b  $F,  1,$FF
-	rev02even
 byte_1F420:
 	dc.b   3,  0,  4,$FF
 	even
@@ -43120,7 +42991,6 @@ Ani_obj44:	offsetTable
 		offsetTableEntry.w byte_1F850	; 0
 		offsetTableEntry.w byte_1F853	; 1
 byte_1F850:	dc.b  $F,  0,$FF
-		rev02even
 byte_1F853:	dc.b   3,  1,  0,  1,$FD,  0
 		even
 ; -------------------------------------------------------------------------------
@@ -43463,15 +43333,10 @@ Ani_obj24:	offsetTable
 		offsetTableEntry.w byte_1FBEE	; 5
 		offsetTableEntry.w byte_1FBF2	; 6
 byte_1FBDA:	dc.b  $E,  0,  1,  2,$FC
-		rev02even
 byte_1FBDF:	dc.b  $E,  1,  2,  3,  4,$FC
-		rev02even
 byte_1FBE5:	dc.b  $E,  2,  3,  4,  5,  6,$FC
-		rev02even
 byte_1FBEC:	dc.b   4,$FC
-		rev02even
 byte_1FBEE:	dc.b   4,  6,  7,$FC
-		rev02even
 byte_1FBF2:	dc.b  $F, $E, $F,$FF
 		even
 ; -------------------------------------------------------------------------------
@@ -45846,7 +45711,6 @@ byte_21C8E:
 	dc.b $FD,$FC,$FB,$FA,$F9,$F8,$F7,$F6,$F5,$F4,$F3,$F2,$F2,$F2,$F2,$F2; 32
 	dc.b $F2	; 48
 
-	rev02even
 byte_21CBF:
 	dc.b   5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5
 	dc.b   5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5; 16
@@ -47212,9 +47076,7 @@ Ani_obj20:	offsetTable
 		offsetTableEntry.w byte_23243	; 1
 		offsetTableEntry.w byte_23246	; 2
 byte_2323C:	dc.b  $B,  2,  3,$FC,  4,$FD,  1
-	rev02even
 byte_23243:	dc.b $7F,  5,$FF
-	rev02even
 byte_23246:	dc.b   5,  4,  5,  2,  3,  0,  1,  0,  1,  2,  3,  4,  5,$FC
 	even
 
@@ -49979,9 +49841,7 @@ Ani_obj22:	offsetTable
 		offsetTableEntry.w byte_257F7	; 1
 		offsetTableEntry.w byte_257FB	; 2
 byte_257F4:	dc.b $1F,  1,$FF
-	rev02even
 byte_257F7:	dc.b   3,  1,  2,$FF
-	rev02even
 byte_257FB:	dc.b   7,  3,  4,$FC,  4,  3,  1,$FD,  0
 	even
 ; ----------------------------------------------------------------------------
@@ -50832,7 +50692,6 @@ Ani_obj40:	offsetTable
 		offsetTableEntry.w byte_265EC	; 0
 		offsetTableEntry.w byte_265EF	; 1
 byte_265EC:	dc.b  $F,  0,$FF
-	rev02even
 byte_265EF:	dc.b   3,  1,  0,$FD,  0
 	even
 ; ----------------------------------------------------------------------------
@@ -52105,7 +51964,6 @@ Ani_obj67:	offsetTable
 		offsetTableEntry.w byte_27535	; 1
 byte_27532:
 	dc.b $1F,  0,$FF
-	rev02even
 byte_27535:
 	dc.b   1,  1,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  1,  0,$FE,  2
 	even
@@ -55076,9 +54934,7 @@ Ani_obj7B:	offsetTable
 		offsetTableEntry.w byte_29777	; 2
 		offsetTableEntry.w byte_29777	; 3
 byte_29770:	dc.b  $F,  0,$FF
-		rev02even
 byte_29773:	dc.b   0,  3,$FD,  0
-		rev02even
 byte_29777:	dc.b   5,  1,  2,  2,  2,  4,$FD,  0
 		even
 ; ----------------------------------------------------------------------------
@@ -57215,13 +57071,9 @@ Ani_obj86:	offsetTable
 		offsetTableEntry.w byte_2B448	; 3
 		offsetTableEntry.w byte_2B451	; 4
 byte_2B43C:	dc.b  $F,  0,$FF
-	rev02even
 byte_2B43F:	dc.b   3,  1,  2,  1,$FD,  0
-	rev02even
 byte_2B445:	dc.b  $F,  4,$FF
-	rev02even
 byte_2B448:	dc.b   0,  5,  4,  3,  3,  3,  3,$FD,  2
-	rev02even
 byte_2B451:	dc.b   0,  3,  4,  5,  5,  5,  5,$FD,  2
 	even
 ; ----------------------------------------------------------------------------
@@ -57977,7 +57829,6 @@ Ani_objD6:	offsetTable
 		offsetTableEntry.w byte_2BEB4	; 0
 		offsetTableEntry.w byte_2BEB7	; 1
 byte_2BEB4:	dc.b  $F,  0,$FF
-	rev02even
 byte_2BEB7:	dc.b   1,  1,  0,$FF
 	even
 ; ------------------------------------------------------------------------------
@@ -58534,13 +58385,10 @@ SlotRingRewards:	dc.w   30,  25,  -1, 150,  10,  20
 ;byte_2C3EC
 SlotTargetValues:	dc.b   8, 3,$33,  $12, 0,$00,  $12, 1,$11  ,$24, 2,$22
 			dc.b $1E, 4,$44,  $1E, 5,$55,  $FF,$F,$FF
-	rev02even
 ;byte_2C401
 SlotSequence1:	dc.b   3,  0,  1,  4,  2,  5,  4,  1
-	rev02even
 ;byte_2C409
 SlotSequence2:	dc.b   3,  0,  1,  4,  2,  5,  0,  2
-	rev02even
 ;byte_2C411
 SlotSequence3:	dc.b   3,  0,  1,  4,  2,  5,  4,  1
 	even
@@ -58742,9 +58590,7 @@ Ani_objD7:	offsetTable
 		offsetTableEntry.w byte_2C619	; 1
 		offsetTableEntry.w byte_2C61F	; 2
 byte_2C616:	dc.b  $F,  0,$FF
-	rev02even
 byte_2C619:	dc.b   3,  1,  0,  1,$FD,  0
-	rev02even
 byte_2C61F:	dc.b   3,  2,  0,  2,$FD,  0
 	even
 ; ----------------------------------------------------------------------------
@@ -58976,15 +58822,10 @@ Ani_objD8:	offsetTable
 		offsetTableEntry.w byte_2C8B7	; 4
 		offsetTableEntry.w byte_2C8BD	; 5
 byte_2C8A8:	dc.b  $F,  0,$FF
-	rev02even
 byte_2C8AB:	dc.b  $F,  1,$FF
-	rev02even
 byte_2C8AE:	dc.b  $F,  2,$FF
-	rev02even
 byte_2C8B1:	dc.b   3,  3,  0,  3,$FD,  0
-	rev02even
 byte_2C8B7:	dc.b   3,  4,  1,  4,$FD,  1
-	rev02even
 byte_2C8BD:	dc.b   3,  5,  2,  5,$FD,  2
 	even
 ; ----------------------------------------------------------------------------
@@ -59132,16 +58973,16 @@ Obj4A_Bullet:
 	rts
 ; ---------------------------------------------------------------------------
 +
-	jsrto	ObjectMove, JmpTo19_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(Ani_obj4A).l,a1
-	jsrto	AnimateSprite, JmpTo13_AnimateSprite
-	jmpto	MarkObjGone, JmpTo32_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_2CA46:
 Obj4A_Angry:	; Used by removed sub-object
 	subq.w	#1,objoff_2C(a0)
 	beq.w	JmpTo47_DeleteObject
-	jmpto	DisplaySprite, JmpTo31_DisplaySprite
+	jmp	(DisplaySprite).l
 
     if removeJmpTos
 JmpTo47_DeleteObject ; JmpTo
@@ -59158,7 +58999,7 @@ Obj4A_Init:
 	move.b	#$10,width_pixels(a0)
 	move.b	#$B,y_radius(a0)
 	move.b	#8,x_radius(a0)
-	jsrto	ObjectMoveAndFall, JmpTo2_ObjectMoveAndFall
+	jsr	(ObjectMoveAndFall).l
 	jsr	(ObjCheckFloorDist).l
 	tst.w	d1
 	bpl.s	+
@@ -59180,8 +59021,8 @@ Obj4A_Main:
 	move.w	Obj4A_Main_Index(pc,d0.w),d1
 	jsr	Obj4A_Main_Index(pc,d1.w)
 	lea	(Ani_obj4A).l,a1
-	jsrto	AnimateSprite, JmpTo13_AnimateSprite
-	jmpto	MarkObjGone, JmpTo32_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; off_2CAD4:
 Obj4A_Main_Index: offsetTable
@@ -59190,6 +59031,7 @@ Obj4A_Main_Index: offsetTable
 	offsetTableEntry.w Obj4A_MoveUp			; 4
 	offsetTableEntry.w Obj4A_Hover			; 6
 	offsetTableEntry.w Obj4A_MoveDown		; 8
+	offsetTableEntry.w loc_1ED94			; $A
 ; ===========================================================================
 ; loc_2CADE:
 Obj4A_WaitForCharacter:
@@ -59200,7 +59042,7 @@ Obj4A_WaitForCharacter:
 	cmpi.w	#-$80,d0
 	blt.s	+	; rts
 	addq.b	#2,routine_secondary(a0)
-	move.b	#3,anim(a0)
+	move.b	#3,anim(a0)	; 1 in S2SW
 	move.w	#$20,objoff_2C(a0)
 +
 	rts
@@ -59215,13 +59057,13 @@ Obj4A_DelayBeforeMoveUp:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#4,anim(a0)
 	move.w	#-$200,y_vel(a0)
-	jmpto	ObjectMove, JmpTo19_ObjectMove
+	jmp	(ObjectMove).l
 ; ===========================================================================
 ; loc_2CB20:
 Obj4A_MoveUp:
 	addi.w	#$10,y_vel(a0)
 	bpl.s	+
-	jmpto	ObjectMove, JmpTo19_ObjectMove
+	jmp	(ObjectMove).l
 ; ===========================================================================
 +
 	addq.b	#2,routine_secondary(a0)
@@ -59244,7 +59086,7 @@ Obj4A_MoveDown:
 	move.w	y_pos(a0),d0
 	cmp.w	octus_start_position(a0),d0
 	bhs.s	+
-	jmpto	ObjectMove, JmpTo19_ObjectMove
+	jmp	(ObjectMove).l
 ; ===========================================================================
 +
 	clr.b	routine_secondary(a0)
@@ -59255,6 +59097,25 @@ Obj4A_MoveDown:
 ; ===========================================================================
 ; loc_2CB70:
 Obj4A_FireBullet:
+	subi.w	#1,objoff_2C(a0)
+	beq.w	loc_1ED8E
+	bpl.w	+
+	move.w	#$1E,objoff_2C(a0)
+	jsr	(SingleObjLoad).l
+	bne.s	loc_1ED28
+	_move.b	#ObjID_Octus,id(a1) ; load obj4A
+	move.b	#4,routine(a1)
+	move.l	#Obj4A_MapUnc_2CBFE,mappings(a1)
+	move.w	#make_art_tile(ArtTile_ArtNem_Octus,1,0),art_tile(a1)
+	move.b	#4,mapping_frame(a1)
+	move.b	#3,priority(a1)
+	move.b	#$10,width_pixels(a1)
+	move.w	x_pos(a0),x_pos(a1)
+	move.w	y_pos(a0),y_pos(a1)
+	move.w	#$1E,objoff_2C(a1)
+	move.b	render_flags(a0),render_flags(a1)
+	move.b	status(a0),status(a1)
+loc_1ED28:
 	; In the Simon Wai beta, the object loads another object
 	; here, which makes it look angry as it fires.
 	; This object would have used Obj4A_Angry.
@@ -59273,12 +59134,25 @@ Obj4A_FireBullet:
 	move.b	status(a0),status(a1)
 	move.b	#2,anim(a1)
 	move.b	#$98,collision_flags(a1)
-	move.w	#-$200,x_vel(a1)
+	move.w	#-$200,x_vel(a1)	; -$580 in Simon Wai beta
 	btst	#0,render_flags(a1)
 	beq.s	+	; rts
 	neg.w	x_vel(a1)
 +
 	rts
+; ===========================================================================
+loc_1ED8E:
+	addq.b	#2,routine_secondary(a0)
+	rts
+; ===========================================================================
+loc_1ED94:
+	move.w	#$FFFA,d0
+	btst	#0,render_flags(a0)
+	beq.s	+
+	neg.w	d0
++
+	add.w	d0,x_pos(a0)
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; animation script
 ; off_2CBDC:
@@ -59289,9 +59163,7 @@ Ani_obj4A:	offsetTable
 		offsetTableEntry.w byte_2CBF4	; 3
 		offsetTableEntry.w byte_2CBF8	; 4
 byte_2CBE6:	dc.b  $F,  1,  0,$FF
-	rev02even
 byte_2CBEA:	dc.b   3,  1,  2,  3,$FF
-	rev02even
 byte_2CBEF:	dc.b   2,  5,  6,$FF
 	even
 byte_2CBF4:	dc.b  $F,  4,$FF
@@ -86849,7 +86721,7 @@ HUD_MapUnc_40BEA:	BINCLUDE "mappings/sprite/hud_b.bin"
 
 ; It seems that the devs didn't realise this was related to two player mode,
 ; so they forgot to delete it.
-HUD_MapUnc_40C82:	BINCLUDE "mappings/sprite/hud_c.bin"
+;HUD_MapUnc_40C82:	BINCLUDE "mappings/sprite/hud_c.bin"
 
 ; ---------------------------------------------------------------------------
 ; Add points subroutine
