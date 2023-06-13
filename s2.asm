@@ -50,9 +50,6 @@ allOptimizations = 1
 skipChecksumCheck = 1
 ;	| If 1, disables the slow bootup checksum calculation
 ;
-zeroOffsetOptimization = 1|allOptimizations
-;	| If 1, makes a handful of zero-offset instructions smaller
-;
 removeJmpTos = 1|(gameRevision>=2)|allOptimizations
 ;	| If 1, many unnecessary JmpTos are removed, improving performance
 ;
@@ -58881,7 +58878,7 @@ ObjD9_Main:
 	addq.w	#1,a2
 	move.w	(Ctrl_2).w,d0
 	bsr.s	ObjD9_CheckCharacter
-	jmpto	MarkObjGone3, JmpTo7_MarkObjGone3
+	jmp	(MarkObjGone3).l
 ; ===========================================================================
 ; loc_2C972:
 ObjD9_CheckCharacter:
@@ -58932,275 +58929,7 @@ loc_2C9A0:
 ObjD9_CheckCharacter_End:
 	rts
 ; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-JmpTo7_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
-
-	align 4
-    endif
-
-
-
-
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; Object 4A - Octus (octopus badnik) from OOZ
-; ----------------------------------------------------------------------------
-octus_start_position = objoff_2A
-; Sprite_2CA14:
-Obj4A:
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	Obj4A_Index(pc,d0.w),d1
-	jmp	Obj4A_Index(pc,d1.w)
-; ===========================================================================
-; off_2CA22:
-Obj4A_Index:	offsetTable
-		offsetTableEntry.w Obj4A_Init	; 0
-		offsetTableEntry.w Obj4A_Main	; 2
-		offsetTableEntry.w Obj4A_Angry	; 4 - unused
-		offsetTableEntry.w Obj4A_Bullet	; 6
-; ===========================================================================
-; loc_2CA2A:
-Obj4A_Bullet:
-	subi_.w	#1,objoff_2C(a0)
-	bmi.s	+
-	rts
-; ---------------------------------------------------------------------------
-+
-	jsr	(ObjectMove).l
-	lea	(Ani_obj4A).l,a1
-	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
-; ===========================================================================
-; loc_2CA46:
-Obj4A_Angry:	; Used by removed sub-object
-	subq.w	#1,objoff_2C(a0)
-	beq.w	JmpTo47_DeleteObject
-	jmp	(DisplaySprite).l
-
-    if removeJmpTos
-JmpTo47_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-    endif
-; ===========================================================================
-; loc_2CA52:
-Obj4A_Init:
-	move.l	#Obj4A_MapUnc_2CBFE,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_Octus,1,0),art_tile(a0)
-	ori.b	#4,render_flags(a0)
-	move.b	#$A,collision_flags(a0)
-	move.b	#4,priority(a0)
-	move.b	#$10,width_pixels(a0)
-	move.b	#$B,y_radius(a0)
-	move.b	#8,x_radius(a0)
-	jsr	(ObjectMoveAndFall).l
-	jsr	(ObjCheckFloorDist).l
-	tst.w	d1
-	bpl.s	+
-	add.w	d1,y_pos(a0)
-	move.w	#0,y_vel(a0)
-	addq.b	#2,routine(a0)
-	move.w	x_pos(a0),d0
-	sub.w	(MainCharacter+x_pos).w,d0
-	bpl.s	+
-	bchg	#0,status(a0)
-+
-	move.w	y_pos(a0),octus_start_position(a0)
-	rts
-; ===========================================================================
-; loc_2CAB8:
-Obj4A_Main:
-	moveq	#0,d0
-	move.b	routine_secondary(a0),d0
-	move.w	Obj4A_Main_Index(pc,d0.w),d1
-	jsr	Obj4A_Main_Index(pc,d1.w)
-	lea	(Ani_obj4A).l,a1
-	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
-; ===========================================================================
-; off_2CAD4:
-Obj4A_Main_Index: offsetTable
-	offsetTableEntry.w Obj4A_WaitForCharacter	; 0
-	offsetTableEntry.w Obj4A_DelayBeforeMoveUp	; 2
-	offsetTableEntry.w Obj4A_MoveUp			; 4
-	offsetTableEntry.w Obj4A_Hover			; 6
-	offsetTableEntry.w Obj4A_MoveDown		; 8
-	offsetTableEntry.w loc_1ED94			; $A
-; ===========================================================================
-; loc_2CADE:
-Obj4A_WaitForCharacter:
-	move.w	x_pos(a0),d0
-	sub.w	(MainCharacter+x_pos).w,d0
-	cmpi.w	#$80,d0
-	bgt.s	+	; rts
-	cmpi.w	#-$80,d0
-	blt.s	+	; rts
-	addq.b	#2,routine_secondary(a0)
-	move.b	#3,anim(a0)	; 1 in S2SW
-	move.w	#$20,objoff_2C(a0)
-+
-	rts
-; ===========================================================================
-; loc_2CB04:
-Obj4A_DelayBeforeMoveUp:
-	subq.w	#1,objoff_2C(a0)
-	bmi.s	+
-	rts
-; ---------------------------------------------------------------------------
-+
-	addq.b	#2,routine_secondary(a0)
-	move.b	#4,anim(a0)
-	move.w	#-$200,y_vel(a0)
-	jmp	(ObjectMove).l
-; ===========================================================================
-; loc_2CB20:
-Obj4A_MoveUp:
-	addi.w	#$10,y_vel(a0)
-	bpl.s	+
-	jmp	(ObjectMove).l
-; ===========================================================================
-+
-	addq.b	#2,routine_secondary(a0)
-	move.w	#$3C,objoff_2C(a0)
-	bra.w	Obj4A_FireBullet
-; ===========================================================================
-; loc_2CB3A:
-Obj4A_Hover:
-	subq.w	#1,objoff_2C(a0)
-	bmi.s	+
-	rts
-; ---------------------------------------------------------------------------
-+
-	addq.b	#2,routine_secondary(a0)
-	rts
-; ===========================================================================
-; loc_2CB48:
-Obj4A_MoveDown:
-	addi.w	#$10,y_vel(a0)
-	move.w	y_pos(a0),d0
-	cmp.w	octus_start_position(a0),d0
-	bhs.s	+
-	jmp	(ObjectMove).l
-; ===========================================================================
-+
-	clr.b	routine_secondary(a0)
-	clr.b	anim(a0)
-	clr.w	y_vel(a0)
-	move.b	#1,mapping_frame(a0)
-	rts
-; ===========================================================================
-; loc_2CB70:
-Obj4A_FireBullet:
-	subi.w	#1,objoff_2C(a0)
-	beq.w	loc_1ED8E
-	bpl.w	+
-	move.w	#$1E,objoff_2C(a0)
-	jsr	(SingleObjLoad).l
-	bne.s	loc_1ED28
-	_move.b	#ObjID_Octus,id(a1) ; load obj4A
-	move.b	#4,routine(a1)
-	move.l	#Obj4A_MapUnc_2CBFE,mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_Octus,1,0),art_tile(a1)
-	move.b	#4,mapping_frame(a1)
-	move.b	#3,priority(a1)
-	move.b	#$10,width_pixels(a1)
-	move.w	x_pos(a0),x_pos(a1)
-	move.w	y_pos(a0),y_pos(a1)
-	move.w	#$1E,objoff_2C(a1)
-	move.b	render_flags(a0),render_flags(a1)
-	move.b	status(a0),status(a1)
-loc_1ED28:
-	; In the Simon Wai beta, the object loads another object
-	; here, which makes it look angry as it fires.
-	; This object would have used Obj4A_Angry.
-	jsr	(SingleObjLoad).l
-	bne.s	+	; rts
-	_move.b	#ObjID_Octus,id(a1) ; load obj4A
-	move.b	#6,routine(a1)
-	move.l	#Obj4A_MapUnc_2CBFE,mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_Octus,1,0),art_tile(a1)
-	move.b	#4,priority(a1)
-	move.b	#$10,width_pixels(a1)
-	move.w	x_pos(a0),x_pos(a1)
-	move.w	y_pos(a0),y_pos(a1)
-	move.w	#$F,objoff_2C(a1)
-	move.b	render_flags(a0),render_flags(a1)
-	move.b	status(a0),status(a1)
-	move.b	#2,anim(a1)
-	move.b	#$98,collision_flags(a1)
-	move.w	#-$200,x_vel(a1)	; -$580 in Simon Wai beta
-	btst	#0,render_flags(a1)
-	beq.s	+	; rts
-	neg.w	x_vel(a1)
-+
-	rts
-; ===========================================================================
-loc_1ED8E:
-	addq.b	#2,routine_secondary(a0)
-	rts
-; ===========================================================================
-loc_1ED94:
-	move.w	#$FFFA,d0
-	btst	#0,render_flags(a0)
-	beq.s	+
-	neg.w	d0
-+
-	add.w	d0,x_pos(a0)
-	jmp	(MarkObjGone).l
-; ===========================================================================
-; animation script
-; off_2CBDC:
-Ani_obj4A:	offsetTable
-		offsetTableEntry.w byte_2CBE6	; 0
-		offsetTableEntry.w byte_2CBEA	; 1
-		offsetTableEntry.w byte_2CBEF	; 2
-		offsetTableEntry.w byte_2CBF4	; 3
-		offsetTableEntry.w byte_2CBF8	; 4
-byte_2CBE6:	dc.b  $F,  1,  0,$FF
-byte_2CBEA:	dc.b   3,  1,  2,  3,$FF
-byte_2CBEF:	dc.b   2,  5,  6,$FF
-	even
-byte_2CBF4:	dc.b  $F,  4,$FF
-	even
-byte_2CBF8:	dc.b   7,  0,  1,$FD,  1
-	even
-; ----------------------------------------------------------------------------
-; sprite mappings
-; ----------------------------------------------------------------------------
-Obj4A_MapUnc_2CBFE:	BINCLUDE "mappings/sprite/obj4A.bin"
-
-    if ~~removeJmpTos
-	align 4
-    endif
-; ===========================================================================
-
-    if ~~removeJmpTos
-JmpTo31_DisplaySprite ; JmpTo
-	jmp	(DisplaySprite).l
-JmpTo47_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-JmpTo32_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
-JmpTo13_AnimateSprite ; JmpTo
-	jmp	(AnimateSprite).l
-JmpTo2_ObjectMoveAndFall ; JmpTo
-	jmp	(ObjectMoveAndFall).l
-; loc_2CCC2:
-JmpTo19_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-
-	align 4
-    endif
-
-
-
-
+	include "_incObj/4A - Octopus.asm"
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 50 - Aquis (seahorse badnik) from OOZ
@@ -59469,15 +59198,10 @@ Ani_obj50:	offsetTable
 		offsetTableEntry.w byte_2CF8D		; 4
 		offsetTableEntry.w byte_2CF90		; 5
 Ani_obj50_Normal:	dc.b  $E,  0,$FF			; byte_2CF78
-	rev02even
 byte_2CF7B:		dc.b   5,  3,  4,  3,  4,  3,  4,$FF
-	rev02even
 Ani_obj50_Bullet:	dc.b   3,  5,  6,  7,  6,$FF		; byte_2CF83
-	rev02even
 Ani_obj50_Wing:		dc.b   3,  1,  2,$FF			; byte_2CF89
-	rev02even
 byte_2CF8D:		dc.b   1,  5,$FF
-	rev02even
 byte_2CF90:		dc.b  $E,  8,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -59580,11 +59304,8 @@ Obj4B_Flame:
 	jsr	(AnimateSprite).l
 	jmp	(MarkObjGone).l
 
-    if gameRevision=3
-	; KiS2 (JmpTo cleanup): Moved.
 JmpTo49_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
-    endif
 ; ===========================================================================
 ; loc_2D0C8:
 Obj4B_Init:
@@ -59663,12 +59384,8 @@ Obj4B_TurnAround:
 	move.w	#$100,Obj4B_move_timer(a0)
 	rts
 
-    if gameRevision=3
-	; KiS2 (JmpTo cleanup): Moved.
-; loc_2D38C:
 JmpTo21_ObjectMove ; JmpTo
 	jmp	(ObjectMove).l
-    endif
 ; ===========================================================================
 ; Start of subroutine Obj4B_ChkPlayers
 ; sub_2D1D6:
@@ -59766,11 +59483,8 @@ Ani_obj4B:	offsetTable
 		offsetTableEntry.w byte_2D2DD	; 2
 		offsetTableEntry.w byte_2D2E1	; 3
 byte_2D2D6:	dc.b	$0F, $00, $FF
-	rev02even
 byte_2D2D9:	dc.b	$02, $03, $04, $FF
-	rev02even
 byte_2D2DD:	dc.b	$03, $05, $06, $FF
-	rev02even
 byte_2D2E1:	dc.b	$09, $01, $01, $01, $01, $01, $FD, $00
 	even
 ; ----------------------------------------------------------------------------
@@ -59778,39 +59492,7 @@ byte_2D2E1:	dc.b	$09, $01, $01, $01, $01, $01, $FD, $00
 ; ----------------------------------------------------------------------------
 ; MapUnc_2D2EA: SprTbl_Buzzer:
 Obj4B_MapUnc_2D2EA:	BINCLUDE "mappings/sprite/obj4B.bin"
-
-    if ~~removeJmpTos
-	align 4
-    endif
-; ===========================================================================
-
-    if ~~removeJmpTos
-; loc_2D368:
-JmpTo49_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-JmpTo20_SingleObjLoad2 ; JmpTo
-	jmp	(SingleObjLoad2).l
-JmpTo15_AnimateSprite ; JmpTo
-	jmp	(AnimateSprite).l
-; loc_2D38C:
-JmpTo21_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-
-	align 4
-    else
-    if gameRevision<>3
-	; KiS2 (JmpTo cleanup): Moved.
-JmpTo49_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-; loc_2D38C:
-JmpTo21_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-    endif
-    endif
-
-
-
-
+	even
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 5C - Masher (jumping piranha fish badnik) from EHZ
@@ -61852,57 +61534,31 @@ Ani_Obj5D_Dripper:	offsetTable
 		offsetTableEntry.w byte_2EAD5	; $19
 		offsetTableEntry.w byte_2EAD9	; $1A
 byte_2EA72:	dc.b  $F,  0,$FF
-	rev02even
 byte_2EA75:	dc.b  $F,  1,$FF
-	rev02even
 byte_2EA78:	dc.b   5,  2,  3,  2,$FF
-	rev02even
 byte_2EA7D:	dc.b   5,  2,  3,$FF
-	rev02even
 byte_2EA81:	dc.b   2,  4,  5,  6,  7,  8,$FF
-	rev02even
 byte_2EA88:	dc.b   3,  9,$FF
-	rev02even
 byte_2EA8B:	dc.b  $F, $A,$FF
-	rev02even
 byte_2EA8E:	dc.b  $F,$1C,$FF
-	rev02even
 byte_2EA91:	dc.b  $F,$1E,$FF
-	rev02even
 byte_2EA94:	dc.b  $F, $B,$FF
-	rev02even
 byte_2EA97:	dc.b   3, $C, $C, $D, $D, $D, $D, $D, $C, $C,$FD,  9
-	rev02even
 byte_2EAA3:	dc.b   3, $E, $E, $F, $F, $F, $F, $F, $E, $E,$FF
-	rev02even
 byte_2EAAE:	dc.b  $F,$10,$FF
-	rev02even
 byte_2EAB1:	dc.b  $F,$11,$FF
-	rev02even
 byte_2EAB4:	dc.b  $F,$12,$FF
-	rev02even
 byte_2EAB7:	dc.b  $F,$13,$FF
-	rev02even
 byte_2EABA:	dc.b  $F,$14,$FF
-	rev02even
 byte_2EABD:	dc.b  $F,$15,$FF
-	rev02even
 byte_2EAC0:	dc.b  $F,$16,$FF
-	rev02even
 byte_2EAC3:	dc.b  $F,$17,$FF
-	rev02even
 byte_2EAC6:	dc.b  $F,$18,$FF
-	rev02even
 byte_2EAC9:	dc.b  $F,$19,$FF
-	rev02even
 byte_2EACC:	dc.b  $F,$1A,$FF
-	rev02even
 byte_2EACF:	dc.b  $F,$1B,$FF
-	rev02even
 byte_2EAD2:	dc.b  $F,$1C,$FF
-	rev02even
 byte_2EAD5:	dc.b   1,$1D,$1F,$FF
-	rev02even
 byte_2EAD9:	dc.b  $F,$1E,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -61919,13 +61575,9 @@ Ani_obj5D_b:	offsetTable
 		offsetTableEntry.w byte_2ED76	; 3
 		offsetTableEntry.w byte_2ED7F	; 4
 byte_2ED66:	dc.b  $F,  0,$FF
-	rev02even
 byte_2ED69:	dc.b   7,  1,  2,$FF
-	rev02even
 byte_2ED6D:	dc.b   7,  5,  5,  5,  5,  5,  5,$FD,  1
-	rev02even
 byte_2ED76:	dc.b   7,  3,  4,  3,  4,  3,  4,$FD,  1
-	rev02even
 byte_2ED7F:	dc.b  $F,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,$FD,  1
 	even
 
@@ -62972,10 +62624,8 @@ Ani_obj56_b:	offsetTable
 		offsetTableEntry.w byte_2FA53	; 2
 byte_2FA4A:
 	dc.b   5,  1,  2,  3,$FF	; spike
-	rev02even
 byte_2FA4F:
 	dc.b   1,  4,  5,$FF	; foreground wheel
-	rev02even
 byte_2FA53:
 	dc.b   1,  6,  7,$FF	; background wheel
 	even
@@ -62999,13 +62649,9 @@ Ani_obj56_c:	offsetTable
 		offsetTableEntry.w byte_2FAE2	; 3
 		offsetTableEntry.w byte_2FAEB	; 4
 byte_2FAD2:	dc.b  $F,  0,$FF	; bottom
-	rev02even
 byte_2FAD5:	dc.b   7,  1,  2,$FF	; top, normal
-	rev02even
 byte_2FAD9:	dc.b   7,  5,  5,  5,  5,  5,  5,$FD,  1	;	top, when hit
-	rev02even
 byte_2FAE2:	dc.b   7,  3,  4,  3,  4,  3,  4,$FD,  1	; top, laughter (when hurting Sonic)
-	rev02even
 byte_2FAEB:	dc.b  $F,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,$FD,  1	; top, when flying off
 	even	; for top part, after end of special animations always return to normal one ($FD->1)
 
@@ -63648,19 +63294,12 @@ Ani_obj52:	offsetTable
 		offsetTableEntry.w byte_302B4	; 6
 		offsetTableEntry.w byte_302B7	; 7
 byte_30298:	dc.b   1,  2,  3,$FD,  1
-	rev02even
 byte_3029D:	dc.b   2,  4,  5,$FD,  2
-	rev02even
 byte_302A2:	dc.b   3,  6,  7,$FD,  3
-	rev02even
 byte_302A7:	dc.b   4,  8,  9,$FD,  4
-	rev02even
 byte_302AC:	dc.b   5, $A, $B,$FE
-	rev02even
 byte_302B0:	dc.b   3, $C, $D,$FF
-	rev02even
 byte_302B4:	dc.b  $F,  1,$FF
-	rev02even
 byte_302B7:	dc.b   3, $E, $F,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -64621,7 +64260,6 @@ Ani_obj89_a:	offsetTable
 		offsetTableEntry.w byte_30D47	; 1
 byte_30D30:	dc.b   1,  4,  6,  5,  4,  6,  4,  5,  4,  6,  4,  4,  6,  5,  4,  6
 		dc.b   4,  5,  4,  6,  4,$FD,  1; 16
-	rev02even
 
 byte_30D47:	dc.b  $F,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4
 		dc.b   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,$F9; 16
@@ -64642,15 +64280,10 @@ Ani_obj89_b:	offsetTable
 		offsetTableEntry.w byte_30E00	; $A
 byte_30DD4:	dc.b   7,  0,  1,$FF,  2,  3,  2,  3,  2,  3,  2,  3,$FF,  4,  4,  4
 		dc.b   4,  4,  4,  4,  4,$FF; 16
-	rev02even
 byte_30DEA:	dc.b   1,  6,  7,$FF
-	rev02even
 byte_30DEE:	dc.b  $F,  9,$FF
-	rev02even
 byte_30DF1:	dc.b   2, $A, $A, $B, $B, $B, $B, $B, $A, $A,$FD,  2
-	rev02even
 byte_30DFD:	dc.b  $F,  8,$FF
-	rev02even
 byte_30E00:	dc.b   7,  5,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -65306,36 +64939,22 @@ Ani_obj57:	offsetTable
 		offsetTableEntry.w byte_316E8 ; E - center vehicle, Robotnik's face when hit
 byte_31628:	dc.b  $F,  1,$FF	; light off
 		dc.b	   0,$FC,  2	; light on; (3) subanimation
-	rev02even
 byte_3162E:	dc.b   5,  8,$FF
-	rev02even
 byte_31631:	dc.b   1,  5,  6,$FF	; fire on
 		dc.b	   7,$FC,  3	; fire off; (4) subanimation
-	rev02even
 byte_31638:	dc.b   1,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  4,  4,  4,  4,$FD,  4
-	rev02even
 byte_31649:	dc.b   1,  2,  2,  2,  2,  3,  3,  3,  4,  4,  4,  2,  2,  3,  3,$FD,  5
-	rev02even
 byte_3165A:	dc.b   1,  4,  2,  3,  4,$FC,  1
-	rev02even
 byte_31661:	dc.b   1,  2,  3,  4,  4,  2,  2,  3,  3,  3,  4,  4,  4,  2,  2,  2,$FD,  7
-	rev02even
 byte_31673:	dc.b   1,  2,  3,  3,  3,  3,  4,  4,  4,  4,  4,  2,  8,  8,  8,$FD,  8
-	rev02even
 byte_31684:	dc.b   1,  9,  9,  9,  9,  9, $A, $A, $A, $A, $A, $B, $B, $B, $B,$FD,  9
-	rev02even
 byte_31695:	dc.b   1,  9,  9,  9,  9, $A, $A, $A, $B, $B, $B,  9,  9, $A, $A,$FD, $A
-	rev02even
 byte_316A6:	dc.b   1, $B,  9, $A, $B,$FC,  1
-	rev02even
 byte_316AD:	dc.b   1,  9, $A, $B, $B,  9,  9, $A, $A, $A, $B, $B, $B,  9,  9,  9,$FD, $C
-	rev02even
 byte_316BF:	dc.b   1,  9, $A, $A, $A, $A, $B, $B, $B, $B, $B,  9,  8,  8,  8,  8,$FD,  3
-	rev02even
 byte_316D1:	dc.b   7, $E, $F,$FF
 		dc.b	 $10,$11,$10,$11,$10,$11,$10,$11,$FF		; (4) subanimation (grin after hurting Sonic)
 		dc.b	 $12,$12,$12,$12,$12,$12,$12,$12,$12,$FF	; (D) subanimation (grin when hit)
-	rev02even
 byte_316E8:	dc.b   7,$12,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -66096,23 +65715,14 @@ Ani_obj51:	offsetTable
 		offsetTableEntry.w byte_320E1	; 8
 		offsetTableEntry.w byte_320E4	; 9
 byte_320B0:	dc.b  $F,  1,$FF
-	rev02even
 byte_320B3:	dc.b  $F,  4,$FF,  5,$FC,  2
-	rev02even
 byte_320B9:	dc.b  $F,  2,$FF,  3,$FC,  2
-	rev02even
 byte_320BF:	dc.b   7,  6,  7,$FF
-	rev02even
 byte_320C3:	dc.b   1, $C, $D, $E,$FF
-	rev02even
 byte_320C8:	dc.b   7,  8,  9,  8,  9,  8,  9,  8,  9,$FD,  3
-	rev02even
 byte_320D3:	dc.b   7, $A, $A, $A, $A, $A, $A, $A,$FD,  3
-	rev02even
 byte_320DD:	dc.b   3,$13,$14,$FF
-	rev02even
 byte_320E1:	dc.b   1,  0,$FF
-	rev02even
 byte_320E4:	dc.b   1, $F,$10,$11,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -66798,7 +66408,6 @@ byte_329CC:
 	dc.b $48	; 4
 	dc.b $90	; 5
 	dc.b $D8	; 6
-	rev02even
 byte_329D3:
 	dc.b   0
 	dc.b   1	; 1
@@ -67148,20 +66757,13 @@ Ani_obj53:	offsetTable
 		offsetTableEntry.w byte_32DC0	; 6
 		offsetTableEntry.w byte_32DC3	; 7
 byte_32D8A:	dc.b  $F,  2,$FF
-	rev02even
 byte_32D8D:	dc.b   1,  0,  1,$FF
-	rev02even
 byte_32D91:	dc.b   3,  5,  5,  5,  5,  5,  5,  5,  5,  6,  7,  6,  7,  6,  7,  8
 		dc.b   9, $A, $B,$FE,  1; 16
-	rev02even
 byte_32DA6:	dc.b   7, $C, $D,$FF
-	rev02even
 byte_32DAA:	dc.b   7, $E, $F, $E, $F, $E, $F, $E, $F,$FD,  3
-	rev02even
 byte_32DB5:	dc.b   7,$10,$10,$10,$10,$10,$10,$10,$10,$FD,  3
-	rev02even
 byte_32DC0:	dc.b   1,$14,$FC
-	rev02even
 byte_32DC3:	dc.b   7,$11,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -67993,20 +67595,15 @@ Ani_obj55:	offsetTable
 byte_3371E:
 	dc.b   9,  8,  8,  8,  8,  9,  9,  9,  9,  8,  8,  8,  8,  9,  9,  9
 	dc.b   9,  8,  8,  8,  8,  9,  9,  9,  9,$FF; 16
-	rev02even
 byte_33738:
 	dc.b  $F,  1,$FF
-	rev02even
 byte_3373B:
 	dc.b   1, $D,$11, $E,$12, $F,$13,$10,$14,$14,$10,$13, $F,$12, $E,$11
 	dc.b  $D,$FA	; 16
-	rev02even
 byte_3374D:
 	dc.b  $F, $A,$FF
-	rev02even
 byte_33750:
 	dc.b  $F, $B,$FF
-	rev02even
 byte_33753:
 	dc.b  $F,  8,$FF
 	even
@@ -69311,9 +68908,7 @@ Ani_obj88:	offsetTable
 		offsetTableEntry.w byte_34D95	; 1
 		offsetTableEntry.w byte_34D9E	; 2
 byte_34D8C:	dc.b   3,  0,  1,  2,  3,  4,  5,  6,$FF
-	rev02even
 byte_34D95:	dc.b   3,  7,  8,  9, $A, $B, $C, $D,$FF
-	rev02even
 byte_34D9E:	dc.b   3, $E, $F,$10,$11,$12,$13,$14,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -70866,39 +70461,22 @@ SSMessage_TextFrames:	offsetTable
 		offsetTableEntry.w byte_35CD9	;$20
 		offsetTableEntry.w byte_35CDB	;$22
 byte_35C86:	specialText "GET"
-	rev02even
 byte_35C8A:	specialText "RINGS"
-	rev02even
 byte_35C90:	specialText "COOL!"
-	rev02even
 byte_35C96:	specialText "NOT"
-	rev02even
 byte_35C9A:	specialText "ENOUGH"
-	rev02even
 byte_35CA1:	specialText "PLAYER"
-	rev02even
 byte_35CA8:	specialText "MOST"
-	rev02even
 byte_35CAD:	specialText "WINS!"
-	rev02even
 byte_35CB3:	specialText "SONIC"
-	rev02even
 byte_35CB9:	specialText "MILES"
-	rev02even
 byte_35CBF:	specialText "TIE!"
-	rev02even
 byte_35CC4:	specialText "WIN"
-	rev02even
 byte_35CC8:	specialText "TWICE"
-	rev02even
 byte_35CCE:	specialText "ALL!"
-	rev02even
 byte_35CD3:	specialText "!"
-	rev02even
 byte_35CD5:	specialText "..."
-	rev02even
 byte_35CD9:	dc.b $13,$FF						; VS
-	rev02even
 byte_35CDB:	specialText "TAILS"
 	even
 
@@ -71327,31 +70905,22 @@ off_36228:	offsetTable
 		offsetTableEntry.w byte_36257	; 9
 byte_3623C:
 	dc.b  $B,  0,$FF
-	rev02even
 byte_3623F:
 	dc.b  $B,  1,$FF
-	rev02even
 byte_36242:
 	dc.b  $B,  2,$FF
-	rev02even
 byte_36245:
 	dc.b  $B,  3,$FF
-	rev02even
 byte_36248:
 	dc.b  $B,  4,$FF
-	rev02even
 byte_3624B:
 	dc.b  $B,  5,$FF
-	rev02even
 byte_3624E:
 	dc.b  $B,  6,$FF
-	rev02even
 byte_36251:
 	dc.b  $B,  7,$FF
-	rev02even
 byte_36254:
 	dc.b  $B,  8,$FF
-	rev02even
 byte_36257:
 	dc.b  $B,  9,$FF
 	even
@@ -71375,25 +70944,15 @@ Ani_obj5B_obj60:offsetTable
 		offsetTableEntry.w byte_3631E	;  9
 		offsetTableEntry.w byte_36324	; $A
 byte_362E8: dc.b   5,  0, $A,$14, $A,$FF
-	rev02even
 byte_362EE: dc.b   5,  1, $B,$15, $B,$FF
-	rev02even
 byte_362F4: dc.b   5,  2, $C,$16, $C,$FF
-	rev02even
 byte_362FA: dc.b   5,  3, $D,$17, $D,$FF
-	rev02even
 byte_36300: dc.b   5,  4, $E,$18, $E,$FF
-	rev02even
 byte_36306: dc.b   5,  5, $F,$19, $F,$FF
-	rev02even
 byte_3630C: dc.b   5,  6,$10,$1A,$10,$FF
-	rev02even
 byte_36312: dc.b   5,  7,$11,$1B,$11,$FF
-	rev02even
 byte_36318: dc.b   5,  8,$12,$1C,$12,$FF
-	rev02even
 byte_3631E: dc.b   5,  9,$13,$1D,$13,$FF
-	rev02even
 byte_36324: dc.b   1,$1E,$1F,$20,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -71416,25 +70975,15 @@ Ani_obj61:	offsetTable
 		offsetTableEntry.w byte_364FF	;  9
 		offsetTableEntry.w byte_36502	; $A
 byte_364E4: dc.b  $B,  0,$FF
-	rev02even
 byte_364E7: dc.b  $B,  1,$FF
-	rev02even
 byte_364EA: dc.b  $B,  2,$FF
-	rev02even
 byte_364ED: dc.b  $B,  3,$FF
-	rev02even
 byte_364F0: dc.b  $B,  4,$FF
-	rev02even
 byte_364F3: dc.b  $B,  5,$FF
-	rev02even
 byte_364F6: dc.b  $B,  6,$FF
-	rev02even
 byte_364F9: dc.b  $B,  7,$FF
-	rev02even
 byte_364FC: dc.b  $B,  8,$FF
-	rev02even
 byte_364FF: dc.b  $B,  9,$FF
-	rev02even
 byte_36502: dc.b   2, $A, $B, $C,$FF
 	even
 ; ----------------------------------------------------------------------------
@@ -71750,6 +71299,25 @@ loc_36776:
 	rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
+; Delete If Off-Screen
+; deletes an object if it is too far away from the screen
+;
+; input variables:
+;  a0 = object
+;
+; writes:
+;  d0
+; ---------------------------------------------------------------------------
+;loc_368F8:
+Obj_DeleteOffScreen:
+	move.w	x_pos(a0),d0
+	andi.w	#$FF80,d0
+	sub.w	(Camera_X_pos_coarse).w,d0
+	cmpi.w	#$280,d0
+	bhi.w	JmpTo64_DeleteObject
+	jmp	(DisplaySprite).l
+; ===========================================================================
+; ---------------------------------------------------------------------------
 ; Delete If Behind Screen
 ; deletes an object if it scrolls off the left side of the screen
 ;
@@ -71761,11 +71329,6 @@ loc_36776:
 ; ---------------------------------------------------------------------------
 ;loc_36788:
 Obj_DeleteBehindScreen:
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	jmp	(DisplaySprite).l
-+
-	; when not in two player mode
 	move.w	x_pos(a0),d0
 	andi.w	#$FF80,d0
 	sub.w	(Camera_X_pos_coarse).w,d0
@@ -71931,30 +71494,6 @@ AnimChk_End_FC:
 
 AnimChk_End:
 	rts
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Delete If Off-Screen
-; deletes an object if it is too far away from the screen
-;
-; input variables:
-;  a0 = object
-;
-; writes:
-;  d0
-; ---------------------------------------------------------------------------
-;loc_368F8:
-Obj_DeleteOffScreen:
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	jmp	(DisplaySprite).l
-+
-	; when not in two player mode
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo64_DeleteObject
-	jmp	(DisplaySprite).l
 ; ===========================================================================
 
     if removeJmpTos
@@ -72137,19 +71676,19 @@ loc_36ADC:
 	abs.w	d2
 	cmpi.w	#$60,d2
 	bls.s	+
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	st.b	objoff_2B(a0)
 	bsr.w	loc_36C2C
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_36B00:
 Obj8D_Animate:
 	lea	(Ani_obj8D_b).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36B0E:
@@ -72161,7 +71700,7 @@ loc_36B0E:
 	beq.s	+
 	bset	#0,status(a0)
 +
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; word_36B30:
 Obj8D_Directions:
@@ -72170,7 +71709,7 @@ Obj8D_Directions:
 ; ===========================================================================
 
 loc_36B34:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	jsr	(ObjCheckFloorDist).l
 	cmpi.w	#-1,d1
 	blt.s	loc_36B5C
@@ -72178,27 +71717,27 @@ loc_36B34:
 	bge.s	loc_36B5C
 	add.w	d1,y_pos(a0)
 	lea	(Ani_obj8D_a).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36B5C:
 	addq.b	#2,routine(a0)
 	move.b	#$3B,objoff_2A(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36B6A:
 	subq.b	#1,objoff_2A(a0)
 	bmi.s	loc_36B74
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36B74:
 	move.b	#8,routine(a0)
 	neg.w	x_vel(a0)
 	bchg	#0,status(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 8F - Wall behind which Grounder hides, from ARZ
@@ -72227,14 +71766,14 @@ loc_36BA6:
 	movea.w	objoff_2C(a0),a1 ; a1=object
 	tst.b	objoff_2B(a1)
 	bne.s	+
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	move.w	objoff_2E(a0),d0
 	move.b	Obj8F_Directions(pc,d0.w),x_vel(a0)
 	move.b	Obj8F_Directions+1(pc,d0.w),y_vel(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; byte_36BCC:
 Obj8F_Directions:
@@ -72267,7 +71806,7 @@ Obj90_Init:
 	move.b	Obj90_Directions+1(pc,d0.w),y_vel(a0)
 	lsr.w	#1,d0
 	move.b	Obj90_Frames(pc,d0.w),mapping_frame(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; byte_36C0C:
 Obj90_Frames:
@@ -72292,15 +71831,15 @@ Obj8F_Move:
 Obj90_Move:
 	tst.b	render_flags(a0)
 	bpl.w	JmpTo65_DeleteObject
-	jsrto	ObjectMoveAndFall, JmpTo8_ObjectMoveAndFall
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(ObjectMoveAndFall).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36C2C:
 	moveq	#0,d1
 
 	moveq	#4,d6
--	jsrto	SingleObjLoad, JmpTo19_SingleObjLoad
+-	jsr	(SingleObjLoad).l
 	bne.s	+	; rts
 	bsr.w	loc_36C40
 	dbf	d6,-
@@ -72323,7 +71862,7 @@ loc_36C64:
 	moveq	#0,d1
 
 	moveq	#3,d6
--	jsrto	SingleObjLoad, JmpTo19_SingleObjLoad
+-	jsr	(SingleObjLoad).l
 	bne.s	+	; rts
 	bsr.w	loc_36C78
 	dbf	d6,-
@@ -72525,20 +72064,20 @@ Obj91_Main:
 	bchg	#0,render_flags(a0)
 	neg.w	x_vel(a0)		; ...and reverse movement
 +
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	bsr.w	Obj_GetOrientationToPlayer
 	move.w	d2,d4
 	move.w	d3,d5
 	bsr.w	Obj91_TestCharacterPos	; are Sonic or Tails close enough to attack?
 	bne.s	Obj91_PrepareCharge	; if yes, prepare to charge at them
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_36E20
 Obj91_PrepareCharge:
 	addq.b	#2,routine(a0)	; => Obj91_Waiting
 	move.b	#$10,Obj91_move_timer(a0)	; time to wait before charging at the player
 	clr.w	x_vel(a0)		; stop movement
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_36E32:
 Obj91_Waiting:
@@ -72571,17 +72110,17 @@ Obj91_VerticalSpeeds:
 ; ===========================================================================
 ; loc_36E66:
 Obj91_Charge:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 ; loc_36E6A:
 Obj91_Animate:
 	lea	(Ani_obj91).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_36E78:
 Obj91_MakeBubble:
 	move.w	#$50,Obj91_bubble_timer(a0)	; reset timer
-	jsrto	SingleObjLoad, JmpTo19_SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.s	return_36EB0
 	_move.b	#ObjID_SmallBubbles,id(a1) ; load obj
 	move.b	#6,subtype(a1) ; <== Obj90_SubObjData2
@@ -72684,16 +72223,16 @@ loc_36F3C:
 	bmi.s	loc_36F5A
 
 loc_36F48:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(Ani_obj92).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36F5A:
 	addq.b	#2,routine(a0)
 	move.b	#$10,objoff_2A(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36F68:
@@ -72702,7 +72241,7 @@ loc_36F68:
 	subq.b	#1,objoff_2A(a0)
 	bmi.s	loc_36F78
 +
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36F78:
@@ -72710,7 +72249,7 @@ loc_36F78:
 	move.b	#$40,objoff_2A(a0)
 	neg.w	x_vel(a0)
 	bchg	#0,status(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36F90:
@@ -72719,11 +72258,11 @@ loc_36F90:
 	beq.s	loc_36FA4
 	subq.b	#1,d0
 	move.b	d0,objoff_2E(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_36FA4:
-	jsrto	SingleObjLoad2, JmpTo25_SingleObjLoad2
+	jsr	(SingleObjLoad2).l
 	bne.s	loc_36FDC
 	st.b	objoff_2B(a0)
 	_move.b	#ObjID_SpikerDrill,id(a1) ; load obj93
@@ -72737,7 +72276,7 @@ loc_36FA4:
 
 loc_36FDC:
 	move.b	objoff_2F(a0),routine(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 93 - Drill thrown by Spiker from HTZ
@@ -72776,8 +72315,8 @@ loc_37028:
 	tst.b	render_flags(a0)
 	bpl.w	JmpTo65_DeleteObject
 	bchg	#0,render_flags(a0)
-	jsrto	ObjectMove, JmpTo26_ObjectMove
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(ObjectMove).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_3703E:
@@ -72856,7 +72395,7 @@ Obj95_Init:
 
 ; loc_37152:
 Obj95_NextFireball:
-	jsrto	SingleObjLoad2, JmpTo25_SingleObjLoad2
+	jsr	(SingleObjLoad2).l
 	bne.s	loc_371AE
 	addq.b	#1,(a3)
 	move.w	a1,d5
@@ -72924,25 +72463,25 @@ loc_371FA:
 	move.b	#1,anim(a0)
 
 loc_3720C:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(Ani_obj95_a).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	andi.b	#3,mapping_frame(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_37224:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(Ani_obj95_b).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	andi.b	#3,mapping_frame(a0)
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 ; loc_3723C:
 Obj95_FireballUpdate:
 	lea	(Ani_obj95_b).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	movea.l	objoff_3C(a0),a1 ; a1=object
 	_cmpi.b	#ObjID_Sol,id(a1) ; check if parent object is still alive
 	bne.w	JmpTo65_DeleteObject
@@ -72962,7 +72501,7 @@ loc_37278:
 	beq.s	+
 	neg.w	x_vel(a0)
 +
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 ; loc_3728E:
@@ -79631,17 +79170,13 @@ ObjBF:
 ; off_3BEB8:
 ObjBF_Index:	offsetTable
 		offsetTableEntry.w ObjBF_Init		; 0
-		offsetTableEntry.w ObjBF_Animate	; 2
 ; ===========================================================================
 ; BranchTo9_LoadSubObject
 ObjBF_Init:
 	bra.w	LoadSubObject
-; ===========================================================================
-; loc_3BEC0:
-ObjBF_Animate:
 	lea	(Ani_objBF).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo39_MarkObjGone
+	jsr	(AnimateSprite).L
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; off_3BECE:
 ObjBE_SubObjData2:
@@ -83948,15 +83483,13 @@ loc_3F38E:
 	tst.b	routine_secondary(a0)
 	beq.s	+
 	tst.b	render_flags(a0)
-	bpl.w	JmpTo66_DeleteObject
+	bpl.s	JmpTo66_DeleteObject
 	jsr	(ObjectMoveAndFall).l
 +
 	jmp	(MarkObjGone).l
 
-    if removeJmpTos
 JmpTo66_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
-    endif
 ; ===========================================================================
 
 loc_3F3A8:
@@ -84012,33 +83545,11 @@ Ani_obj3E:	offsetTable
 		offsetTableEntry.w byte_3F42C	; 0
 		offsetTableEntry.w byte_3F42F	; 1
 byte_3F42C:	dc.b  $F,  0,$FF
-		rev02even
 byte_3F42F:	dc.b   3,  0,  1,  2,  3,$FE,  1
 		even
 ; ----------------------------------------------------------------------------
-; sprite mappings
-; [fixBugs] These mappings contain a bug: the second and third sprites have
-; their 'total sprite pieces' value set too low by one, causing the last
-; sprite piece to not be displayed.
-; ----------------------------------------------------------------------------
 Obj3E_MapUnc_3F436:	BINCLUDE "mappings/sprite/obj3E.bin"
 ; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-JmpTo66_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-JmpTo20_SingleObjLoad ; JmpTo
-	jmp	(SingleObjLoad).l
-
-	align 4
-    endif
-
-
-
 
 ; ---------------------------------------------------------------------------
 ; Object touch response subroutine - $20(a0) in the object RAM
