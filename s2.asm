@@ -5265,20 +5265,20 @@ SolidIndexes:
 	dc.l Col2_ARZ		; ARZ2 $F
 	dc.l Col1_SCZ		; SCZ1 $10 ; TODO: Merge with SCZ & free level slot
 	dc.l Col2_SCZ		; SCZ2 $10 ; TODO: Merge with SCZ & free level slot
-	dc.l Col1_EHZ		; ???  $11
-	dc.l Col2_EHZ		; ???  $11
-	dc.l Col1_EHZ		; ???  $12
-	dc.l Col2_EHZ		; ???  $12
-	dc.l Col1_EHZ		; ???  $13
-	dc.l Col2_EHZ		; ???  $13
-	dc.l Col1_EHZ		; ???  $14
-	dc.l Col2_EHZ		; ???  $14
-	dc.l Col1_EHZ		; ???  $15
-	dc.l Col2_EHZ		; ???  $15
-	dc.l Col1_EHZ		; ???  $16
-	dc.l Col2_EHZ		; ???  $16
-	dc.l Col1_EHZ		; ???  $17
-	dc.l Col2_EHZ		; ???  $17
+;	dc.l Col1_EHZ		; ???  $11
+;	dc.l Col2_EHZ		; ???  $11
+;	dc.l Col1_EHZ		; ???  $12
+;	dc.l Col2_EHZ		; ???  $12
+;	dc.l Col1_EHZ		; ???  $13
+;	dc.l Col2_EHZ		; ???  $13
+;	dc.l Col1_EHZ		; ???  $14
+;	dc.l Col2_EHZ		; ???  $14
+;	dc.l Col1_EHZ		; ???  $15
+;	dc.l Col2_EHZ		; ???  $15
+;	dc.l Col1_EHZ		; ???  $16
+;	dc.l Col2_EHZ		; ???  $16
+;	dc.l Col1_EHZ		; ???  $17
+;	dc.l Col2_EHZ		; ???  $17
 
 ; ---------------------------------------------------------------------------
 ; Oscillating number subroutine
