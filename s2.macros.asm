@@ -17,6 +17,35 @@ READ = %001100
 WRITE = %000111
 DMA = %100111
 
+; ---------------------------------------------------------------------------
+; disable interrupts
+; ---------------------------------------------------------------------------
+
+disable_ints:	macro
+		move	#$2700,sr
+		endm
+
+; ---------------------------------------------------------------------------
+; enable interrupts
+; ---------------------------------------------------------------------------
+
+enable_ints:	macro
+		move	#$2300,sr
+		endm
+
+; ---------------------------------------------------------------------------
+; Set a VRAM address via the VDP control port.
+; input: 16-bit VRAM address, control port (default is (vdp_control_port).l)
+; ---------------------------------------------------------------------------
+
+locVRAM:	macro loc,controlport
+		if ("controlport"=="")
+		move.l	#($40000000+(((loc)&$3FFF)<<16)+(((loc)&VRAM_Plane_A_Name_Table)>>14)),(VDP_control_port).l
+		else
+		move.l	#($40000000+(((loc)&$3FFF)<<16)+(((loc)&VRAM_Plane_A_Name_Table)>>14)),controlport
+		endif
+		endm
+
 ; tells the VDP to copy a region of 68k memory to VRAM or CRAM or VSRAM
 dma68kToVDP macro source,dest,length,type
 	lea	(VDP_control_port).l,a5

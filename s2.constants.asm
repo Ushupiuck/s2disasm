@@ -387,11 +387,11 @@ GameModeID_Demo =		id(GameMode_Demo) ; 8
 GameModeID_Level =		id(GameMode_Level) ; C
 GameModeID_SpecialStage =	id(GameMode_SpecialStage) ; 10
 GameModeID_ContinueScreen =	id(GameMode_ContinueScreen) ; 14
-GameModeID_2PResults =		id(GameMode_2PResults) ; 18
-GameModeID_2PLevelSelect =	id(GameMode_2PLevelSelect) ; 1C
-GameModeID_EndingSequence =	id(GameMode_EndingSequence) ; 20
-GameModeID_OptionsMenu =	id(GameMode_OptionsMenu) ; 24
-GameModeID_LevelSelect =	id(GameMode_LevelSelect) ; 28
+GameModeID_EndingSequence =	id(GameMode_EndingSequence) ; 18
+GameModeID_OptionsMenu =	id(GameMode_OptionsMenu) ; 1C
+GameModeID_LevelSelect =	id(GameMode_LevelSelect) ; 20
+GameModeID_2PResults =		id(GameMode_2PResults) ; 24
+GameModeID_2PLevelSelect =	id(GameMode_2PLevelSelect) ; 28
 GameModeFlag_TitleCard =	7 ; flag bit
 GameModeID_TitleCard =		1<<GameModeFlag_TitleCard ; flag mask
 
@@ -1339,8 +1339,7 @@ Palette_fade_start:		ds.b	1	; Offset from the start of the palette to tell what 
 Palette_fade_length:		ds.b	1	; Number of entries to change in the palette fading routines
 
 MiscLevelVariables:
-VIntSubE_RunCount:		ds.b	1
-				ds.b	1	; $FFFFF629 ; seems unused
+Lag_frame_count:		ds.w	1	; more specifically, the number of times V-int routine 0 has run. Reset at the end of a normal frame
 Vint_routine:			ds.b	1	; was "Delay_Time" ; routine counter for V-int
 				ds.b	1	; $FFFFF62B ; seems unused
 Sprite_count:			ds.b	1	; the number of sprites drawn in the current frame
@@ -1348,15 +1347,15 @@ Sprite_count:			ds.b	1	; the number of sprites drawn in the current frame
 PalCycle_Frame:			ds.w	1	; ColorID loaded in PalCycle
 PalCycle_Timer:			ds.w	1	; number of frames until next PalCycle call
 RNG_seed:			ds.l	1	; used for random number generation
-Game_paused:			ds.w	1	
+Game_paused:			ds.w	1
 				ds.b	4	; $FFFFF63C-$FFFFF63F ; seems unused
 DMA_data_thunk:			ds.w	1	; Used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
 				ds.w	1	; $FFFFF642-$FFFFF643 ; seems unused
 Hint_flag:			ds.w	1	; unless this is 1, H-int won't run
 
-Water_Level_1:			ds.w	1
-Water_Level_2:			ds.w	1
-Water_Level_3:			ds.w	1
+Water_Level:			ds.w	1	; keeps fluctuating
+Mean_water_level:		ds.w	1	; the steady central value of the water level
+Target_water_level:		ds.w	1
 Water_on:			ds.b	1	; is set based on Water_flag
 Water_routine:			ds.b	1
 Water_fullscreen_flag:		ds.b	1	; was "Water_move"
@@ -1398,25 +1397,24 @@ MiscLevelVariables_End
 Plc_Buffer:			ds.b	6*16	; Pattern load queue (each entry is 6 bytes)
 Plc_Buffer_Only_End:
 				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
-Plc_Buffer_Reg0:		ds.l	1	
-Plc_Buffer_Reg4:		ds.l	1	
-Plc_Buffer_Reg8:		ds.l	1	
-Plc_Buffer_RegC:		ds.l	1	
-Plc_Buffer_Reg10:		ds.l	1	
-Plc_Buffer_Reg14:		ds.l	1	
+Plc_Buffer_Reg0:		ds.l	1
+Plc_Buffer_Reg4:		ds.l	1
+Plc_Buffer_Reg8:		ds.l	1
+Plc_Buffer_RegC:		ds.l	1
+Plc_Buffer_Reg10:		ds.l	1
+Plc_Buffer_Reg14:		ds.l	1
 Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
-Plc_Buffer_Reg1A:		ds.w	1	
+Plc_Buffer_Reg1A:		ds.w	1
 				ds.b	4	; seems unused
 Plc_Buffer_End:
 
 
 Misc_Variables:
-				ds.w	1	; unused
+				ds.b	$A	; unused
 
 ; extra variables for the second player (CPU) in 1-player mode
 Tails_control_counter:		ds.w	1	; how long until the CPU takes control
 Tails_respawn_counter:		ds.w	1
-				ds.w	1	; unused
 Tails_CPU_routine:		ds.w	1
 Tails_CPU_target_x:		ds.w	1
 Tails_CPU_target_y:		ds.w	1
@@ -1437,7 +1435,7 @@ Ring_end_addr_P2:		ds.w	1
 Ring_Manager_Addresses_P2_End:
 
 CNZ_Bumper_routine:		ds.b	1
-CNZ_Bumper_UnkFlag:		ds.b	1	; Set only, never used again
+				ds.b	1	; unused
 
 Bumper_Manager_Addresses:
 CNZ_Visible_bumpers_start:	ds.l	1
@@ -1452,9 +1450,7 @@ Bumper_Manager_Addresses_P2_End:
 Screen_redraw_flag:		ds.b	1	; if whole screen needs to redraw, such as when you destroy that piston before the boss in WFZ
 CPZ_UnkScroll_Timer:		ds.b	1	; Used only in unused CPZ scrolling function
 WFZ_SCZ_Fire_Toggle:		ds.b	1
-				ds.b	1	; $FFFFF72F ; seems unused
 Water_flag:			ds.b	1	; if the level has water or oil
-				ds.b	1	; $FFFFF731 ; seems unused
 Demo_button_index_2P:		ds.w	1	; index into button press demo data, for player 2
 Demo_press_counter_2P:		ds.w	1	; frames remaining until next button press, for player 2
 Tornado_Velocity_X:		ds.w	1	; speed of Tails' plane in SCZ ($FFFFF736)
@@ -1483,13 +1479,9 @@ Sonic_deceleration:		ds.w	1
 Sonic_Speeds_End:
 
 Sonic_LastLoadedDPLC:		ds.b	1	; mapping frame number when Sonic last had his tiles requested to be transferred from ROM to VRAM. can be set to a dummy value like -1 to force a refresh DMA. was: Sonic_mapping_frame
-				ds.b	1	; $FFFFF767 ; seems unused
 Primary_Angle:			ds.b	1
-				ds.b	1	; $FFFFF769 ; seems unused
 Secondary_Angle:		ds.b	1
-				ds.b	1	; $FFFFF76B ; seems unused
 Obj_placement_routine:		ds.b	1
-				ds.b	1	; $FFFFF76D ; seems unused
 Camera_X_pos_last:		ds.w	1	; Camera_X_pos_coarse from the previous frame
 Camera_X_pos_last_End:
 
@@ -1559,13 +1551,7 @@ Misc_Variables_End:
 
 Sprite_Table:			ds.b	$280	; Sprite attribute table buffer
 Sprite_Table_End:
-    if fixBugs
-Current_sprite_table_page:	ds.b	1
-Sprite_table_page_flip_pending:	ds.b	1
-				ds.b	$7E	; unused
-    else
 				ds.b	$80	; unused, but SAT buffer can spill over into this area when there are too many sprites on-screen
-    endif
 
 Normal_palette:			ds.b	palette_line_size	; main palette for non-underwater parts of the screen
 Normal_palette_line2:		ds.b	palette_line_size
@@ -1672,7 +1658,6 @@ Ring_spill_anim_frame:		ds.b	1
 Ring_spill_anim_accum:		ds.w	1
 				ds.b	6	; $FFFFFEA9-$FFFFFEAF ; seems unused, but cleared once
 Oscillating_variables_End
-				ds.b	$10	; $FFFFFEB0-$FFFFFEBF ; seems unused
 
 ; values for the second player (some of these only apply to 2-player games)
 Tails_Speeds:
@@ -1697,7 +1682,6 @@ Timer_minute_2P:		ds.b	1	; 1 byte
 Timer_second_2P:		ds.b	1	; 1 byte
 Timer_frame_2P:			ds.b	1	; 1 byte
 Score_2P:			ds.l	1
-				ds.b	6	; $FFFFFEDA-$FFFFFEDF ; seems unused
 Last_star_pole_hit_2P:		ds.b	1
 Saved_Last_star_pole_hit_2P:	ds.b	1
 Saved_x_pos_2P:			ds.w	1
@@ -1714,9 +1698,7 @@ Loser_Time_Left:				; 2 bytes
 				ds.b	1	; seconds
 				ds.b	1	; frames
 
-				ds.b	$16	; $FFFFFEFA-$FFFFFF0F ; seems unused
 Results_Screen_2P:		ds.w	1	; 0 = act, 1 = zone, 2 = game, 3 = SS, 4 = SS all
-				ds.b	$E	; $FFFFFF12-$FFFFFF1F ; seems unused
 
 Results_Data_2P:				; $18 (24) bytes
 EHZ_Results_2P:			ds.b	6	; 6 bytes
@@ -1726,10 +1708,8 @@ SS_Results_2P:			ds.b	6	; 6 bytes
 Results_Data_2P_End:
 
 SS_Total_Won:			ds.b	2	; 2 bytes (player 1 then player 2)
-				ds.b	6	; $FFFFFF3A-$FFFFFF3F ; seems unused
 Perfect_rings_left:		ds.w	1
 Perfect_rings_flag:		ds.w	1
-				ds.b	8	; $FFFFFF44-$FFFFFF4B ; seems unused
 
 CreditsScreenIndex:
 SlotMachineInUse:		ds.w	1
@@ -1749,13 +1729,10 @@ SlotMachine_Slot3Pos:		ds.w	1
 SlotMachine_Slot3Speed:		ds.b	1
 SlotMachine_Slot3Rout:		ds.b	1
 
-				ds.b	$10	; $FFFFFF60-$FFFFFF6F ; seems unused
-
 Player_mode:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 Player_option:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 
 Two_player_items:		ds.w	1
-				ds.b	$A	; $FFFFFF76-$FFFFFF7F ; seems unused
 
 LevSel_HoldTimer:		ds.w	1
 Level_select_zone:		ds.w	1
@@ -1768,42 +1745,19 @@ Two_player_mode_copy:		ds.w	1
 Options_menu_box:		ds.b	1
 				ds.b	1	; $FFFFFF8D ; unused
 Total_Bonus_Countdown:		ds.w	1
-				
+
 Level_Music:			ds.w	1
 Bonus_Countdown_3:		ds.w	1
-				ds.b	4	; $FFFFFF94-$FFFFFF97 ; seems unused
 Game_Over_2P:			ds.w	1
 
-				ds.b	6	; $FFFFFF9A-$FFFFFF9F ; seems unused
-
 SS2p_RingBuffer:		ds.w	6
-				ds.b	4	; $FFFFFFAC-$FFFFFFAF ; seems unused
 Got_Emerald:			ds.b	1
 Emerald_count:			ds.b	1
 Got_Emeralds_array:		ds.b	8	; Technically this is only 7 bytes long, but an 8th byte is cleared
-				ds.b	6	; $FFFFFFBA-$FFFFFFBF ; filler
 Next_Extra_life_score:		ds.l	1
 Next_Extra_life_score_2P:	ds.l	1
 Level_Has_Signpost:		ds.w	1	; 1 = signpost, 0 = boss or nothing
 Signpost_prev_frame:		ds.b	1
-				ds.b	1	; $FFFFFFCB ; seems unused
-Camera_Min_Y_pos_Debug_Copy:	ds.w	1
-Camera_Max_Y_pos_Debug_Copy:	ds.w	1
-
-Level_select_flag:		ds.b	1
-Slow_motion_flag:		ds.b	1	; This NEEDs to be after Level_select_flag because of the call to CheckCheats
-Debug_options_flag:		ds.b	1	; if set, allows you to enable debug mode and "night mode"
-S1_hidden_credits_flag:		ds.b	1	; Leftover from Sonic 1. This NEEDs to be after Debug_options_flag because of the call to CheckCheats
-Correct_cheat_entries:		ds.w	1
-Correct_cheat_entries_2:	ds.w	1	; for 14 continues or 7 emeralds codes
-
-Two_player_mode:		ds.w	1	; flag (0 for main game)
-unk_FFDA:			ds.w	1	; Written to once at title screen, never read from
-unk_FFDC:			ds.b	1	; Written to near loc_175EA, never read from
-unk_FFDD:			ds.b	1	; Written to near loc_175EA, never read from
-unk_FFDE:			ds.b	1	; Written to near loc_175EA, never read from
-unk_FFDF:			ds.b	1	; Written to near loc_175EA, never read from
-
 ; Values in these variables are passed to the sound driver during V-INT.
 ; They use a playlist index, not a sound test index.
 SoundQueue STRUCT DOTS
@@ -1815,17 +1769,26 @@ SoundQueue STRUCT DOTS
 SoundQueue ENDSTRUCT
 
 Sound_Queue:			SoundQueue
+Camera_Min_Y_pos_Debug_Copy:	ds.w	1
+Camera_Max_Y_pos_Debug_Copy:	ds.w	1
 
-				ds.b	$B	; $FFFFFFE5-$FFFFFFEF ; seems unused
-
+Level_select_flag:		ds.b	1
+Slow_motion_flag:		ds.b	1	; This NEEDs to be after Level_select_flag because of the call to CheckCheats
+Debug_options_flag:		ds.w	1	; if set, allows you to enable debug mode and "night mode"
+Correct_cheat_entries:		ds.w	1
+Correct_cheat_entries_2:	ds.w	1	; for 14 continues or 7 emeralds codes
 Demo_mode_flag:			ds.w	1 ; 1 if a demo is playing (2 bytes)
 Demo_number:			ds.w	1 ; which demo will play next (2 bytes)
 Ending_demo_number:		ds.w	1 ; zone for the ending demos (2 bytes, unused)
-				ds.w	1
 Graphics_Flags:			ds.w	1 ; misc. bitfield
 Debug_mode_flag:		ds.w	1 ; (2 bytes)
-Checksum_fourcc:		ds.l	1 ; (4 bytes)
+Two_player_mode:		ds.w	1	; flag (0 for main game)
+V_int_jump:			ds.b	6	; contains an instruction to jump to the V-int handler
+V_int_addr =			V_int_jump+2	; long
+H_int_jump:			ds.b 6		; contains an instruction to jump to the H-int handler
+H_int_addr =			H_int_jump+2	; long
 
+				ds.b	$82	; $FFFFFF44-$FFFFFF4B ; seems unused
 CrossResetRAM_End:
 
 RAM_End
