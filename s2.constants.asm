@@ -1104,18 +1104,12 @@ Tails_InvincibilityStars:
 				ds.b	object_size
 LevelOnly_Object_RAM_End:
 
-				ds.b	$200	; unused
-
-Primary_Collision:		ds.b	$300
-Secondary_Collision:		ds.b	$300
+				ds.b	$1000	; free
 
 SS_Shared_RAM_End:
 
 VDP_Command_Buffer:		ds.w	7*$12	; stores 18 ($12) VDP commands to issue the next time ProcessDMAQueue is called
 VDP_Command_Buffer_Slot:	ds.l	1	; stores the address of the next open slot for a queued VDP command
-
-Sprite_Table_P2:		ds.b	$280	; Sprite attribute table buffer for the bottom split screen in 2-player mode
-				ds.b	$80	; unused, but SAT buffer can spill over into this area when there are too many sprites on-screen
 
 HorizontalScrollBuffer struct dots
 	ds.l	224	; Total lines on the screen.
@@ -1301,12 +1295,6 @@ Underwater_palette_line2:	ds.b palette_line_size
 Underwater_palette_line3:	ds.b palette_line_size
 Underwater_palette_line4:	ds.b palette_line_size
 
-    if fixBugs
-Sprite_Table_Alternate:		ds.b	$280
-Sprite_Table_P2_Alternate:	ds.b	$280
-    else
-				ds.b	$500	; $FFFFF100-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver (and used by it when you port it to Sonic 2)
-    endif
 
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
 				ds.b	1	; unused
@@ -1410,7 +1398,7 @@ Plc_Buffer_End:
 
 
 Misc_Variables:
-				ds.b	$A	; unused
+				ds.b	$14	; unused
 
 ; extra variables for the second player (CPU) in 1-player mode
 Tails_control_counter:		ds.w	1	; how long until the CPU takes control
@@ -1512,7 +1500,9 @@ Demo_press_counter:		ds.b	1	; frames remaining until next button press, for play
 				ds.b	1	; $FFFFF793 ; seems unused
 PalChangeSpeed:			ds.w	1
 Collision_addr:			ds.l	1
-				ds.b	$D	; $FFFFF79A-$FFFFF7A6 ; seems unused
+Primary_collision_addr:		ds.l	1
+Secondary_collision_addr:	ds.l	1
+				ds.b	5
 Boss_defeated_flag:		ds.b	1
 				ds.b	2	; $FFFFF7A8-$FFFFF7A9 ; seems unused
 Current_Boss_ID:		ds.b	1
@@ -1520,7 +1510,6 @@ Current_Boss_ID:		ds.b	1
 MTZ_Platform_Cog_X:		ds.w	1	; X position of moving MTZ platform for cog animation.
 MTZCylinder_Angle_Sonic:	ds.b	1
 MTZCylinder_Angle_Tails:	ds.b	1
-				ds.b	$A	; $FFFFF7B4-$FFFFF7BD ; seems unused
 BigRingGraphics:		ds.w	1	; S1 holdover
 				ds.b	7	; $FFFFF7C0-$FFFFF7C6 ; seems unused
 WindTunnel_flag:		ds.b	1
