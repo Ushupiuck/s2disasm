@@ -27130,7 +27130,7 @@ MoveSpikes_ChkDir:
 	move.w	#0,spikes_retract_offset(a0)
 	move.w	#0,spikes_retract_state(a0)	; switch state
 	move.w	#60,spikes_retract_timer(a0)	; reset timer
-+	rts
+	rts
 ; ===========================================================================
 ; loc_15B46:
 MoveSpikes_Retract:
@@ -27140,8 +27140,7 @@ MoveSpikes_Retract:
 	move.w	#$2000,spikes_retract_offset(a0)
 	move.w	#1,spikes_retract_state(a0)	; switch state
 	move.w	#60,spikes_retract_timer(a0)	; reset timer
-+
-	rts
++	rts
 ; End of function MoveSpikes_Delay
 
 ; ===========================================================================
