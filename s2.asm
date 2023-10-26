@@ -4418,13 +4418,13 @@ Level_FromCheckpoint:
 
 	lea	(TitleCard).w,a1
 	move.b	#$16,TitleCard_ZoneName-TitleCard+routine(a1)
-	move.w	#$2D,TitleCard_ZoneName-TitleCard+anim_frame_duration(a1)
+	move.b	#$2D,TitleCard_ZoneName-TitleCard+anim_frame_duration(a1)
 	move.b	#$16,TitleCard_Zone-TitleCard+routine(a1)
-	move.w	#$2D,TitleCard_Zone-TitleCard+anim_frame_duration(a1)
+	move.b	#$2D,TitleCard_Zone-TitleCard+anim_frame_duration(a1)
 	tst.b	TitleCard_ActNumber-TitleCard+id(a1)
 	beq.s	+	; branch if the act number has been unloaded
 	move.b	#$16,TitleCard_ActNumber-TitleCard+routine(a1)
-	move.w	#$2D,TitleCard_ActNumber-TitleCard+anim_frame_duration(a1)
+	move.b	#$2D,TitleCard_ActNumber-TitleCard+anim_frame_duration(a1)
 +	move.b	#0,(Control_Locked).w
 	move.b	#0,(Control_Locked_P2).w
 	move.b	#1,(Level_started_flag).w
@@ -7171,7 +7171,7 @@ SSTrackDrawLineFlipLoop:
 	adda_.w	#1,a5								; Increment loop counter
 	cmpa.w	#0,a5								; Have all 8 lines been drawn?
 	beq.w	SSTrackDraw_return						; If yes, return
-	lea	(PNT_Buffer).w,a6						; Destination buffer
+	lea	(PNT_Buffer).l,a6						; Destination buffer
 	swap	d0								; High word starts at 0
 	addi.w	#$100,d0							; Adding $100 means seek to end of current line/start of next line
 	andi.w	#$F00,d0							; Keep to confines
@@ -8361,8 +8361,8 @@ return_6C9A:
 ; Initialize the PNT and H scroll table buffers.
 
 ssInitTableBuffers:
-	lea	(SS_Horiz_Scroll_Buf_1).w,a1
-	lea	(SS_Horiz_Scroll_Buf_2).w,a2
+	lea	(SS_Horiz_Scroll_Buf_1).l,a1
+	lea	(SS_Horiz_Scroll_Buf_2).l,a2
 	moveq	#0,d0								; Scroll of 0 for PNTA and PNTB on lines 0 and 1 (normal) or lines 6 and 7 (flipped)
 	moveq	#0,d1								; Scroll of 0 for PNTB on lines 2 and 3 (normal) or lines 4 and 5 (flipped)
 	moveq	#0,d2								; Scroll of 0 for PNTB on lines 4 and 5 (normal) or lines 2 and 3 (flipped)
@@ -8568,7 +8568,7 @@ off_6E54:	offsetTable
 	bra.s	+++
 ; ===========================================================================
 +
-	lea	(SS_Horiz_Scroll_Buf_2 + 2).w,a1			; Load alternate horizontal scroll buffer for PNT B
+	lea	(SS_Horiz_Scroll_Buf_2 + 2).l,a1			; Load alternate horizontal scroll buffer for PNT B
 	neg.w	d2							; Change the sign of the background offset
 	bra.s	++
 ; ===========================================================================
@@ -8576,7 +8576,7 @@ off_6E54:	offsetTable
 	lea	(SS_Horiz_Scroll_Buf_1 + 2).w,a1			; Load horizontal scroll buffer for PNT B
 	tst.b	(SS_Alternate_HorizScroll_Buf).w			; Is the alternate horizontal scroll buffer being used now?
 	beq.s	+							; Branch if not
-	lea	(SS_Horiz_Scroll_Buf_2 + 2).w,a1			; Load alternate horizontal scroll buffer for PNT B
+	lea	(SS_Horiz_Scroll_Buf_2 + 2).l,a1			; Load alternate horizontal scroll buffer for PNT B
 	neg.w	d2							; Change the sign of the background offset
 +
 	move.w	#bytesToLcnt(HorizontalScrollBuffer.len),d0		; 256 lines
@@ -12788,7 +12788,7 @@ loc_A53A:
 	move.w	d0,y_pos(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.l	#(1<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|(AniIDSonAni_Wait<<0),mapping_frame(a1)
-	move.w	#$100,anim_frame_duration(a1)
+	move.b	#$FF,anim_frame_duration(a1)
 	rts
 ; ===========================================================================
 
@@ -23508,7 +23508,7 @@ Obj2E_Raise:
 
 +
 		addq.b	#2,routine(a0)
-		move.w	#$1D,anim_frame_duration(a0)
+		move.b	#$1D,anim_frame_duration(a0)
 		movea.w	parent(a0),a1 ; a1=character
 		moveq	#0,d0
 		move.b	anim(a0),d0
@@ -23711,7 +23711,7 @@ qmark_monitor:
 ; ---------------------------------------------------------------------------
 ;loc_12CC2:
 Obj2E_Wait:
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bmi.w	DeleteObject
 	bra.w	DisplaySprite
 ; ===========================================================================
@@ -25023,9 +25023,9 @@ Obj34_BackgroundOut:
 ; ===========================================================================
 ; loc_13F18:
 Obj34_WaitAndGoAway:
-	tst.w	anim_frame_duration(a0)
+	tst.b	anim_frame_duration(a0)
 	beq.s	+
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bra.w	 DisplaySprite
 ; ---------------------------------------------------------------------------
 +
@@ -25127,7 +25127,7 @@ Over_UpdatePos:
 ; ===========================================================================
 ; loc_13FE2:
 Obj39_SetTimer:
-	move.w	#720,anim_frame_duration(a0) ; set time delay to 12 seconds
+	move.b	#$C0,anim_frame_duration(a0) ; set time delay to 12 seconds
 	addq.b	#2,routine(a0)
 	rts
 ; ===========================================================================
@@ -25139,9 +25139,12 @@ Obj39_Wait:
 	or.b	(Ctrl_2_Press).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0	; is button A, B or C pressed?
 	bne.s	Obj39_Dismiss					; if yes, branch
-	tst.w	anim_frame_duration(a0)				; has time delay reached zero?
+	tst.b	anim_frame_duration(a0)				; has time delay reached zero?
 	beq.s	Obj39_Dismiss					; if yes, branch
-	subq.w	#1,anim_frame_duration(a0)			; subtract 1 from time delay
+	move.b	(Timer_frames).w,d0				; Move Game Frame timer to d0
+	andi.b	#3,d0						; andi d0 by 3
+	bne.w	DisplaySprite					; if d0 does NOT equal 0, skip subtracting 1 byte from anim_frame_duration
+	subq.b	#1,anim_frame_duration(a0)			; subtract 1 from time delay
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_14014:
@@ -25235,7 +25238,7 @@ loc_14118:
 	cmp.w	titlecard_x_target(a0),d0
 	bne.w	return_14138
 	move.b	#$A,routine(a0)
-	move.w	#$B4,anim_frame_duration(a0)
+	move.w	#$B4,objoff_34(a0)
 
 return_14138:
 	rts
@@ -25267,11 +25270,11 @@ loc_1415E:
 loc_14168:
 	move.b	(Current_Zone).w,d0
 	cmpi.b	#sky_chase_zone,d0
-	beq.w	BranchTo9_DeleteObject
+	beq.w	DeleteObject
 	cmpi.b	#wing_fortress_zone,d0
-	beq.w	BranchTo9_DeleteObject
+	beq.w	DeleteObject
 	cmpi.b	#death_egg_zone,d0
-	beq.w	BranchTo9_DeleteObject
+	beq.w	DeleteObject
 	cmpi.b	#metropolis_zone_2,d0
 	bne.s	loc_1418E
 	moveq	#8,d0
@@ -25288,11 +25291,9 @@ loc_14194:
 ; ===========================================================================
 
 loc_1419C:
-	subq.w	#1,anim_frame_duration(a0)
-	bne.s	BranchTo18_DisplaySprite
+	subq.w	#1,objoff_34(a0)
+	bne.w	DisplaySprite
 	addq.b	#2,routine(a0)
-
-BranchTo18_DisplaySprite
 	bra.w	DisplaySprite
 ; ===========================================================================
 
@@ -25324,10 +25325,10 @@ loc_141E6:
 	move.w	#SndID_TallyEnd,d0
 	jsr	(PlaySound).l
 	addq.b	#2,routine(a0)
-	move.w	#$B4,anim_frame_duration(a0)
+	move.w	#$B4,objoff_34(a0)
 	cmpi.w	#1000,(Total_Bonus_Countdown).w
 	blo.s	return_14254
-	move.w	#$12C,anim_frame_duration(a0)
+	move.w	#$12C,objoff_34(a0)
 	lea	next_object(a0),a1 ; a1=object
 
 loc_14214:
@@ -25344,7 +25345,7 @@ loc_14220:
 	move.w	#$118,y_pixel(a1)
 	move.l	#Obj3A_MapUnc_14CBC,mappings(a1)
 	move.b	#0,render_flags(a1)
-	move.w	#60,anim_frame_duration(a1)
+	move.w	#60,objoff_34(a1)
 	addq.b	#1,(Continue_count).w
 
 return_14254:
@@ -25368,11 +25369,6 @@ loc_14270:
 	add.b	(Current_Act).w,d0
 	add.w	d0,d0
 	lea	LevelOrder(pc),a1
-	tst.w	(Two_player_mode).w
-	beq.s	loc_1428C
-	lea	LevelOrder_2P(pc),a1
-
-loc_1428C:
 	move.w	(a1,d0.w),d0
 	tst.w	d0
 	bpl.s	loc_1429C
@@ -25383,15 +25379,14 @@ loc_1428C:
 loc_1429C:
 	move.w	d0,(Current_ZoneAndAct).w
 	clr.b	(Last_star_pole_hit).w
-	clr.b	(Last_star_pole_hit_2P).w
 	move.w	#1,(Level_Inactive_flag).w
 	rts
 ; ===========================================================================
 
 loc_142B0:
-	tst.w	anim_frame_duration(a0)
+	tst.w	objoff_34(a0)
 	beq.s	loc_142BC
-	subq.w	#1,anim_frame_duration(a0)
+	subq.w	#1,objoff_34(a0)
 	rts
 ; ===========================================================================
 
@@ -25401,9 +25396,9 @@ loc_142BC:
 	jsr	(PlaySound).l
 
 loc_142CC:
-	subq.w	#1,anim_frame_duration(a0)
+	subq.w	#1,objoff_34(a0)
 	bpl.s	loc_142E2
-	move.w	#$13,anim_frame_duration(a0)
+	move.w	#$13,objoff_34(a0)
 	addq.b	#1,anim_frame(a0)
 	andi.b	#1,anim_frame(a0)
 
@@ -25628,9 +25623,9 @@ Obj6F_InitEmeraldText:
 +
 	move.w	titlecard_x_target(a0),d0
 	cmp.w	x_pixel(a0),d0
-	bne.s	BranchTo2_Obj34_MoveTowardsTargetPosition
+	bne.w	Obj34_MoveTowardsTargetPosition
 	move.b	#$1C,routine(a0)	; => Obj6F_TimedDisplay
-	move.w	#$B4,anim_frame_duration(a0)
+	move.b	#$B4,anim_frame_duration(a0)
 
 BranchTo2_Obj34_MoveTowardsTargetPosition
 	bra.w	Obj34_MoveTowardsTargetPosition
@@ -25710,7 +25705,7 @@ Obj6F_P1Rings:
 	st.b	(Update_Bonus_score).w	; set to -1 (update)
 	move.w	#SndID_Signpost,d0
 	jsr	(PlaySound).l
-	move.w	#$5A,(SpecialStageResults+anim_frame_duration).w
+	move.b	#$5A,(SpecialStageResults+anim_frame_duration).w
 	bra.w	Obj6F_PerfectBonus
 ; ===========================================================================
 +
@@ -25749,8 +25744,8 @@ Obj6F_DeleteIfNotEmerald:
 ; ===========================================================================
 ;loc_14572
 Obj6F_TimedDisplay:
-	subq.w	#1,anim_frame_duration(a0)
-	bne.s	BranchTo19_DisplaySprite
+	subq.b	#1,anim_frame_duration(a0)
+	bne.w	DisplaySprite
 	addq.b	#2,routine(a0)
 
 BranchTo19_DisplaySprite
@@ -25781,7 +25776,7 @@ Obj6F_TallyScore:
 	move.w	#SndID_TallyEnd,d0
 	jsr	(PlaySound).l
 	addq.b	#2,routine(a0)		; => Obj6F_TimedDisplay
-	move.w	#$78,anim_frame_duration(a0)
+	move.b	#$78,anim_frame_duration(a0)
 	tst.w	(Perfect_rings_flag).w
 	bne.s	+
 	cmpi.w	#2,(Player_mode).w
@@ -25795,7 +25790,7 @@ Obj6F_TallyScore:
 ; ===========================================================================
 +
 	move.b	#$24,routine(a0)	; => Obj6F_TimedDisplay
-	move.w	#$5A,anim_frame_duration(a0)
+	move.b	#$5A,anim_frame_duration(a0)
 /
 	rts
 ; ===========================================================================
@@ -25835,7 +25830,7 @@ Obj6F_TallyPerfect:
 	move.w	#SndID_TallyEnd,d0
 	jsr	(PlaySound).l
 	addq.b	#4,routine(a0)
-	move.w	#$78,anim_frame_duration(a0)
+	move.b	#$78,anim_frame_duration(a0)
 	cmpi.w	#2,(Player_mode).w
 	beq.s	+		; rts
 	tst.b	(Got_Emerald).w
@@ -25907,7 +25902,7 @@ Obj6F_MoveAndDisplay:
 	move.w	x_pixel(a0),d0
 	cmp.w	titlecard_x_target(a0),d0
 	bne.w	Obj34_MoveTowardsTargetPosition
-	move.w	#$B4,anim_frame_duration(a0)
+	move.b	#$B4,anim_frame_duration(a0)
 	move.b	#$20,routine(a0)	; => Obj6F_TimedDisplay
 	bra.w	DisplaySprite
 ; ===========================================================================
@@ -43646,17 +43641,17 @@ Obj20_Init:
 
 loc_23076:
 	lea	(Ani_obj20).l,a1
-	jsrto	AnimateSprite, JmpTo4_AnimateSprite
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_23084:
 	cmpi.b	#5,anim_frame_duration(a0)
 	bne.s	loc_230B4
-	jsrto	AllocateObjectAfterCurrent, JmpTo6_AllocateObjectAfterCurrent
+	jsr	(AllocateObjectAfterCurrent).l
 	bne.s	loc_230A6
 	bsr.s	loc_230C2
-	jsrto	AllocateObjectAfterCurrent, JmpTo6_AllocateObjectAfterCurrent
+	jsr	(AllocateObjectAfterCurrent).l
 	bne.s	loc_230A6
 	bsr.s	loc_230C2
 	neg.w	x_vel(a1)
@@ -43701,8 +43696,8 @@ loc_2311E:
 
 loc_23136:
 	lea	(Ani_obj20).l,a1
-	jsrto	AnimateSprite, JmpTo4_AnimateSprite
-	jmpto	MarkObjGone, JmpTo8_MarkObjGone
+	jsr	(AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_23144:
@@ -43713,13 +43708,13 @@ loc_23144:
 	andi.b	#1,mapping_frame(a0)
 
 loc_2315A:
-	jsrto	ObjectMove, JmpTo7_ObjectMove
+	jsr	(ObjectMove).l
 	addi.w	#$18,y_vel(a0)
 	move.w	(Camera_Max_Y_pos).w,d0
 	addi.w	#224,d0
 	cmp.w	y_pos(a0),d0
 	bhs.s	loc_23176
-	jmpto	DeleteObject, JmpTo21_DeleteObject
+	jmp	(DeleteObject).l
 ; ===========================================================================
 
 loc_23176:
@@ -46071,9 +46066,9 @@ loc_253C6:
 	bne.s	loc_253EE
 	cmpi.b	#7,mapping_frame(a0)
 	beq.s	loc_25408
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bpl.s	return_253EC
-	move.w	#7,anim_frame_duration(a0)
+	move.b	#7,anim_frame_duration(a0)
 	addq.b	#1,mapping_frame(a0)
 	cmpi.b	#7,mapping_frame(a0)
 	beq.s	loc_25408
@@ -46085,9 +46080,9 @@ return_253EC:
 loc_253EE:
 	tst.b	mapping_frame(a0)
 	beq.s	loc_25408
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bpl.s	return_253EC
-	move.w	#7,anim_frame_duration(a0)
+	move.b	#7,anim_frame_duration(a0)
 	subq.b	#1,mapping_frame(a0)
 	beq.s	loc_25408
 	rts
@@ -46106,7 +46101,7 @@ loc_25408:
 	add.w	d0,d0
 	move.w	word_25464(pc,d0.w),x_vel(a1)
 	move.w	word_25464+2(pc,d0.w),y_vel(a1)
-	move.w	#3,anim_frame_duration(a0)
+	move.b	#3,anim_frame_duration(a0)
 	tst.b	subtype(a0)
 	bpl.s	return_25462
 	move.b	#0,obj_control(a1)
@@ -46142,9 +46137,9 @@ loc_25492:
 	beq.s	Obj48_MoveCharacter
 	cmpi.b	#2,objoff_36(a0)
 	beq.s	Obj48_MoveCharacter
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bpl.s	Obj48_MoveCharacter
-	move.w	#1,anim_frame_duration(a0)
+	move.b	#1,anim_frame_duration(a0)
 	tst.b	objoff_3E(a0)
 	beq.s	loc_254C2
 	cmpi.b	#7,mapping_frame(a0)
@@ -47322,7 +47317,7 @@ loc_2683A:
 	cmpi.b	#7,mapping_frame(a0)
 	beq.w	JmpTo30_DeleteObject
 +
-	jmpto	DisplaySprite, JmpTo18_DisplaySprite
+	jmp	(DisplaySprite).l
 
     if removeJmpTos
 JmpTo30_DeleteObject ; JmpTo
@@ -52167,9 +52162,9 @@ loc_2A82A:
 	tst.b	objoff_32(a0)
 	beq.w	loc_2A84E
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo_JmpTo26_MarkObjGone
+	bpl.w	JmpTo26_MarkObjGone
 	cmpi.w	#$400,objoff_34(a0)
-	bhs.s	BranchTo_JmpTo26_MarkObjGone
+	bhs.w	JmpTo26_MarkObjGone
 	addi.w	#$2A,objoff_34(a0)
 	move.b	objoff_34(a0),anim_frame_duration(a0)
 	bra.s	loc_2A86A
@@ -52181,7 +52176,7 @@ loc_2A84E:
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.w	loc_2A894
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo_JmpTo26_MarkObjGone
+	bpl.w	JmpTo26_MarkObjGone
 	move.b	#0,anim_frame_duration(a0)
 
 loc_2A86A:
@@ -52199,8 +52194,6 @@ loc_2A87C:
 loc_2A888:
 	add.b	anim_frame(a0),d0
 	move.b	d0,mapping_frame(a0)
-
-BranchTo_JmpTo26_MarkObjGone ; BranchTo
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -52265,9 +52258,9 @@ loc_2A926:
 	tst.b	objoff_32(a0)
 	beq.w	loc_2A94A
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo2_JmpTo26_MarkObjGone
+	bpl.w	JmpTo26_MarkObjGone
 	cmpi.w	#$400,objoff_34(a0)
-	bhs.s	BranchTo2_JmpTo26_MarkObjGone
+	bhs.w	JmpTo26_MarkObjGone
 	addi.w	#$2A,objoff_34(a0)
 	move.b	objoff_34(a0),anim_frame_duration(a0)
 	bra.s	loc_2A966
@@ -52279,7 +52272,7 @@ loc_2A94A:
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.w	loc_2A990
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo2_JmpTo26_MarkObjGone
+	bpl.w	JmpTo26_MarkObjGone
 	move.b	#0,anim_frame_duration(a0)
 
 loc_2A966:
@@ -52296,7 +52289,7 @@ loc_2A966:
 	add.b	anim_frame(a0),d0
 	move.b	d0,mapping_frame(a0)
 
-BranchTo2_JmpTo26_MarkObjGone
+JmpTo26_MarkObjGone
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -52359,12 +52352,8 @@ Obj85:
 	move.b	routine(a0),d0
 	move.w	Obj85_Index(pc,d0.w),d1
 	jsr	Obj85_Index(pc,d1.w)
+	move.b	#$18,width_pixels(a0)
 	move.w	#object_display_list_size*4,d0
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	jmp	(DisplaySprite3).l
-; ===========================================================================
-+
 	move.w	x_pos(a0),d1
 	andi.w	#$FF80,d1
 	sub.w	(Camera_X_pos_coarse).w,d1
@@ -52403,7 +52392,6 @@ Obj85_Init:
 	beq.s	Obj85_Init_Up
 	addq.b	#2,routine(a0)
 	move.b	#$20,mainspr_width(a0)
-	move.b	#$18,width_pixels(a0)
 	move.w	x_pos(a0),objoff_2E(a0)
 	move.w	y_pos(a0),objoff_34(a0)
 	move.w	x_pos(a0),d2
@@ -52765,20 +52753,6 @@ Obj85_MapUnc_2B07E:	include "mappings/sprite/obj85_a.asm"
 Obj85_MapUnc_2B0EC:	include "mappings/sprite/obj85_b.asm"
 ; ===========================================================================
 
-    if ~~removeJmpTos
-JmpTo4_DisplaySprite3 ; JmpTo
-	jmp	(DisplaySprite3).l
-JmpTo43_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-JmpTo5_SolidObject_Always_SingleCharacter ; JmpTo
-	jmp	(SolidObject_Always_SingleCharacter).l
-
-	align 4
-    endif
-
-
-
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 86 - Flipper from CNZ
@@ -52789,7 +52763,7 @@ Obj86:
 	move.b	routine(a0),d0
 	move.w	Obj86_Index(pc,d0.w),d1
 	jsr	Obj86_Index(pc,d1.w)
-	jmpto	MarkObjGone, JmpTo27_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; off_2B152:
 Obj86_Index:	offsetTable
@@ -52827,7 +52801,7 @@ loc_2B1B6:
 	move.w	#$23,d1
 	move.w	#6,d2
 	move.w	x_pos(a0),d4
-	jsrto	SlopedSolid, JmpTo2_SlopedSolid
+	jsr	(SlopedSolid).l
 	lea	objoff_36(a0),a3
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	(Ctrl_1_Logical).w,d5
@@ -52849,7 +52823,7 @@ loc_2B1B6:
 
 loc_2B1FE:
 	lea	(Ani_obj86).l,a1
-	jmpto	AnimateSprite, JmpTo9_AnimateSprite
+	jmp	(AnimateSprite).l
 ; ===========================================================================
 
 return_2B208:
@@ -52930,7 +52904,7 @@ loc_2B2BA:
 	neg.w	d2
 	asr.w	#2,d0
 	addi.w	#$40,d0
-	jsrto	CalcSine, JmpTo11_CalcSine
+	jsr	(CalcSine).l
 	muls.w	d2,d0
 	muls.w	d2,d1
 	asr.l	#8,d0
@@ -52960,7 +52934,7 @@ Obj86_HorizontalType:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
 	movem.l	d1-d4,-(sp)
-	jsrto	SolidObject_Always_SingleCharacter, JmpTo6_SolidObject_Always_SingleCharacter
+	jsr	(SolidObject_Always_SingleCharacter).l
 	btst	#p1_pushing_bit,status(a0)
 	beq.s	loc_2B33A
 	bsr.s	loc_2B35C
@@ -52969,14 +52943,14 @@ loc_2B33A:
 	movem.l	(sp)+,d1-d4
 	lea	(Sidekick).w,a1 ; a1=character
 	moveq	#p2_standing_bit,d6
-	jsrto	SolidObject_Always_SingleCharacter, JmpTo6_SolidObject_Always_SingleCharacter
+	jsr	(SolidObject_Always_SingleCharacter).l
 	btst	#p2_pushing_bit,status(a0)
 	beq.s	loc_2B352
 	bsr.s	loc_2B35C
 
 loc_2B352:
 	lea	(Ani_obj86).l,a1
-	jmpto	AnimateSprite, JmpTo9_AnimateSprite
+	jmp	(AnimateSprite).l
 ; ===========================================================================
 
 loc_2B35C:
@@ -53040,28 +53014,6 @@ byte_2B451:	dc.b   0,  3,  4,  5,  5,  5,  5,$FD,  2
 Obj86_MapUnc_2B45A:	include "mappings/sprite/obj86.asm"
 ; ===========================================================================
 
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-JmpTo27_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
-JmpTo9_AnimateSprite ; JmpTo
-	jmp	(AnimateSprite).l
-JmpTo11_CalcSine ; JmpTo
-	jmp	(CalcSine).l
-JmpTo6_SolidObject_Always_SingleCharacter ; JmpTo
-	jmp	(SolidObject_Always_SingleCharacter).l
-JmpTo2_SlopedSolid ; JmpTo
-	jmp	(SlopedSolid).l
-
-	align 4
-    endif
-
-
-
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object D2 - Flashing blocks that appear and disappear in a rectangular shape that you can walk across, from CNZ
@@ -53098,7 +53050,7 @@ ObjD2_Main:
 	tst.w	objoff_38(a0)
 	beq.s	+
 	subq.w	#1,objoff_38(a0)
-	jmpto	MarkObjGone3, JmpTo6_MarkObjGone3
+	jmp	(MarkObjGone3).l
 ; ===========================================================================
 +
 	subq.w	#1,objoff_3A(a0)
@@ -53139,9 +53091,9 @@ loc_2B5EC:
 	move.w	d2,d3
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
-	jsrto	SolidObject, JmpTo24_SolidObject
+	jsr	(SolidObject).l
 	move.w	objoff_30(a0),d0
-	jmpto	MarkObjGone2, JmpTo9_MarkObjGone2
+	jmp	(MarkObjGone2).l
 ; ===========================================================================
 
 loc_2B60C:
@@ -53184,24 +53136,6 @@ byte_2B654:
 ObjD2_MapUnc_2B694:	include "mappings/sprite/objD2.asm"
 ; ===========================================================================
 
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-JmpTo6_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
-JmpTo24_SolidObject ; JmpTo
-	jmp	(SolidObject).l
-JmpTo9_MarkObjGone2 ; JmpTo
-	jmp	(MarkObjGone2).l
-
-	align 4
-    endif
-
-
-
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object D3 - Bomb prize from CNZ
@@ -53236,46 +53170,22 @@ ObjD3:
 	move.w	#SndID_HurtBySpikes,d0
 	jsr	(PlaySound2).l
 +
-	tst.b	parent+1(a0)
-	beq.s	++
-	tst.w	(Ring_count_2P).w
-	beq.s	+
-	subq.w	#1,(Ring_count_2P).w
-	ori.b	#$81,(Update_HUD_rings_2P).w
-+
-	tst.w	(Two_player_mode).w
-	bne.s	BranchTo_JmpTo44_DeleteObject
-+
 	tst.w	(Ring_count).w
-	beq.s	BranchTo_JmpTo44_DeleteObject
+	beq.s	JmpTo44_DeleteObject
 	subq.w	#1,(Ring_count).w
 	ori.b	#$81,(Update_HUD_rings).w
 
-BranchTo_JmpTo44_DeleteObject ; BranchTo
-	jmpto	DeleteObject, JmpTo44_DeleteObject
+JmpTo44_DeleteObject:
+	jmp	(DeleteObject).l
 
-    if removeJmpTos
-JmpTo28_DisplaySprite ; JmpTo
+JmpTo28_DisplaySprite:
 	jmp	(DisplaySprite).l
-    endif
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; sprite mappings
 ; ----------------------------------------------------------------------------
 ObjD3_MapUnc_2B8D4:	include "mappings/sprite/objD6_a.asm"
 ; ===========================================================================
-
-    if ~~removeJmpTos
-JmpTo28_DisplaySprite ; JmpTo
-	jmp	(DisplaySprite).l
-JmpTo44_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-
-	align 4
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -53367,23 +53277,6 @@ ObjD4_Vertical:
 ; ----------------------------------------------------------------------------
 ObjD4_MapUnc_2B9CA:	include "mappings/sprite/objD4.asm"
 ; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-JmpTo25_SolidObject ; JmpTo
-	jmp	(SolidObject).l
-; loc_2BA02:
-JmpTo17_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-
-	align 4
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -55785,7 +55678,7 @@ Obj58_Main:
 	cmpi.b	#7,mapping_frame(a0)
 	beq.w	JmpTo50_DeleteObject
 +
-	jmpto	DisplaySprite, JmpTo33_DisplaySprite
+	jmp	(DisplaySprite).l
 
     if removeJmpTos
 JmpTo50_DeleteObject ; JmpTo
@@ -64641,7 +64534,6 @@ Obj61_Init:
 	move.b	#4,render_flags(a0)
 	move.b	#3,priority(a0)
 	move.b	#2,collision_flags(a0)
-	move.b	#-1,(SS_unk_DB4D).w
 	tst.b	angle(a0)
 	bmi.s	loc_34F06
 	bsr.w	loc_3529C
@@ -70033,15 +69925,15 @@ byte_38820:
 loc_38832:
 	move.b	routine(a0),d2
 	lea	(Ani_objA3_a).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	cmp.b	routine(a0),d2
 	bne.s	loc_3884A
-	jmpto	MarkObjGone, JmpTo2_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_3884A:
 	clr.l	mapping_frame(a0) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
-	clr.w	anim_frame_duration(a0)
+	clr.b	anim_frame_duration(a0)
 	move.b	#3,mapping_frame(a0)
 	jmp	(MarkObjGone).l
 ; ===========================================================================
@@ -70050,21 +69942,21 @@ loc_3885C:
 	subq.w	#1,objoff_30(a0)
 	bmi.s	loc_38870
 	lea	(Ani_objA3_b).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo2_MarkObjGone
+	jsr	(AnimateSprite)
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_38870:
 	addq.b	#2,routine(a0)
 	clr.l	mapping_frame(a0) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
-	clr.w	anim_frame_duration(a0)
-	jmpto	MarkObjGone, JmpTo2_MarkObjGone
+	clr.b	anim_frame_duration(a0)
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_38880:
 	lea	(Ani_objA3_c).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	MarkObjGone, JmpTo2_MarkObjGone
+	jsr	AnimateSprite).l
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_3888E:
@@ -70072,8 +69964,8 @@ loc_3888E:
 	move.w	#$80,objoff_30(a0)
 	andi.b	#$7F,collision_flags(a0)
 	clr.l	mapping_frame(a0) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
-	clr.w	anim_frame_duration(a0)
-	jmpto	MarkObjGone, JmpTo2_MarkObjGone
+	clr.b	anim_frame_duration(a0)
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; off_388AC:
 ObjA3_SubObjData:
@@ -71155,7 +71047,7 @@ loc_394A2:
 +
 	lea	mapping_frame(a0),a1
 	clr.l	(a1) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
-	clr.w	anim_frame_duration-mapping_frame(a1)
+	clr.b	anim_frame_duration-mapping_frame(a1)
 	move.b	#8,(a1)
 	move.b	#6,collision_flags(a0)
 	jmp	(MarkObjGone).l
@@ -71177,7 +71069,7 @@ loc_394E0:
 	addq.b	#2,routine(a0)
 	lea	mapping_frame(a0),a1
 	clr.l	(a1) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
-	clr.w	anim_frame_duration-mapping_frame(a1)
+	clr.b	anim_frame_duration-mapping_frame(a1)
 	move.b	#$B,(a1)
 	bsr.w	loc_39526
 	jmp	(MarkObjGone).l
@@ -72804,7 +72696,7 @@ loc_3AB18:
 	bclr	#1,status(a1)
 	bclr	#2,status(a1)
 	move.l	#(1<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|(AniIDSonAni_Wait<<0),mapping_frame(a1)
-	move.w	#$100,anim_frame_duration(a1)
+	move.b	#$FF,anim_frame_duration(a1)
 	move.b	#$13,y_radius(a1)
 	cmpi.w	#2,(Player_mode).w
 	bne.s	+
@@ -72914,7 +72806,7 @@ ObjB2_Deactivate_level:
 ObjB2_Waiting_animation:
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.l	#(1<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|(AniIDSonAni_Wait<<0),mapping_frame(a1)
-	move.w	#$100,anim_frame_duration(a1)
+	move.b	#$FF,anim_frame_duration(a1)
 	rts
 ; ===========================================================================
 ; loc_3AC6A:
@@ -76270,7 +76162,7 @@ loc_3D5A8:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#60,anim_frame_duration(a0)
 	moveq	#signextendB(MusID_FadeOut),d0
-	jmpto	PlaySound, JmpTo12_PlaySound
+	jmp	(PlaySound).l
 ; ===========================================================================
 
 loc_3D5C2:
@@ -76285,15 +76177,15 @@ loc_3D5C2:
 	movea.w	objoff_38(a0),a1 ; a1=object
 	move.b	#4,routine_secondary(a1)
 	moveq	#signextendB(MusID_EndBoss),d0
-	jmpto	PlayMusic, JmpTo5_PlayMusic
+	jmp	(PlayMusic).l
 ; ===========================================================================
 
 loc_3D5EA:
 	subq.b	#1,anim_frame_duration(a0)
 	beq.s	+
 	moveq	#signextendB(SndID_Rumbling),d0
-	jsrto	PlaySound, JmpTo12_PlaySound
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(PlaySound).l
+	jsr	(ObjectMove).l
 	lea	(ObjC7_ChildDeltas).l,a1
 	bra.w	ObjC7_PositionChildren
 ; ---------------------------------------------------------------------------
@@ -76358,14 +76250,6 @@ off_3D696:	offsetTable
 		offsetTableEntry.w loc_3D6AA	; 0
 		offsetTableEntry.w loc_3D702	; 2
 		offsetTableEntry.w loc_3D83C	; 4
-; ===========================================================================
-	subq.b	#1,anim_frame_duration(a0)
-	bmi.s	+
-	rts
-; ---------------------------------------------------------------------------
-+
-	addq.b	#2,anim(a0)
-	rts
 ; ===========================================================================
 
 loc_3D6AA:
@@ -76453,9 +76337,9 @@ loc_3D744:
 	andi.b	#$1F,d0
 	bne.s	+
 	moveq	#signextendB(SndID_Fire),d0
-	jsrto	PlaySoundLocal, JmpTo_PlaySoundLocal
+	jsr	(PlaySoundLocal).l
 +
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(ObjC7_ChildDeltas).l,a1
 	bra.w	ObjC7_PositionChildren
 ; ---------------------------------------------------------------------------
@@ -76491,7 +76375,7 @@ loc_3D784:
 loc_3D7B8:
 	subq.b	#1,anim_frame_duration(a0)
 	bmi.s	+
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	lea	(ObjC7_ChildDeltas).l,a1
 	bra.w	ObjC7_PositionChildren
 ; ---------------------------------------------------------------------------
@@ -76646,7 +76530,7 @@ loc_3D8E6:
 loc_3D922:
 	subq.b	#1,anim_frame_duration(a0)
 	bmi.s	+
-	jmpto	Boss_LoadExplosion, JmpTo_Boss_LoadExplosion
+	jmp	(Boss_LoadExplosion).l
 ; ---------------------------------------------------------------------------
 +
 	addq.b	#2,anim(a0)
@@ -76717,7 +76601,7 @@ loc_3D9D6:
 	lea	(Normal_palette).w,a0
 
 	moveq	#$3F,d0
--	jsrto	Pal_FadeToWhite.UpdateColour, JmpTo_Pal_FadeToWhite_UpdateColour
+-	jsr	(Pal_FadeToWhite.UpdateColour).l
 	dbf	d0,-
 	movea.l	a1,a0
 	rts
@@ -77314,7 +77198,7 @@ loc_3DF36:
 	bne.s	loc_3DF4C
 	subq.w	#1,objoff_2A(a0)
 	bmi.s	loc_3DF4C
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_3DF4C:
@@ -77326,7 +77210,7 @@ loc_3DF4C:
 	move.b	#0,mapping_frame(a0)
 	move.w	#SndID_BossExplosion,d0
 	jsr	(PlaySound).l
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_3DF80:
@@ -77340,14 +77224,14 @@ loc_3DF80:
 	cmpi.b	#7,mapping_frame(a0)
 	beq.w	JmpTo65_DeleteObject
 +
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 ;loc_3DFAA
 ObjC7_FallingPieces:
 	subq.w	#1,objoff_2A(a0)
 	bmi.w	JmpTo65_DeleteObject
-	jsrto	ObjectMoveAndFall, JmpTo8_ObjectMoveAndFall
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jsr	(ObjectMoveAndFall).l
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_3DFBA:
@@ -77420,7 +77304,7 @@ ObjC7_Beaten:
 	bsr.w	ObjC7_RemoveCollision
 	bsr.w	ObjC7_Break
 	movea.w	objoff_38(a0),a1 ; a1=object
-	jsrto	DeleteObject2, JmpTo6_DeleteObject2
+	jsr	(DeleteObject2).l
 	addq.w	#4,sp
 	rts
 ; ===========================================================================
@@ -78601,7 +78485,7 @@ loc_3F2FC:
 	dbf	d6,-
 +
 	movea.w	objoff_3C(a0),a2 ; a2=object
-	move.w	#$B4,anim_frame_duration(a2)
+	move.b	#$B4,anim_frame_duration(a2)
 	addq.b	#2,routine_secondary(a2)
 	addq.b	#2,routine_secondary(a0)
 
@@ -78662,10 +78546,10 @@ loc_3F3A8:
 	move.w	#$C,objoff_36(a1)
 
 loc_3F3F4:
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bne.s	return_3F404
 	addq.b	#2,routine(a0)
-	move.w	#$B4,anim_frame_duration(a0)
+	move.b	#$B4,anim_frame_duration(a0)
 
 return_3F404:
 	rts

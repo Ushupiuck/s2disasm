@@ -21,7 +21,7 @@ x_sub =			 $A ; and $B
 y_pos =			 $C ; and $D ... some objects use $E and $F as well when extra precision is required ... screen-space objects use y_pixel instead
 y_sub =			 $E ; and $F
 priority =		$18 ; 0 = front
-width_pixels =		$19
+width_pixels =		$14
 mapping_frame =		$1A
 ; ---------------------------------------------------------------------------
 ; conventions followed by most objects:
@@ -32,7 +32,7 @@ x_radius =		$17 ; collision width / 2
 anim_frame =		$1B
 anim =			$1C
 prev_anim =		$1D
-anim_frame_duration =	$1E
+anim_frame_duration =	$23
 status =		$22 ; note: exact meaning depends on the object... for Sonic/Tails: bit 0: left-facing. bit 1: in-air. bit 2: spinning. bit 3: on-object. bit 4: roll-jumping. bit 5: pushing. bit 6: underwater.
 routine =		$24
 routine_secondary =	$25
@@ -41,12 +41,12 @@ angle =			$26 ; angle about the z axis (360 degrees = 256)
 ; conventions followed by many objects but NOT Sonic/Tails:
 collision_flags =	$20
 collision_property =	$21
-respawn_index =		$23
+respawn_index =		$1E
 subtype =		$28
 ; ---------------------------------------------------------------------------
 ; conventions specific to Sonic/Tails (Obj01, Obj02, and ObjDB):
-; note: $1F, $20, and $21 are unused and available (however, $1F is cleared by loc_A53A and ObjB2_Landed_on_plane)
-inertia =		$14 ; and $15 ; directionless representation of speed... not updated in the air
+; note: $19, $1E, and $1F are unused and available (however, $1F is cleared by loc_A53A and ObjB2_Landed_on_plane)
+inertia =		$30 ; and $31 ; directionless representation of speed... not updated in the air
 flip_angle =		$27 ; angle about the x axis (360 degrees = 256) (twist/tumble)
 air_left =		$28
 flip_turned =		$29 ; 0 for normal, 1 to invert flipping (it's a 180 degree rotation about the axis of Sonic's spine, so he stays in the same position but looks turned around)
@@ -55,7 +55,7 @@ status_secondary =	$2B
 flips_remaining =	$2C ; number of flip revolutions remaining
 flip_speed =		$2D ; number of flip revolutions per frame / 256
 move_lock =		$2E ; and $2F ; horizontal control lock, counts down to 0
-invulnerable_time =	$30 ; and $31 ; time remaining until you stop blinking
+invulnerable_time =	$20 ; and $21 ; time remaining until you stop blinking
 invincibility_time =	$32 ; and $33 ; remaining
 speedshoes_time =	$34 ; and $35 ; remaining
 next_tilt =		$36 ; angle on ground in front of sprite
@@ -1021,6 +1021,7 @@ TempArray_LayerDef:		ds.b	$200	; used by some layer deformation routines
 Decomp_Buffer:			ds.b	$200
 Object_Display_Lists:		ds.b	object_display_list_size*total_object_display_lists	; in custom format before being converted and stored in Sprite_Table/Sprite_Table_P2
 Object_Display_Lists_End:
+				ds.b	$1000	; free
 
 Object_RAM:			; The various objects in the game are loaded in this area.
 				; Each game mode uses different objects, so some slots are reused.
@@ -1104,7 +1105,6 @@ Tails_InvincibilityStars:
 				ds.b	object_size
 LevelOnly_Object_RAM_End:
 
-				ds.b	$1000	; free
 
 SS_Shared_RAM_End:
 
@@ -1126,12 +1126,12 @@ Sonic_Pos_Record_Buf_End:
 
 Tails_Pos_Record_Buf:		ds.b	$100
 Tails_Pos_Record_Buf_End:
+Ring_Positions:			ds.b	$600
+Ring_Positions_End:
 
 CNZ_saucer_data:		ds.b	$40	; the number of saucer bumpers in a group which have been destroyed. Used to decide when to give 500 points instead of 10
 CNZ_saucer_data_End:
 				ds.b	$C0	; $FFFFE740-$FFFFE7FF ; unused as far as I can tell
-Ring_Positions:			ds.b	$600
-Ring_Positions_End:
 
 Camera_RAM:
 
@@ -1284,17 +1284,6 @@ Camera_RAM_End:
 Block_cache:			ds.w	512/16*2	; Width of plane in blocks, with each block getting two words.
 Ring_consumption_table:		ds.b	$80	; contains RAM addresses of rings currently being consumed
 Ring_consumption_table_End:
-
-Underwater_target_palette:		ds.b palette_line_size	; This is used by the screen-fading subroutines.
-Underwater_target_palette_line2:	ds.b palette_line_size	; While Underwater_palette contains the blacked-out palette caused by the fading,
-Underwater_target_palette_line3:	ds.b palette_line_size	; Underwater_target_palette will contain the palette the screen will ultimately fade in to.
-Underwater_target_palette_line4:	ds.b palette_line_size
-
-Underwater_palette:		ds.b palette_line_size	; main palette for underwater parts of the screen
-Underwater_palette_line2:	ds.b palette_line_size
-Underwater_palette_line3:	ds.b palette_line_size
-Underwater_palette_line4:	ds.b palette_line_size
-
 
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
 				ds.b	1	; unused
@@ -1542,6 +1531,15 @@ Sprite_Table:			ds.b	$280	; Sprite attribute table buffer
 Sprite_Table_End:
 				ds.b	$80	; unused, but SAT buffer can spill over into this area when there are too many sprites on-screen
 
+Underwater_target_palette:		ds.b palette_line_size	; This is used by the screen-fading subroutines.
+Underwater_target_palette_line2:	ds.b palette_line_size	; While Underwater_palette contains the blacked-out palette caused by the fading,
+Underwater_target_palette_line3:	ds.b palette_line_size	; Underwater_target_palette will contain the palette the screen will ultimately fade in to.
+Underwater_target_palette_line4:	ds.b palette_line_size
+
+Underwater_palette:		ds.b palette_line_size	; main palette for underwater parts of the screen
+Underwater_palette_line2:	ds.b palette_line_size
+Underwater_palette_line3:	ds.b palette_line_size
+Underwater_palette_line4:	ds.b palette_line_size
 Normal_palette:			ds.b	palette_line_size	; main palette for non-underwater parts of the screen
 Normal_palette_line2:		ds.b	palette_line_size
 Normal_palette_line3:		ds.b	palette_line_size
@@ -1837,6 +1835,8 @@ IntroFallingStar:
 
 ; RAM variables - Special stage
 	phase	RAM_Start	; Move back to start of RAM
+PNT_Buffer:				ds.b	$700
+PNT_Buffer_End:
 SSRAM_ArtNem_SpecialSonicAndTails:
 				ds.b	tiles_to_bytes($353)	; $353 art blocks
 SSRAM_MiscKoz_SpecialPerspective:
@@ -1876,13 +1876,12 @@ SS_Dynamic_Object_RAM_End:
 	fatal "Special stage objects go past end of object RAM buffer."
     endif
 	dephase
-
+	phase (Ring_Positions)
+SS_Horiz_Scroll_Buf_2:			HorizontalScrollBuffer
+	dephase
 	phase (SS_Shared_RAM)
 					; The special stage mode also uses the rest of the RAM for
 					; different purposes.
-PNT_Buffer:				ds.b	$700
-PNT_Buffer_End:
-SS_Horiz_Scroll_Buf_2:			HorizontalScrollBuffer
 
 SSTrack_mappings_bitflags:		ds.l	1
 SSTrack_mappings_uncompressed:		ds.l	1
@@ -1898,28 +1897,19 @@ SSTrack_mapping_frame:			ds.b	1
 SS_Last_Alternate_HorizScroll_Buf:	ds.b	1
 SS_New_Speed_Factor:			ds.l	1
 SS_Cur_Speed_Factor:			ds.l	1
-					ds.b	5
 SSTrack_duration_timer:			ds.b	1
-					ds.b	1
 SS_player_anim_frame_timer:		ds.b	1
 SpecialStage_LastSegment:		ds.b	1
 SpecialStage_Started:			ds.b	1
-					ds.b	4
 SSTrack_last_mappings_copy:		ds.l	1
 SSTrack_last_mappings:			ds.l	1
-					ds.b	4
 SSTrack_LastVScroll:			ds.w	1
-					ds.b	3
+SpecialStage_LastSegment2:		ds.b	1
 SSTrack_last_mapping_frame:		ds.b	1
 SSTrack_mappings_RLE:			ds.l	1
 SSDrawRegBuffer:			ds.w	6
 SSDrawRegBuffer_End
-					ds.b	2
-SpecialStage_LastSegment2:		ds.b	1
-SS_unk_DB4D:				ds.b	1	; written but never read
-					ds.b	$14
-SS_Ctrl_Record_Buf:
-					ds.w	$10
+SS_Ctrl_Record_Buf:			ds.w	$10
 SS_Ctrl_Record_Buf_End
 SS_CurrentPerspective:			ds.l	1
 SS_Check_Rings_flag:			ds.b	1
@@ -1927,24 +1917,21 @@ SS_Pause_Only_flag:			ds.b	1
 SS_CurrentLevelObjectLocations:		ds.l	1
 SS_Ring_Requirement:			ds.w	1
 SS_CurrentLevelLayout:			ds.l	1
-					ds.b	1
 SS_2P_BCD_Score:			ds.b	1
-					ds.b	1
 SS_NoCheckpoint_flag:			ds.b	1
-					ds.b	2
 SS_Checkpoint_Rainbow_flag:		ds.b	1
 SS_Rainbow_palette:			ds.b	1
 SS_Perfect_rings_left:			ds.w	1
-					ds.b	2
 SS_Star_color_1:			ds.b	1
 SS_Star_color_2:			ds.b	1
 SS_NoCheckpointMsg_flag:		ds.b	1
-					ds.b	1
+SS_HideRingsToGo:			ds.b	1
 SS_NoRingsTogoLifetime:			ds.w	1
 SS_RingsToGoBCD:			ds.w	1
-SS_HideRingsToGo:			ds.b	1
 SS_TriggerRingsToGo:			ds.b	1
-					ds.b	$58	; unused
+SS_Swap_Positions_Flag:			ds.b	1
+SS_Offset_X:				ds.w	1
+SS_Offset_Y:				ds.w	1
 
     if * > SS_Shared_RAM_End
 	fatal "Special stage variables exceed size of shared RAM."
@@ -1953,17 +1940,6 @@ SS_TriggerRingsToGo:			ds.b	1
 
 	phase	ramaddr(Horiz_Scroll_Buf)	; Still in SS RAM
 SS_Horiz_Scroll_Buf_1:		HorizontalScrollBuffer
-	dephase
-
-	phase	ramaddr(Boss_variables)	; Still in SS RAM
-				ds.b	4 ; unused
-SS_Offset_X:			ds.w	1
-SS_Offset_Y:			ds.w	1
-SS_Swap_Positions_Flag:		ds.b	1
-
-    if * > Boss_variables_end
-	fatal "Special stage variables exceed size of boss variables."
-    endif
 	dephase
 
 ; RAM variables - Continue screen
