@@ -25825,7 +25825,7 @@ ObjPtr_Grabber:		dc.l ObjA7	; Grabber (spider badnik) from CPZ
 ObjPtr_GrabberLegs:	dc.l ObjA8	; Grabber's legs from CPZ
 ObjPtr_GrabberBox:	dc.l ObjA9	; The little hanger box thing a Grabber's string comes out of
 ObjPtr_GrabberString:	dc.l ObjAA	; The thin white string a Grabber hangs from
-			dc.l ObjAB	; Unknown (maybe unused?)
+			dc.l ObjNull	; ObjAB
 ObjPtr_Balkiry:		dc.l ObjAC	; Balkiry (jet badnik) from SCZ
 ObjPtr_CluckerBase:	dc.l ObjAD	; Clucker's base from WFZ
 ObjPtr_Clucker:		dc.l ObjAE	; Clucker (chicken badnik) from WFZ
@@ -25841,7 +25841,7 @@ ObjPtr_VerticalLaser:	dc.l ObjB7	; Unused huge vertical laser from WFZ
 ObjPtr_WallTurret:	dc.l ObjB8	; Wall turret from WFZ
 ObjPtr_Laser:		dc.l ObjB9	; Laser from WFZ that shoots down the Tornado
 ObjPtr_WFZWheel:	dc.l ObjBA	; Wheel from WFZ
-			dc.l ObjBB	; ObjBB
+			dc.l ObjNull	; ObjBB
 ObjPtr_WFZShipFire:	dc.l ObjBC	; Fire coming out of Robotnik's ship in WFZ
 ObjPtr_SmallMetalPform:	dc.l ObjBD	; Ascending/descending metal platforms from WFZ
 ObjPtr_LateralCannon:	dc.l ObjBE	; Lateral cannon (temporary platform that pops in/out) from WFZ
@@ -64793,7 +64793,7 @@ SubObjData_Index: offsetTable
 	offsetTableEntry.w ObjB8_SubObjData	; $74
 	offsetTableEntry.w ObjB9_SubObjData	; $76
 	offsetTableEntry.w ObjBA_SubObjData	; $78
-	offsetTableEntry.w ObjBB_SubObjData	; $7A
+	offsetTableEntry.w Invalid_SubObjData	; $7A
 	offsetTableEntry.w ObjBC_SubObjData2	; $7C
 	offsetTableEntry.w ObjBD_SubObjData	; $7E
 	offsetTableEntry.w ObjBD_SubObjData	; $80
@@ -66217,7 +66217,6 @@ Ani_obj95_b:	offsetTable
 ; sprite mappings
 ; ----------------------------------------------------------------------------
 Obj95_MapUnc_372E6:	include "mappings/sprite/obj95.asm"
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 94,96 - Rexon (lava snake badnik), from HTZ
@@ -67831,7 +67830,7 @@ ObjA1_Index:	offsetTable
 		offsetTableEntry.w ObjA1_Main	; 2
 		offsetTableEntry.w loc_38466	; 4
 		offsetTableEntry.w loc_38482	; 6
-		offsetTableEntry.w BranchTo5_JmpTo39_MarkObjGone	; 8
+		offsetTableEntry.w JmpTo39_MarkObjGone	; 8
 ; ===========================================================================
 ; loc_383CC:
 ObjA1_Init:
@@ -67867,7 +67866,7 @@ loc_38404:
 	blo.s	loc_38452
 
 loc_3841C:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	jsr	(ObjCheckFloorDist).l
 	cmpi.w	#-8,d1
 	blt.s	loc_38444
@@ -67875,7 +67874,7 @@ loc_3841C:
 	bge.s	loc_38444
 	add.w	d1,y_pos(a0)
 	lea	(Ani_objA1).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -67918,7 +67917,7 @@ loc_3848C:
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
-BranchTo5_JmpTo39_MarkObjGone
+JmpTo39_MarkObjGone
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -68917,30 +68916,8 @@ ObjAA_Main:
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
-; Object AB - Removed object (unknown, unused)
+; Object AB - Empty
 ; ----------------------------------------------------------------------------
-; Sprite_390A2:
-ObjAB:
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	ObjAB_Index(pc,d0.w),d1
-	jmp	ObjAB_Index(pc,d1.w)
-; ===========================================================================
-; off_390B0:
-ObjAB_Index:	offsetTable
-		offsetTableEntry.w ObjAB_Init
-		offsetTableEntry.w ObjAB_Main
-; ===========================================================================
-; BranchTo4_LoadSubObject
-ObjAB_Init:
-	bra.w	LoadSubObject
-; ===========================================================================
-; BranchTo10_JmpTo39_MarkObjGone
-ObjAB_Main:
-	jmp	(MarkObjGone).l
-; ===========================================================================
-; END OF OBJECT AB
-
 ; ---------------------------------------------------------------------------
 ; Some subroutine for the Grabber badnik
 ; ---------------------------------------------------------------------------
@@ -72254,35 +72231,8 @@ ObjBA_SubObjData:
 ObjBA_MapUnc_3BB70:	include "mappings/sprite/objBA.asm"
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
-; Object BB - Removed object (unknown, unused)
+; Object BB - Free
 ; ----------------------------------------------------------------------------
-; Sprite_3BB7C:
-ObjBB:
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	ObjBB_Index(pc,d0.w),d1
-	jmp	ObjBB_Index(pc,d1.w)
-; ===========================================================================
-; off_3BB8A:
-ObjBB_Index:	offsetTable
-		offsetTableEntry.w ObjBB_Init	; 0
-		offsetTableEntry.w ObjBB_Main	; 2
-; ===========================================================================
-; BranchTo8_LoadSubObject
-ObjBB_Init:
-	bra.w	LoadSubObject
-; ===========================================================================
-; BranchTo15_JmpTo39_MarkObjGone
-ObjBB_Main:
-	jmp	(MarkObjGone).l
-; ===========================================================================
-; off_3BB96:
-ObjBB_SubObjData:
-	subObjData ObjBB_MapUnc_3BBA0,make_art_tile(ArtTile_ArtNem_Unknown,1,0),4,4,$C,9
-; ----------------------------------------------------------------------------
-; sprite mappings
-; ----------------------------------------------------------------------------
-ObjBB_MapUnc_3BBA0:	BINCLUDE "mappings/sprite/objBB.bin"
 ; ----------------------------------------------------------------------------
 ; Object BC - Fire coming out of Robotnik's ship in WFZ
 ; ----------------------------------------------------------------------------
@@ -73007,7 +72957,6 @@ ObjC2_SubObjData:
 ; sprite mappings
 ; ----------------------------------------------------------------------------
 ObjC2_MapUnc_3C3C2:	include "mappings/sprite/objC2.asm"
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object C3,C4 - Plane's smoke from WFZ

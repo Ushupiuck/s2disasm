@@ -1373,6 +1373,21 @@ Camera_ARZ_BG_X_pos:		ds.l	1
 				ds.b	$A	; $FFFFF676-$FFFFF67F ; seems unused
 MiscLevelVariables_End
 
+Plc_Buffer:			ds.b	6*16	; Pattern load queue (each entry is 6 bytes)
+Plc_Buffer_Only_End:
+				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
+Plc_Buffer_Reg0:		ds.l	1
+Plc_Buffer_Reg4:		ds.l	1
+Plc_Buffer_Reg8:		ds.l	1
+Plc_Buffer_RegC:		ds.l	1
+Plc_Buffer_Reg10:		ds.l	1
+Plc_Buffer_Reg14:		ds.l	1
+Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
+Plc_Buffer_Reg1A:		ds.w	1
+				ds.b	4	; seems unused
+Plc_Buffer_End:
+
+
 Misc_Variables:
 				ds.b	$14	; unused
 
@@ -1767,19 +1782,6 @@ TwizVRAM =			TwizHuffCopy+TwizHuffCopyMax*$02	; $4 bytes
 TwizSize =			TwizVRAM+$04
 				ds.b	$3A	; Free
 CrossResetRAM_End:
-Plc_Buffer:			ds.b	6*16	; Pattern load queue (each entry is 6 bytes)
-Plc_Buffer_Only_End:
-				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
-Plc_Buffer_Reg0:		ds.l	1
-Plc_Buffer_Reg4:		ds.l	1
-Plc_Buffer_Reg8:		ds.l	1
-Plc_Buffer_RegC:		ds.l	1
-Plc_Buffer_Reg10:		ds.l	1
-Plc_Buffer_Reg14:		ds.l	1
-Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
-Plc_Buffer_Reg1A:		ds.w	1
-				ds.b	4	; seems unused
-Plc_Buffer_End:
 
 RAM_End
 
