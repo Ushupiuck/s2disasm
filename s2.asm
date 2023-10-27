@@ -25825,7 +25825,7 @@ ObjPtr_Grabber:		dc.l ObjA7	; Grabber (spider badnik) from CPZ
 ObjPtr_GrabberLegs:	dc.l ObjA8	; Grabber's legs from CPZ
 ObjPtr_GrabberBox:	dc.l ObjA9	; The little hanger box thing a Grabber's string comes out of
 ObjPtr_GrabberString:	dc.l ObjAA	; The thin white string a Grabber hangs from
-			dc.l ObjNull	; ObjAB
+			dc.l ObjAB	; Unknown (maybe unused?)
 ObjPtr_Balkiry:		dc.l ObjAC	; Balkiry (jet badnik) from SCZ
 ObjPtr_CluckerBase:	dc.l ObjAD	; Clucker's base from WFZ
 ObjPtr_Clucker:		dc.l ObjAE	; Clucker (chicken badnik) from WFZ
@@ -25841,7 +25841,7 @@ ObjPtr_VerticalLaser:	dc.l ObjB7	; Unused huge vertical laser from WFZ
 ObjPtr_WallTurret:	dc.l ObjB8	; Wall turret from WFZ
 ObjPtr_Laser:		dc.l ObjB9	; Laser from WFZ that shoots down the Tornado
 ObjPtr_WFZWheel:	dc.l ObjBA	; Wheel from WFZ
-			dc.l ObjNull	; ObjBB
+			dc.l ObjBB	; ObjBB
 ObjPtr_WFZShipFire:	dc.l ObjBC	; Fire coming out of Robotnik's ship in WFZ
 ObjPtr_SmallMetalPform:	dc.l ObjBD	; Ascending/descending metal platforms from WFZ
 ObjPtr_LateralCannon:	dc.l ObjBE	; Lateral cannon (temporary platform that pops in/out) from WFZ
@@ -26211,15 +26211,15 @@ BuildSprites_ObjLoop:
 	; since they should not be needed and they just slow this code down.
 	; In REV00, it appears that these checks were used for debugging, as
 	; they deliberately crash the console if they detect an invalid object.
-;    if gameRevision=0
+    if gameRevision=0
 	tst.b	id(a0)			; is this object slot occupied?
 	beq.w	BuildSprites_Crash	; if not, branch
 	tst.l	mappings(a0)		; does this object have any mappings?
 	beq.w	BuildSprites_Crash	; if not, branch
-;    else
-;	tst.b	id(a0)			; is this object slot occupied?
-;	beq.w	BuildSprites_NextObj	; if not, check next one
-;    endif
+    else
+	tst.b	id(a0)			; is this object slot occupied?
+	beq.w	BuildSprites_NextObj	; if not, check next one
+    endif
 
 	andi.b	#$7F,render_flags(a0)	; clear on-screen flag
 	move.b	render_flags(a0),d0
@@ -26315,6 +26315,7 @@ BuildSprites_NextLevel:
 ; ===========================================================================
 ; BuildSprites_Unknown:
 BuildSprites_Crash:
+    if gameRevision=0
 	; In the Simon Wai prototype, this line wasn't here.
 	; This may have possibly been a debugging feature, for helping the
 	; devs detect when an object tried to display with a blank ID or
@@ -26322,6 +26323,7 @@ BuildSprites_Crash:
 	; Sonic 1, but is (almost) completely absent in this game.
 	move.w	(1).w,d0	; causes a crash because of the word operation at an odd address
 	bra.s	BuildSprites_NextObj
+	endif
 ; loc_1671C:
 BuildSprites_MultiDraw:
 	move.l	a4,-(sp)
@@ -64791,7 +64793,7 @@ SubObjData_Index: offsetTable
 	offsetTableEntry.w ObjB8_SubObjData	; $74
 	offsetTableEntry.w ObjB9_SubObjData	; $76
 	offsetTableEntry.w ObjBA_SubObjData	; $78
-	offsetTableEntry.w Invalid_SubObjData	; $7A
+	offsetTableEntry.w ObjBB_SubObjData	; $7A
 	offsetTableEntry.w ObjBC_SubObjData2	; $7C
 	offsetTableEntry.w ObjBD_SubObjData	; $7E
 	offsetTableEntry.w ObjBD_SubObjData	; $80
@@ -68212,7 +68214,7 @@ loc_38870:
 
 loc_38880:
 	lea	(Ani_objA3_c).l,a1
-	jsr	AnimateSprite).l
+	jsr	(AnimateSprite).l
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -68915,8 +68917,30 @@ ObjAA_Main:
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
-; Object AB - Empty
+; Object AB - Removed object (unknown, unused)
 ; ----------------------------------------------------------------------------
+; Sprite_390A2:
+ObjAB:
+	moveq	#0,d0
+	move.b	routine(a0),d0
+	move.w	ObjAB_Index(pc,d0.w),d1
+	jmp	ObjAB_Index(pc,d1.w)
+; ===========================================================================
+; off_390B0:
+ObjAB_Index:	offsetTable
+		offsetTableEntry.w ObjAB_Init
+		offsetTableEntry.w ObjAB_Main
+; ===========================================================================
+; BranchTo4_LoadSubObject
+ObjAB_Init:
+	bra.w	LoadSubObject
+; ===========================================================================
+; BranchTo10_JmpTo39_MarkObjGone
+ObjAB_Main:
+	jmp	(MarkObjGone).l
+; ===========================================================================
+; END OF OBJECT AB
+
 ; ---------------------------------------------------------------------------
 ; Some subroutine for the Grabber badnik
 ; ---------------------------------------------------------------------------
@@ -72230,8 +72254,35 @@ ObjBA_SubObjData:
 ObjBA_MapUnc_3BB70:	include "mappings/sprite/objBA.asm"
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
-; Object BB - Empty
+; Object BB - Removed object (unknown, unused)
 ; ----------------------------------------------------------------------------
+; Sprite_3BB7C:
+ObjBB:
+	moveq	#0,d0
+	move.b	routine(a0),d0
+	move.w	ObjBB_Index(pc,d0.w),d1
+	jmp	ObjBB_Index(pc,d1.w)
+; ===========================================================================
+; off_3BB8A:
+ObjBB_Index:	offsetTable
+		offsetTableEntry.w ObjBB_Init	; 0
+		offsetTableEntry.w ObjBB_Main	; 2
+; ===========================================================================
+; BranchTo8_LoadSubObject
+ObjBB_Init:
+	bra.w	LoadSubObject
+; ===========================================================================
+; BranchTo15_JmpTo39_MarkObjGone
+ObjBB_Main:
+	jmp	(MarkObjGone).l
+; ===========================================================================
+; off_3BB96:
+ObjBB_SubObjData:
+	subObjData ObjBB_MapUnc_3BBA0,make_art_tile(ArtTile_ArtNem_Unknown,1,0),4,4,$C,9
+; ----------------------------------------------------------------------------
+; sprite mappings
+; ----------------------------------------------------------------------------
+ObjBB_MapUnc_3BBA0:	BINCLUDE "mappings/sprite/objBB.bin"
 ; ----------------------------------------------------------------------------
 ; Object BC - Fire coming out of Robotnik's ship in WFZ
 ; ----------------------------------------------------------------------------
