@@ -18313,7 +18313,7 @@ LevEvents_DEZ_Routine1:
 	addq.b	#2,(Dynamic_Resize_Routine).w
 	jsr	(AllocateObject).l
 	bne.s	+	; rts
-	move.b	#ObjID_MechaSonic,id(a1) ; load objAF (Silver Sonic)
+	_move.b	#ObjID_MechaSonic,id(a1) ; load objAF (Silver Sonic)
 	move.b	#$48,subtype(a1)
 	move.w	#$348,x_pos(a1)
 	move.w	#$A0,y_pos(a1)
@@ -53881,7 +53881,7 @@ Obj5C:
 	move.b	routine(a0),d0
 	move.w	Obj5C_Index(pc,d0.w),d1
 	jsr	Obj5C_Index(pc,d1.w)
-	jmpto	MarkObjGone, JmpTo34_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; off_2D3A6:
 Obj5C_Index:	offsetTable
@@ -53902,8 +53902,8 @@ Obj5C_Init:
 ; loc_2D3E4:
 Obj5C_Main:
 	lea	(Ani_obj5C).l,a1
-	jsrto	AnimateSprite, JmpTo16_AnimateSprite
-	jsrto	ObjectMove, JmpTo22_ObjectMove
+	jsr	(AnimateSprite).l
+	jsr	(ObjectMove).l
 	addi.w	#$18,y_vel(a0)	; apply gravity
 	move.w	Obj5C_initial_y_pos(a0),d0
 	cmp.w	y_pos(a0),d0	; has object reached its initial y position?
@@ -53936,26 +53936,6 @@ byte_2D43E:	dc.b   7,  0,$FF
 ; sprite mappings
 ; ----------------------------------------------------------------------------
 Obj5C_MapUnc_2D442:	include "mappings/sprite/obj5C.asm"
-
-    if ~~removeJmpTos
-	align 4
-    endif
-; ===========================================================================
-
-    if ~~removeJmpTos
-JmpTo34_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
-JmpTo16_AnimateSprite ; JmpTo
-	jmp	(AnimateSprite).l
-; loc_2D48E:
-JmpTo22_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-
-	align 4
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -53998,10 +53978,8 @@ Obj58_Main:
 +
 	jmp	(DisplaySprite).l
 
-    if removeJmpTos
 JmpTo50_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
-    endif
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; sprite mappings
@@ -54051,29 +54029,25 @@ return_2D5C2:
 ; loc_2D5C4:
 Boss_Defeat:
 	moveq	#100,d0
-	jsrto	AddPoints, JmpTo_AddPoints
+	jsr	(AddPoints).l
 	move.w	#$B3,(Boss_Countdown).w
 	move.b	#8,boss_routine(a0)
 	moveq	#PLCID_Capsule,d0
-	jsrto	LoadPLC, JmpTo4_LoadPLC
-	rts
+	jmp	(LoadPLC).l
 ; ===========================================================================
 
 ;loc_2D5DE:
 Boss_MoveObject:
-	move.l	(Boss_X_pos).w,d2
-	move.l	(Boss_Y_pos).w,d3
-	move.w	(Boss_X_vel).w,d0
+	move.w	(Boss_X_vel).w,d0	; load horizontal speed
 	ext.l	d0
-	asl.l	#8,d0
-	add.l	d0,d2
-	move.w	(Boss_Y_vel).w,d0
+	lsl.l	#8,d0		; shift velocity to line up with the middle 16 bits of the 32-bit position
+	add.l	d0,(Boss_X_pos).w	; add to x-axis position	; note this affects the subpixel position x_sub(a0) = 2+x_pos(a0)
+	move.w	(Boss_Y_vel).w,d0	; load vertical speed
 	ext.l	d0
-	asl.l	#8,d0
-	add.l	d0,d3
-	move.l	d2,(Boss_X_pos).w
-	move.l	d3,(Boss_Y_pos).w
+	lsl.l	#8,d0		; shift velocity to line up with the middle 16 bits of the 32-bit position
+	add.l	d0,(Boss_Y_pos).w	; add to y-axis position	; note this affects the subpixel position y_sub(a0) = 2+y_pos(a0)
 	rts
+; End of function Boss_MoveObject
 ; ===========================================================================
 ; a1 = animation script pointer
 ;AnimationArray: up to 8 2-byte entries:
@@ -54214,21 +54188,6 @@ Boss_LoadExplosion:
 +
 	rts
 ; ===========================================================================
-
-    if ~~removeJmpTos
-JmpTo33_DisplaySprite ; JmpTo
-	jmp	(DisplaySprite).l
-JmpTo50_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-JmpTo4_LoadPLC ; JmpTo
-	jmp	(LoadPLC).l
-JmpTo_AddPoints ; JmpTo
-	jmp	(AddPoints).l
-	align 4
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -58270,8 +58229,6 @@ JmpTo5_AddPoints ; JmpTo
 	jmp	(AddPoints).l
 JmpTo4_PlayLevelMusic ; JmpTo
 	jmp	(PlayLevelMusic).l
-JmpTo4_LoadPLC_AnimalExplosion ; JmpTo
-	jmp	(LoadPLC_AnimalExplosion).l
 JmpTo8_PlatformObject ; JmpTo
 	jmp	(PlatformObject).l
 JmpTo26_SolidObject ; JmpTo
@@ -69490,7 +69447,7 @@ ObjAF_Init:
 	move.b	#$1B,y_radius(a0)
 	move.b	#$10,x_radius(a0)
 	move.b	#0,collision_flags(a0)
-	move.b	#8,collision_property(a0)
+	move.b	#12,collision_property(a0)
 	lea	(ChildObject_39DC2).l,a2
 	bsr.w	LoadChildObject
 	move.b	#$E,routine(a1)
@@ -69954,18 +69911,18 @@ loc_39C2A:
 	movea.w	objoff_2C(a0),a1 ; a1=object
 	bclr	#1,status(a1)
 	bne.s	loc_39C3A
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	DisplaySprite
 ; ===========================================================================
 
 loc_39C3A:
 	addq.b	#2,routine(a0)
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	DisplaySprite
 ; ===========================================================================
 
 loc_39C42:
 	lea	(Ani_objAF_c).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jsr	(AnimateSprite).l
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_39C50:
@@ -69987,19 +69944,19 @@ loc_39C78:
 
 loc_39C84:
 	lea	(Ani_objAF_c).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jsr	(AnimateSprite).l
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_39C92:
 	addq.b	#2,routine(a0)
 	move.b	#1,anim(a0)
-	jmpto	DisplaySprite, JmpTo45_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_39CA0:
 	lea	(Ani_objAF_c).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -74485,7 +74442,7 @@ loc_3D5EA:
 	clr.w	y_vel(a0)
 	move.b	#$1F,anim_frame_duration(a0)
 	move.b	#$16,collision_flags(a0)
-	move.b	#$C,collision_property(a0)
+	move.b	#1,collision_property(a0) ; 12 hits; changed to 1 for debugging
 	bsr.w	ObjC7_InitCollision
 	movea.w	objoff_38(a0),a1 ; a1=object
 	move.b	#6,routine_secondary(a1)
