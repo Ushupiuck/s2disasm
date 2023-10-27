@@ -19,3 +19,6 @@ sound/music/compressed/hashes.lua
 
 # Typical CMake build directory.
 build_tools/source_code/build
+*.lst
+s2built.debug.bin
+s2built.debug.prev.bin

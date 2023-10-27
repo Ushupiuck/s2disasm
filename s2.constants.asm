@@ -1004,6 +1004,9 @@ total_object_display_lists =		1<<total_object_display_lists_bits ; How many list
 ramaddr function x,-(-x)&$FFFFFFFF
 
 ; ---------------------------------------------------------------------------
+TwizHuffRetMax	=	$12
+TwizHuffCopyMax	=	$0C
+; ---------------------------------------------------------------------------
 ; RAM variables - General
 	phase	ramaddr($FFFF0000)	; Pretend we're in the RAM
 RAM_Start:
@@ -1019,9 +1022,8 @@ Block_Table_End:
 
 TempArray_LayerDef:		ds.b	$200	; used by some layer deformation routines
 Decomp_Buffer:			ds.b	$200
-Object_Display_Lists:		ds.b	object_display_list_size*total_object_display_lists	; in custom format before being converted and stored in Sprite_Table/Sprite_Table_P2
+Object_Display_Lists:		ds.b	object_display_list_size*total_object_display_lists
 Object_Display_Lists_End:
-				ds.b	$1000	; free
 
 Object_RAM:			; The various objects in the game are loaded in this area.
 				; Each game mode uses different objects, so some slots are reused.
@@ -1069,8 +1071,6 @@ Reserved_Object_RAM_End:
 Dynamic_Object_RAM:		; Dynamic object RAM
 				ds.b	$70*object_size
 Dynamic_Object_RAM_End:
-; 2P mode reserves 6 'blocks' of 12 RAM slots at the end.
-Dynamic_Object_RAM_2P_End = Dynamic_Object_RAM_End - ($C * 6) * object_size
 
 Object_RAM_End:
 
@@ -1107,11 +1107,13 @@ LevelOnly_Object_RAM_End:
 
 
 SS_Shared_RAM_End:
+TwizBuffer:			ds.b	$1000	; Twizzler decompression buffer
 
 VDP_Command_Buffer:		ds.w	7*$12	; stores 18 ($12) VDP commands to issue the next time ProcessDMAQueue is called
 VDP_Command_Buffer_Slot:	ds.l	1	; stores the address of the next open slot for a queued VDP command
 
 HorizontalScrollBuffer struct dots
+;	ds.b	$380
 	ds.l	224	; Total lines on the screen.
 	ds.l	16	; A bug/optimisation in 'Swscrl_CPZ' causes these values to be overflowed into.
 	ds.b	$40	; These are just unused.
@@ -1126,12 +1128,12 @@ Sonic_Pos_Record_Buf_End:
 
 Tails_Pos_Record_Buf:		ds.b	$100
 Tails_Pos_Record_Buf_End:
-Ring_Positions:			ds.b	$600
-Ring_Positions_End:
 
 CNZ_saucer_data:		ds.b	$40	; the number of saucer bumpers in a group which have been destroyed. Used to decide when to give 500 points instead of 10
 CNZ_saucer_data_End:
 				ds.b	$C0	; $FFFFE740-$FFFFE7FF ; unused as far as I can tell
+Ring_Positions:			ds.b	$600
+Ring_Positions_End:
 
 Camera_RAM:
 
@@ -1370,21 +1372,6 @@ Super_Sonic_frame_count:	ds.w	1
 Camera_ARZ_BG_X_pos:		ds.l	1
 				ds.b	$A	; $FFFFF676-$FFFFF67F ; seems unused
 MiscLevelVariables_End
-
-Plc_Buffer:			ds.b	6*16	; Pattern load queue (each entry is 6 bytes)
-Plc_Buffer_Only_End:
-				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
-Plc_Buffer_Reg0:		ds.l	1
-Plc_Buffer_Reg4:		ds.l	1
-Plc_Buffer_Reg8:		ds.l	1
-Plc_Buffer_RegC:		ds.l	1
-Plc_Buffer_Reg10:		ds.l	1
-Plc_Buffer_Reg14:		ds.l	1
-Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
-Plc_Buffer_Reg1A:		ds.w	1
-				ds.b	4	; seems unused
-Plc_Buffer_End:
-
 
 Misc_Variables:
 				ds.b	$14	; unused
@@ -1774,9 +1761,25 @@ V_int_jump:			ds.b	6	; contains an instruction to jump to the V-int handler
 V_int_addr =			V_int_jump+2	; long
 H_int_jump:			ds.b 6		; contains an instruction to jump to the H-int handler
 H_int_addr =			H_int_jump+2	; long
-
-				ds.b	$82	; $FFFFFF44-$FFFFFF4B ; seems unused
+TwizHuffRet:			ds.b	$48				; $48 bytes
+TwizHuffCopy =			TwizHuffRet+TwizHuffRetMax*$04		; $18 bytes
+TwizVRAM =			TwizHuffCopy+TwizHuffCopyMax*$02	; $4 bytes
+TwizSize =			TwizVRAM+$04
+				ds.b	$3A	; Free
 CrossResetRAM_End:
+Plc_Buffer:			ds.b	6*16	; Pattern load queue (each entry is 6 bytes)
+Plc_Buffer_Only_End:
+				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
+Plc_Buffer_Reg0:		ds.l	1
+Plc_Buffer_Reg4:		ds.l	1
+Plc_Buffer_Reg8:		ds.l	1
+Plc_Buffer_RegC:		ds.l	1
+Plc_Buffer_Reg10:		ds.l	1
+Plc_Buffer_Reg14:		ds.l	1
+Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
+Plc_Buffer_Reg1A:		ds.w	1
+				ds.b	4	; seems unused
+Plc_Buffer_End:
 
 RAM_End
 
