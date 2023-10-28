@@ -72620,7 +72620,7 @@ loc_3BF66:
 	andi.b	#p2_standing,d0
 	beq.s	+	; rts
 	lea	(Sidekick).w,a1 ; a1=character
-	bsr.s	loc_3BFB4
+	bra.s	loc_3BFB4
 +
 	rts
 ; ===========================================================================
@@ -72631,9 +72631,8 @@ loc_3BFB4:
 	move.w	x_pos(a0),x_pos(a1)
 	bclr	#0,status(a1)
 	btst	#0,status(a0)
-	bne.s	+
+	bne.s	return_3C01E
 	bset	#0,status(a1)
-+
 	rts
 ; ===========================================================================
 
@@ -72661,7 +72660,7 @@ loc_3BFD8:
 	andi.b	#p2_standing,d0
 	beq.s	return_3C01E
 	lea	(Sidekick).w,a1 ; a1=character
-	bsr.s	loc_3BFB4
+	bra.s	loc_3BFB4
 
 return_3C01E:
 	rts
@@ -76762,7 +76761,7 @@ JmpTo66_DeleteObject:
 
 loc_3F3A8:
 	tst.b	routine_secondary(a0)
-	beq.s	return_3F404
+	beq.s	.wait
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#7,d0
 	bne.s	.noanimal
