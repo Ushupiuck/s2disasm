@@ -8,6 +8,7 @@
 -- Having this set to false will use an inferior compression algorithm that
 -- results in an accurate ROM being produced.
 local improved_sound_driver_compression = true
+local advanced_error_handler = false
 
 -- These describe the Saxman decompression buffer in the sound driver.
 local music_buffer_address = 0x1380 -- Should always match zMusicData in s2.sounddriver.asm.
@@ -189,6 +190,7 @@ for line in io.lines("s2.h") do
 		movewZ80CompSize = tonumber(line:match("0x%x+", match_end))
 	end
 end
+if advanced_error_handler == true then
 -- Create DEBUG build
 message_abort_wrapper(common.build_rom("s2", "s2built.debug", "-D __DEBUG__ -OLIST s2.debug.lst", "-p=0 -z=0," .. (improved_sound_driver_compression and "saxman-optimised" or "saxman-bugged") .. ",Size_of_Snd_driver_guess,after", true, repository))
 local comp_z80_size, movewZ80CompSize
@@ -207,8 +209,10 @@ for line in io.lines("s2.h") do
 	end
 end
 
+end
 -- Remove the header file, since we no longer need it.
 os.remove("s2.h")
+if advanced_error_handler == true then
 -- Append debug symbols to ROMs using ConvSym
 local extra_tools = common.find_tools("debug symbol generator", "https://github.com/vladikcomper/md-modules", repository, "convsym")
 if extra_tools == nil then
@@ -217,10 +221,12 @@ if extra_tools == nil then
 end
 os.execute(extra_tools.convsym .. " s2.lst s2built.bin -input as_lst -range 0 FFFFFF -a")
 os.execute(extra_tools.convsym .. " s2.lst s2built.debug.bin -input as_lst -exclude -filter \"z[A-Z].+\" -range 0 FFFFFF -a")
-
+end
 
 -- Correct the ROM's header with a proper checksum and end-of-ROM value.
 common.fix_header("s2built.bin")
+if advanced_error_handler == true then
 common.fix_header("s2built.debug.bin")
+end
 -- A successful build; we can quit now.
 os.exit(exit_code, false)

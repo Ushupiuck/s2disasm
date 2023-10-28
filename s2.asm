@@ -42,6 +42,9 @@ addsubOptimize = 1
 relativeLea = 1
 ;	| If 1, makes some instructions use pc-relative addressing, instead of absolute long
 ;
+AdvancedErrorHandler = 0
+;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
+;
 useFullWaterTables = 1
 ;	| If 1, zone offset tables for water levels cover all level slots instead of only slots 8-$F
 ;	| Set to 1 if you've shifted level IDs around or you want water in levels with a level slot below 8
@@ -68,7 +71,10 @@ SonicDriverVer = 2 ; Tell SMPS2ASM that we are targetting Sonic 2's sound driver
 SonicMappingsVer := 2
 SonicDplcVer := 2
 	include "mappings/MapMacros.asm"
+
+    if AdvancedErrorHandler=1
 	include	"Debugger.asm"
+    endif
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; start of ROM
@@ -102,6 +108,7 @@ Vectors:	dc.l System_Stack	; Initial stack pointer value
 		dc.l ErrorExcept	; Unused (reserved)
 		dc.l ErrorExcept	; Unused (reserved) (24)
 		dc.l ErrorExcept	; Spurious exception
+    if AdvancedErrorHandler=1
 		dc.l ErrorExcept	; IRQ level 1
 		dc.l ErrorExcept	; IRQ level 2
 		dc.l ErrorExcept	; IRQ level 3 (28)
@@ -141,6 +148,47 @@ Vectors:	dc.l System_Stack	; Initial stack pointer value
 		dc.l ErrorExcept		; Unused (reserved)
 		dc.l ErrorExcept		; Unused (reserved)
 		dc.l ErrorExcept		; Unused (reserved) (64)
+    else
+		dc.l ErrorTrap		; IRQ level 1
+		dc.l ErrorTrap		; IRQ level 2
+		dc.l ErrorTrap		; IRQ level 3 (28)
+		dc.l H_Int		; IRQ level 4 (horizontal retrace interrupt)
+		dc.l ErrorTrap		; IRQ level 5
+		dc.l V_Int		; IRQ level 6 (vertical retrace interrupt)
+		dc.l ErrorTrap		; IRQ level 7 (32)
+		dc.l ErrorTrap		; TRAP #00 exception
+		dc.l ErrorTrap		; TRAP #01 exception
+		dc.l ErrorTrap		; TRAP #02 exception
+		dc.l ErrorTrap		; TRAP #03 exception (36)
+		dc.l ErrorTrap		; TRAP #04 exception
+		dc.l ErrorTrap		; TRAP #05 exception
+		dc.l ErrorTrap		; TRAP #06 exception
+		dc.l ErrorTrap		; TRAP #07 exception (40)
+		dc.l ErrorTrap		; TRAP #08 exception
+		dc.l ErrorTrap		; TRAP #09 exception
+		dc.l ErrorTrap		; TRAP #10 exception
+		dc.l ErrorTrap		; TRAP #11 exception (44)
+		dc.l ErrorTrap		; TRAP #12 exception
+		dc.l ErrorTrap		; TRAP #13 exception
+		dc.l ErrorTrap		; TRAP #14 exception
+		dc.l ErrorTrap		; TRAP #15 exception (48)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved) (52)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved) (56)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved) (60)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved)
+		dc.l ErrorTrap		; Unused (reserved) (64)
+    endif
 ; byte_100:
 Header:
 	dc.b "SEGA GENESIS    " ; Console name
@@ -365,9 +413,167 @@ GameMode_OptionsMenu:	dc.l	MenuScreen		; Options mode
 GameMode_LevelSelect:	dc.l	MenuScreen		; Level select mode
 GameMode_2PResults:	dc.l	Level			; 2P results mode (TO BE REPLACED)
 GameMode_2PLevelSelect:	dc.l	Level			; 2P level select mode (TO BE REMOVED)
-;	align $AC2
+; ===========================================================================
+    if AdvancedErrorHandler=0
+
+BusError:
+		move.b	#2,(Object_Respawn_Table+$44).w
+		bra.s	loc_43A
+
+AddressError:
+		move.b	#4,(Object_Respawn_Table+$44).w
+		bra.s	loc_43A
+
+IllegalInstr:
+		move.b	#6,(Object_Respawn_Table+$44).w
+		addq.l	#2,2(sp)
+		bra.s	loc_462
+
+ZeroDivide:
+		move.b	#8,(Object_Respawn_Table+$44).w
+		bra.s	loc_462
+
+ChkInstr:
+		move.b	#$A,(Object_Respawn_Table+$44).w
+		bra.s	loc_462
+
+TrapvInstr:
+		move.b	#$C,(Object_Respawn_Table+$44).w
+		bra.s	loc_462
+
+PrivilegeViol:
+		move.b	#$E,(Object_Respawn_Table+$44).w
+		bra.s	loc_462
+
+Trace:
+		move.b	#$10,(Object_Respawn_Table+$44).w
+		bra.s	loc_462
+
+Line1010Emu:
+		move.b	#$12,(Object_Respawn_Table+$44).w
+		addq.l	#2,2(sp)
+		bra.s	loc_462
+
+Line1111Emu:
+		move.b	#$14,(Object_Respawn_Table+$44).w
+		addq.l	#2,2(sp)
+		bra.s	loc_462
+
+ErrorExcept:
+		move.b	#0,(Object_Respawn_Table+$44).w
+		bra.s	loc_462
 ; ===========================================================================
 
+loc_43A:
+		disable_ints
+		addq.w	#2,sp
+		move.l	(sp)+,(Object_Respawn_Table+$40).w
+		addq.w	#2,sp
+		movem.l	d0-a7,(Object_Respawn_Table).w
+		bsr.w	ShowErrorMessage
+		move.l	2(sp),d0
+		bsr.w	ShowErrorValue
+		move.l	(Object_Respawn_Table+$40).w,d0
+		bsr.w	ShowErrorValue
+		bra.s	loc_478
+; ===========================================================================
+
+loc_462:
+		disable_ints
+		movem.l	d0-a7,(Object_Respawn_Table).w
+		bsr.w	ShowErrorMessage
+		move.l	2(sp),d0
+		bsr.w	ShowErrorValue
+loc_478:
+		bsr.w	ErrorWaitForC
+		movem.l	(Object_Respawn_Table).w,d0-a7
+		enable_ints
+		rte
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+ShowErrorMessage:
+		lea	(VDP_data_port).l,a6
+		locVRAM	VRAM_Sprite_Attribute_Table
+		lea	(Art_Text).l,a0
+		move.w	#$27F,d1
+.loadgfx:
+		move.w	(a0)+,(a6)
+		dbf	d1,.loadgfx
+
+		moveq	#0,d0		; clear	d0
+		move.b	(Object_Respawn_Table+$44).w,d0 ; load error code
+		move.w	ErrorText(pc,d0.w),d0
+		lea	ErrorText(pc,d0.w),a0
+		locVRAM	VRAM_Plane_A_Name_Table+$604
+		moveq	#$12,d1		; number of characters (minus 1)
+.showchars:
+		moveq	#0,d0
+		move.b	(a0)+,d0
+		addi.w	#$790,d0
+		move.w	d0,(a6)
+		dbf	d1,.showchars	; repeat for number of characters
+		rts
+; End of function ShowErrorMessage
+; ===========================================================================
+ErrorText:	dc.w .exception-ErrorText, .bus-ErrorText
+		dc.w .address-ErrorText, .illinstruct-ErrorText
+		dc.w .zerodivide-ErrorText, .chkinstruct-ErrorText
+		dc.w .trapv-ErrorText, .privilege-ErrorText
+		dc.w .trace-ErrorText, .line1010-ErrorText
+		dc.w .line1111-ErrorText
+.exception:	dc.b "ERROR EXCEPTION    "
+.bus:		dc.b "BUS ERROR          "
+.address:	dc.b "ADDRESS ERROR      "
+.illinstruct:	dc.b "ILLEGAL INSTRUCTION"
+.zerodivide:	dc.b "@ERO DIVIDE        "
+.chkinstruct:	dc.b "CHK INSTRUCTION    "
+.trapv:		dc.b "TRAPV INSTRUCTION  "
+.privilege:	dc.b "PRIVILEGE VIOLATION"
+.trace:		dc.b "TRACE              "
+.line1010:	dc.b "LINE 1010 EMULATOR "
+.line1111:	dc.b "LINE 1111 EMULATOR "
+		even
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+ShowErrorValue:
+		move.w	#$7CA,(a6)	; display "$" symbol
+		moveq	#7,d2
+.loop:
+		rol.l	#4,d0
+		bsr.s	.shownumber	; display 8 numbers
+		dbf	d2,.loop
+		rts
+; ===========================================================================
+
+.shownumber:
+		move.w	d0,d1
+		andi.w	#$F,d1
+		cmpi.w	#$A,d1
+		blo.s	.chars0to9
+		addq.w	#7,d1		; add 7 for characters A-F
+.chars0to9:
+		addi.w	#$7C0,d1
+		move.w	d1,(a6)
+		rts
+; End of function ShowErrorValue
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+ErrorWaitForC:
+		bsr.w	ReadJoypads
+;		cmpi.b	#button_C_mask,(Ctrl_1_Press).w ; is button C pressed?
+		cmpi.b	#button_C_mask,(Ctrl_1_Held).w ; is button C held?
+		bne.w	ErrorWaitForC	; if not, branch
+		rts
+; End of function ErrorWaitForC
+	align $AC2
+; ===========================================================================
+    endif
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; vertical and horizontal interrupt handlers
 ; VERTICAL INTERRUPT HANDLER:
@@ -21770,7 +21976,7 @@ Obj26_Index:	offsetTable
 		offsetTableEntry.w Obj26_Main			; 2
 		offsetTableEntry.w Obj26_Break			; 4
 		offsetTableEntry.w Obj26_Animate		; 6
-		offsetTableEntry.w BranchTo2_MarkObjGone	; 8
+		offsetTableEntry.w MarkObjGone			; 8
 ; ===========================================================================
 ; obj_26_sub_0: Obj_26_Init:
 Obj26_Init:
@@ -21830,8 +22036,6 @@ SolidObject_Monitor:
 Obj26_Animate:
 	lea	(Ani_obj26).l,a1
 	bsr.w	AnimateSprite
-
-BranchTo2_MarkObjGone
 	bra.w	MarkObjGone
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -82774,6 +82978,7 @@ paddingSoFar	:= paddingSoFar+1
 	else
 		even
 	endif
+    if AdvancedErrorHandler=1
 ; ==============================================================
 ; --------------------------------------------------------------
 ; Debugging modules
@@ -82788,6 +82993,7 @@ paddingSoFar	:= paddingSoFar+1
 ;	by ConvSym utility, otherwise debugger modules won't be able
 ;	to resolve symbol names.
 ; --------------------------------------------------------------
+    endif
 EndOfRom:
 	if MOMPASS=2
 		; "About" because it will be off by the same amount that Size_of_Snd_driver_guess is incorrect (if you changed it), and because I may have missed a small amount of internal padding somewhere
