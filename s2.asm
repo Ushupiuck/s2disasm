@@ -30348,7 +30348,7 @@ Obj01_MdNormal_Checks:
 	cmpi.b	#$AC,anim_frame(a0)
 	blo.s	return_1A2DE
 	move.b	#AniIDSonAni_GetUp,anim(a0)
-	bra.s	return_1A2DE
+	rts
 ; ---------------------------------------------------------------------------
 ; loc_1A2B8:
 Obj01_MdNormal:
@@ -38872,7 +38872,7 @@ Obj03_MainX:
 	btst	#5,d0
 	beq.s	return_1FEAC
 	ori.w	#high_priority,art_tile(a1)
-	bra.s	return_1FEAC
+	rts
 ; ===========================================================================
 ; loc_1FE38:
 Obj03_MainX_Alt:
@@ -38954,7 +38954,7 @@ Obj03_MainY:
 	btst	#5,d0
 	beq.s	return_1FFB6
 	ori.w	#high_priority,art_tile(a1)
-	bra.s	return_1FFB6
+	rts
 ; ===========================================================================
 ; loc_1FF42:
 Obj03_MainY_Alt:
@@ -43521,7 +43521,7 @@ loc_2433C:
 	tst.w	inertia(a1)
 	beq.s	return_2433A
 	bpl.s	loc_243C8
-	bra.s	return_2433A
+	rts
 ; ===========================================================================
 
 loc_2435E:
@@ -43542,7 +43542,7 @@ loc_24378:
 	bne.w	loc_2438E
 	tst.w	inertia(a1)
 	bmi.s	loc_243C8
-	bra.s	return_243CE
+	rts
 ; ===========================================================================
 
 loc_2438E:
@@ -49447,7 +49447,7 @@ Obj7F_Action:
 	beq.s	+
 	move.b	#1,mapping_frame(a0)
 +
-	bra.w	return_29936
+	rts
 ; ===========================================================================
 
 loc_29890:
@@ -76758,30 +76758,30 @@ loc_3F3A8:
 	beq.s	return_3F404
 	move.b	(Vint_runcount+3).w,d0
 	andi.b	#7,d0
-	bne.s	loc_3F3F4
+	bne.s	.noanimal
 	jsr	(AllocateObject).l
-	bne.s	loc_3F3F4
-	_move.b	#ObjID_Animal,id(a1) ; load obj
+	bne.s	.noanimal
+	_move.b	#ObjID_Animal,id(a1) ; load animal object
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	jsr	(RandomNumber).l
 	andi.w	#$1F,d0
 	subq.w	#6,d0
 	tst.w	d1
-	bpl.s	+
+	bpl.s	.ispositive
 	neg.w	d0
-+
+.ispositive
 	add.w	d0,x_pos(a1)
 	move.b	#1,objoff_38(a1)
 	move.w	#$C,objoff_36(a1)
 
-loc_3F3F4:
+.noanimal:
 	subq.b	#1,anim_frame_duration(a0)
-	bne.s	return_3F404
+	bne.s	.wait
 	addq.b	#2,routine(a0)
 	move.b	#$B4,anim_frame_duration(a0)
 
-return_3F404:
+.wait:
 	rts
 ; ===========================================================================
 
@@ -76794,10 +76794,8 @@ loc_3F406:
 	beq.s	+	; rts
 	lea	next_object(a1),a1 ; a1=object
 	dbf	d0,-
-
 	jsr	(Load_EndOfAct).l
 	jmp	(DeleteObject).l
-; ===========================================================================
 +	rts
 ; ===========================================================================
 ; animation script
