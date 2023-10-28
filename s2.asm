@@ -8868,11 +8868,8 @@ loc_710A:
 	cmpi.w	#0,y_pos(a0)
 	blt.w	JmpTo_DeleteObject
 
-    if removeJmpTos
-JmpTo_DisplaySprite ; JmpTo
-    endif
-
-	jmpto	DisplaySprite, JmpTo_DisplaySprite
+JmpTo_DisplaySprite:
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 ; loc_714A:
@@ -8962,11 +8959,8 @@ loc_7218:
 return_723E:
 	rts
 
-    if removeJmpTos
 JmpTo_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
-    endif
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; sprite mappings
@@ -9484,12 +9478,8 @@ SpecialStage_ResultsLetters:
 ; ===========================================================================
 
     if ~~removeJmpTos
-JmpTo_DisplaySprite ; JmpTo
-	jmp	(DisplaySprite).l
 JmpTo_LoadTitleCardSS ; JmpTo
 	jmp	(LoadTitleCardSS).l
-JmpTo_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
 JmpTo_Obj5A_CreateRingReqMessage ; JmpTo
 	jmp	(Obj5A_CreateRingReqMessage).l
 JmpTo_Obj5A_PrintPhrase ; JmpTo
@@ -23835,7 +23825,7 @@ Obj3A: ; (screen-space obj)
 Obj3A_Index:	offsetTable
 		offsetTableEntry.w loc_140AC					;   0
 		offsetTableEntry.w loc_14102					;   2
-		offsetTableEntry.w BranchTo_Obj34_MoveTowardsTargetPosition	;   4
+		offsetTableEntry.w Obj34_MoveTowardsTargetPosition	;   4
 		offsetTableEntry.w loc_14146					;   6
 		offsetTableEntry.w loc_14168					;   8
 		offsetTableEntry.w loc_1419C					;  $A
@@ -23905,8 +23895,6 @@ return_14138:
 loc_1413A:
 	tst.w	(Perfect_rings_left).w
 	bne.w	DeleteObject
-
-BranchTo_Obj34_MoveTowardsTargetPosition ; BranchTo
 	bra.w	Obj34_MoveTowardsTargetPosition
 ; ===========================================================================
 
@@ -24227,7 +24215,7 @@ Obj6F_Index:	offsetTable
 		offsetTableEntry.w Obj6F_Emerald4	;  $E
 		offsetTableEntry.w Obj6F_Emerald5	; $10
 		offsetTableEntry.w Obj6F_Emerald6	; $12
-		offsetTableEntry.w BranchTo3_Obj34_MoveTowardsTargetPosition	; $14
+		offsetTableEntry.w Obj34_MoveTowardsTargetPosition	; $14
 		offsetTableEntry.w Obj6F_P1Rings	; $16
 		offsetTableEntry.w Obj6F_P2Rings	; $18
 		offsetTableEntry.w Obj6F_DeleteIfNotEmerald	; $1A
@@ -24284,8 +24272,6 @@ Obj6F_InitEmeraldText:
 	bne.w	Obj34_MoveTowardsTargetPosition
 	move.b	#$1C,routine(a0)	; => Obj6F_TimedDisplay
 	move.b	#$B4,anim_frame_duration(a0)
-
-BranchTo2_Obj34_MoveTowardsTargetPosition
 	bra.w	Obj34_MoveTowardsTargetPosition
 ; ===========================================================================
 ;loc_14484
@@ -24335,7 +24321,7 @@ Obj6F_Emerald0:
 	beq.w	DeleteObject
 	btst	#0,(Vint_runcount+3).w
 	beq.s	+
-	bsr.w	DisplaySprite
+	bra.w	DisplaySprite
 +
 	rts
 ; ===========================================================================
@@ -24390,15 +24376,13 @@ loc_1455A:
 	addq.w	#5,d0		; Rings text with zero points
 +
 	move.b	d0,mapping_frame(a0)
-
-BranchTo3_Obj34_MoveTowardsTargetPosition
 	bra.w	Obj34_MoveTowardsTargetPosition
 ; ===========================================================================
 ;loc_14568
 Obj6F_DeleteIfNotEmerald:
 	tst.b	(Got_Emerald).w
 	beq.w	DeleteObject
-	bra.s	BranchTo3_Obj34_MoveTowardsTargetPosition
+	bra.w	Obj34_MoveTowardsTargetPosition
 ; ===========================================================================
 ;loc_14572
 Obj6F_TimedDisplay:
@@ -27738,7 +27722,7 @@ SpecialCNZBumpers_Act2:
 ;  a2 = respawn table
 ; ---------------------------------------------------------------------------
 
-; loc_17AA4
+; loc_17AA4, ObjPosLoad, LevelObjManager
 ObjectsManager:
 	moveq	#0,d0
 	move.b	(Obj_placement_routine).w,d0
@@ -27846,7 +27830,7 @@ ObjectsManager_Main:
 
 	movea.l	(Obj_load_addr_left).w,a0	; get current object from the left
 	subi.w	#$80,d6		; look one chunk to the left
-	bcs.s	.done1		; branch, if camera position would be behind level's left boundary
+	bmi.s	.done1		; branch, if camera position would be behind level's left boundary
 
 .nextObject1:
 	; load all objects left of the screen that are now in range
@@ -39274,24 +39258,24 @@ loc_2013C:
 	moveq	#$11,d3
 	move.w	x_pos(a0),d4
 	bsr.w	PlatformObject
-	jmpto	MarkObjGone, JmpTo3_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ---------------------------------------------------------------------------
 +
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
-	beq.s	BranchTo_JmpTo3_MarkObjGone
+	beq.s	JmpTo3_MarkObjGone
 	bclr	#p1_standing_bit,status(a0)
 	beq.s	+
 	bclr	#3,(MainCharacter+status).w
 	bset	#1,(MainCharacter+status).w
 +
 	bclr	#p2_standing_bit,status(a0)
-	beq.s	BranchTo_JmpTo3_MarkObjGone
+	beq.s	JmpTo3_MarkObjGone
 	bclr	#3,(Sidekick+status).w
 	bset	#1,(Sidekick+status).w
 
-BranchTo_JmpTo3_MarkObjGone ; BranchTo
-	jmpto	MarkObjGone, JmpTo3_MarkObjGone
+JmpTo3_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; animation script
 ; off_2018C:
@@ -39308,15 +39292,6 @@ byte_20198:
 ; -------------------------------------------------------------------------------
 Obj0B_MapUnc_201A0:	include "mappings/sprite/obj0B.asm"
 ; ===========================================================================
-
-    if ~~removeJmpTos
-JmpTo3_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
-	align 4
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -39450,16 +39425,16 @@ Obj12_Main:
 	andi.w	#$FF80,d0
 	sub.w	(Camera_X_pos_coarse).w,d0
 	cmpi.w	#$280,d0
-	bhi.w	JmpTo16_DeleteObject
+	bhi.s	JmpTo16_DeleteObject
 	jmp	(DisplaySprite).l
+; ===========================================================================
+JmpTo16_DeleteObject:
+	jmp	(DeleteObject).l
 ; ===========================================================================
 ; -------------------------------------------------------------------------------
 ; sprite mappings (unused)
 ; -------------------------------------------------------------------------------
 Obj12_MapUnc_20382:	include "mappings/sprite/obj12.asm"
-; ===========================================================================
-JmpTo16_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 13 - Waterfall in Hidden Palace Zone (unused)
