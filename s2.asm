@@ -4078,7 +4078,7 @@ Level_TtlCard:
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf+HorizontalScrollBuffer.len
 
 	bsr.w	LoadZoneTiles
-	jsr	(loadZoneBlockMaps).l
+	bsr.w	LoadZoneBlockMaps
 	jsr	(LoadAnimatedBlocks).l
 	jsr	(DrawInitialBG).l
 	bsr.w	LoadCollisionIndexes
@@ -5583,10 +5583,10 @@ LoadZoneTiles:
 	bsr.w	KosPlusDec	; patch for WFZ
 	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_WFZ),d3
 +
-	cmpi.b	#death_egg_zone,(Current_Zone).w
-	bne.s	+
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
-+
+;	cmpi.b	#death_egg_zone,(Current_Zone).w
+;	bne.s	+
+;	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
+;+
 	move.w	d3,d7
 	andi.w	#$FFF,d3
 	lsr.w	#1,d3
@@ -5609,6 +5609,176 @@ LoadZoneTiles:
 
 	rts
 ; End of function LoadZoneTiles
+
+; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+; LoadZoneBlockMaps
+
+; Loads block and bigblock mappings for the current Zone.
+
+LoadZoneBlockMaps:
+	moveq	#0,d0
+	move.b	(Current_Zone).w,d0
+	add.w	d0,d0
+	add.w	d0,d0
+	move.w	d0,d1
+	add.w	d0,d0
+	add.w	d1,d0
+	lea	(LevelArtPointers).l,a2
+	lea	(a2,d0.w),a2
+	move.l	a2,-(sp)
+	addq.w	#4,a2
+	move.l	(a2)+,d0
+	andi.l	#$FFFFFF,d0	; pointer to block mappings
+	movea.l	d0,a0
+	lea	(Block_Table).w,a1
+	jsr	(KosPlusDec).l	; load block maps
+	cmpi.b	#hill_top_zone,(Current_Zone).w
+	bne.s	+
+	lea	(Block_Table+$980).w,a1
+	lea	(BM16_HTZ).l,a0
+	jsr	(KosPlusDec).l	; patch for Hill Top Zone block map
++
+	move.l	(a2)+,d0
+	andi.l	#$FFFFFF,d0	; pointer to chunk mappings
+	movea.l	d0,a0
+	lea	(Chunk_Table).l,a1
+	jsr	(TwizDec).l
+	bsr.w	loadLevelLayout
+	movea.l	(sp)+,a2	; zone specific pointer in LevelArtPointers
+	addq.w	#4,a2
+	moveq	#0,d0
+	move.b	(a2),d0	; PLC2 ID
+	beq.s	+
+	jsr	(LoadPLC).l
++
+	addq.w	#4,a2
+	moveq	#0,d0
+	move.b	(a2),d0	; palette ID
+	jmp	(PalLoad_Now).l
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+
+loadLevelLayout:
+	moveq	#0,d0
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#6,d0
+	lea	(Off_Level).l,a0
+	move.w	(a0,d0.w),d0
+	lea	(a0,d0.l),a0
+	lea	(Level_Layout).w,a1
+	jmp	(KosPlusDec).l
+; End of function loadLevelLayout
+
+; ===========================================================================
+
+;ConvertChunksFrom256x256To128x128:
+	; This converts Sonic 1-style 256x256 chunks to Sonic 2-style 128x128
+	; chunks.
+
+	; Destination of 128x128 chunks.
+	lea	($FE0000).l,a1
+	lea	($FE0000+8*8*2).l,a2
+	; Source of 256x256 chunks.
+	lea	(Chunk_Table).l,a3
+
+	move.w	#64-1,d1	; Process 64 256x256 chunks.
+-	bsr.w	ConvertHalfOf256x256ChunkToTwo128x128Chunks
+	bsr.w	ConvertHalfOf256x256ChunkToTwo128x128Chunks
+	dbf	d1,-
+
+	lea	($FE0000).l,a1
+	lea	($FF0000).l,a2
+
+	; Insert a blank chunk at the start of chunk table.
+	move.w	#bytesToWcnt(8*8*2),d1
+-	move.w	#0,(a2)+
+	dbf	d1,-
+
+	; Copy the actual chunks to after this blank chunk.
+	move.w	#bytesToWcnt($8000-(8*8*2)),d1
+-	move.w	(a1)+,(a2)+
+	dbf	d1,-
+
+	rts
+; ===========================================================================
+
+;EliminateChunkDuplicates:
+	; This is a chunk de-duplicator.
+
+	; Copy first chunk into 'Chunk_Table'.
+	lea	($FE0000).l,a1
+	lea	(Chunk_Table).l,a3
+
+	moveq	#bytesToLcnt(8*8*2),d0
+-	move.l	(a1)+,(a3)+
+	dbf	d0,-
+
+	moveq	#0,d7	; This holds how many chunks have been copied minus 1.
+	lea	($FE0000).l,a1
+	move.w	#$100-1,d5	; $100 chunks
+;loc_E55A:
+.nextChunk:
+	lea	(Chunk_Table).l,a3
+	move.w	d7,d6
+
+.doNextComparison:
+	movem.l	a1-a3,-(sp)
+
+	; Compare chunks.
+	move.w	#bytesToWcnt(8*8*2),d0
+-	cmpm.w	(a1)+,(a3)+
+	bne.s	+
+	dbf	d0,-
+
+	; The chunks match.
+	movem.l	(sp)+,a1-a3
+	adda.w	#8*8*2,a1
+	dbf	d5,.nextChunk
+
+	bra.s	++
+; ===========================================================================
++
+	; No match: check the next chunk.
+	movem.l	(sp)+,a1-a3
+	adda.w	#8*8*2,a3
+	dbf	d6,.doNextComparison
+
+	; Not a single match.
+
+	; Add this chunk to the output.
+	moveq	#bytesToLcnt(8*8*2),d0
+-	move.l	(a1)+,(a3)+
+	dbf	d0,-
+
+	addq.l	#1,d7	; One more chunk has been added.
+	dbf	d5,.nextChunk
+/
+	bra.s	-	; infinite loop
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_E59C:
+ConvertHalfOf256x256ChunkToTwo128x128Chunks:
+	moveq	#8-1,d0	 ; 8 rows.
+-
+	; Do a row of chunk 1 (a chunk is 8 blocks wide and tall).
+	move.l	(a3)+,(a1)+
+	move.l	(a3)+,(a1)+
+	move.l	(a3)+,(a1)+
+	move.l	(a3)+,(a1)+
+	; Do a row of chunk 2.
+	move.l	(a3)+,(a2)+
+	move.l	(a3)+,(a2)+
+	move.l	(a3)+,(a2)+
+	move.l	(a3)+,(a2)+
+	dbf	d0,-
+
+	adda.w	#8*8*2,a1
+	adda.w	#8*8*2,a2
+	rts
+; End of function ConvertHalfOf256x256ChunkToTwo128x128Chunks
 
 ; ===========================================================================
 ; loc_4F64:
@@ -9446,10 +9616,10 @@ ContinueScreen:
 ContinueScreen_LoadLetters:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleCard),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_TitleCard).l,a0
-	bsr.w	NemDec
+	jsr	(NemDec).l
 	lea	(Level_Layout).w,a4
 	lea	(ArtNem_TitleCard2).l,a0
-	bsr.w	NemDecToRAM
+	jsr	(NemDecToRAM).l
 	lea	(ContinueScreen_AdditionalLetters).l,a0
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ContinueScreen_Additional),VRAM,WRITE),(VDP_control_port).l
 	lea	(Level_Layout).w,a1
@@ -16993,178 +17163,6 @@ DrawInitialBG_LoadWholeBackground_512x256:
 	dbf	d6,-
 
 	rts
-; ===========================================================================
-
-; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-; loadZoneBlockMaps
-
-; Loads block and bigblock mappings for the current Zone.
-
-loadZoneBlockMaps:
-	moveq	#0,d0
-	move.b	(Current_Zone).w,d0
-	add.w	d0,d0
-	add.w	d0,d0
-	move.w	d0,d1
-	add.w	d0,d0
-	add.w	d1,d0
-	lea	(LevelArtPointers).l,a2
-	lea	(a2,d0.w),a2
-	move.l	a2,-(sp)
-	addq.w	#4,a2
-	move.l	(a2)+,d0
-	andi.l	#$FFFFFF,d0	; pointer to block mappings
-	movea.l	d0,a0
-	lea	(Block_Table).w,a1
-	jsr	(KosPlusDec).l	; load block maps
-	cmpi.b	#hill_top_zone,(Current_Zone).w
-	bne.s	+
-	lea	(Block_Table+$980).w,a1
-	lea	(BM16_HTZ).l,a0
-	jsr	(KosPlusDec).l	; patch for Hill Top Zone block map
-+
-	move.l	(a2)+,d0
-	andi.l	#$FFFFFF,d0	; pointer to chunk mappings
-	movea.l	d0,a0
-	lea	(Chunk_Table).l,a1
-	jsr	(KosPlusDec).l
-	bsr.w	loadLevelLayout
-	movea.l	(sp)+,a2	; zone specific pointer in LevelArtPointers
-	addq.w	#4,a2
-	moveq	#0,d0
-	move.b	(a2),d0	; PLC2 ID
-	beq.s	+
-	jsr	(LoadPLC).l
-+
-	addq.w	#4,a2
-	moveq	#0,d0
-	move.b	(a2),d0	; palette ID
-	jmp	(PalLoad_Now).l
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-loadLevelLayout:
-	moveq	#0,d0
-	move.w	(Current_ZoneAndAct).w,d0
-	ror.b	#1,d0
-	lsr.w	#6,d0
-	lea	(Off_Level).l,a0
-	move.w	(a0,d0.w),d0
-	lea	(a0,d0.l),a0
-	lea	(Level_Layout).w,a1
-	jmp	(TwizDec).l
-; End of function loadLevelLayout
-
-; ===========================================================================
-
-;ConvertChunksFrom256x256To128x128:
-	; This converts Sonic 1-style 256x256 chunks to Sonic 2-style 128x128
-	; chunks.
-
-	; Destination of 128x128 chunks.
-	lea	($FE0000).l,a1
-	lea	($FE0000+8*8*2).l,a2
-	; Source of 256x256 chunks.
-	lea	(Chunk_Table).l,a3
-
-	move.w	#64-1,d1	; Process 64 256x256 chunks.
--	bsr.w	ConvertHalfOf256x256ChunkToTwo128x128Chunks
-	bsr.w	ConvertHalfOf256x256ChunkToTwo128x128Chunks
-	dbf	d1,-
-
-	lea	($FE0000).l,a1
-	lea	($FF0000).l,a2
-
-	; Insert a blank chunk at the start of chunk table.
-	move.w	#bytesToWcnt(8*8*2),d1
--	move.w	#0,(a2)+
-	dbf	d1,-
-
-	; Copy the actual chunks to after this blank chunk.
-	move.w	#bytesToWcnt($8000-(8*8*2)),d1
--	move.w	(a1)+,(a2)+
-	dbf	d1,-
-
-	rts
-; ===========================================================================
-
-;EliminateChunkDuplicates:
-	; This is a chunk de-duplicator.
-
-	; Copy first chunk into 'Chunk_Table'.
-	lea	($FE0000).l,a1
-	lea	(Chunk_Table).l,a3
-
-	moveq	#bytesToLcnt(8*8*2),d0
--	move.l	(a1)+,(a3)+
-	dbf	d0,-
-
-	moveq	#0,d7	; This holds how many chunks have been copied minus 1.
-	lea	($FE0000).l,a1
-	move.w	#$100-1,d5	; $100 chunks
-;loc_E55A:
-.nextChunk:
-	lea	(Chunk_Table).l,a3
-	move.w	d7,d6
-
-.doNextComparison:
-	movem.l	a1-a3,-(sp)
-
-	; Compare chunks.
-	move.w	#bytesToWcnt(8*8*2),d0
--	cmpm.w	(a1)+,(a3)+
-	bne.s	+
-	dbf	d0,-
-
-	; The chunks match.
-	movem.l	(sp)+,a1-a3
-	adda.w	#8*8*2,a1
-	dbf	d5,.nextChunk
-
-	bra.s	++
-; ===========================================================================
-+
-	; No match: check the next chunk.
-	movem.l	(sp)+,a1-a3
-	adda.w	#8*8*2,a3
-	dbf	d6,.doNextComparison
-
-	; Not a single match.
-
-	; Add this chunk to the output.
-	moveq	#bytesToLcnt(8*8*2),d0
--	move.l	(a1)+,(a3)+
-	dbf	d0,-
-
-	addq.l	#1,d7	; One more chunk has been added.
-	dbf	d5,.nextChunk
-/
-	bra.s	-	; infinite loop
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_E59C:
-ConvertHalfOf256x256ChunkToTwo128x128Chunks:
-	moveq	#8-1,d0	 ; 8 rows.
--
-	; Do a row of chunk 1 (a chunk is 8 blocks wide and tall).
-	move.l	(a3)+,(a1)+
-	move.l	(a3)+,(a1)+
-	move.l	(a3)+,(a1)+
-	move.l	(a3)+,(a1)+
-	; Do a row of chunk 2.
-	move.l	(a3)+,(a2)+
-	move.l	(a3)+,(a2)+
-	move.l	(a3)+,(a2)+
-	move.l	(a3)+,(a2)+
-	dbf	d0,-
-
-	adda.w	#8*8*2,a1
-	adda.w	#8*8*2,a2
-	rts
-; End of function ConvertHalfOf256x256ChunkToTwo128x128Chunks
-
 ; ===========================================================================
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -81456,51 +81454,48 @@ Off_Level: zoneOrderedOffsetTable 2,2
 
 ; These are all compressed in the Kosinski format.
 Level_Invalid:
-Level_EHZ1:	BINCLUDE	"level/layout/EHZ_1.twiz"
+Level_EHZ1:	BINCLUDE	"level/layout/EHZ_1.kosp"
 	even
-Level_EHZ2:	BINCLUDE	"level/layout/EHZ_2.twiz"
+Level_EHZ2:	BINCLUDE	"level/layout/EHZ_2.kosp"
 	even
-Level_MTZ1:	BINCLUDE	"level/layout/MTZ_1.twiz"
+Level_MTZ1:	BINCLUDE	"level/layout/MTZ_1.kosp"
 	even
-Level_MTZ2:	BINCLUDE	"level/layout/MTZ_2.twiz"
+Level_MTZ2:	BINCLUDE	"level/layout/MTZ_2.kosp"
 	even
-Level_MTZ3:	BINCLUDE	"level/layout/MTZ_3.twiz"
+Level_MTZ3:	BINCLUDE	"level/layout/MTZ_3.kosp"
 	even
-Level_WFZ:	BINCLUDE	"level/layout/WFZ.twiz"
+Level_WFZ:	BINCLUDE	"level/layout/WFZ.kosp"
 	even
-Level_HTZ1:	BINCLUDE	"level/layout/HTZ_1.twiz"
+Level_HTZ1:	BINCLUDE	"level/layout/HTZ_1.kosp"
 	even
-Level_HTZ2:	BINCLUDE	"level/layout/HTZ_2.twiz"
+Level_HTZ2:	BINCLUDE	"level/layout/HTZ_2.kosp"
 	even
-Level_HPZ1:	;BINCLUDE	"level/layout/HPZ_1.twiz"
+Level_HPZ1:	;BINCLUDE	"level/layout/HPZ_1.kosp"
 	;even
-Level_OOZ1:	BINCLUDE	"level/layout/OOZ_1.twiz"
+Level_OOZ1:	BINCLUDE	"level/layout/OOZ_1.kosp"
 	even
-Level_OOZ2:	BINCLUDE	"level/layout/OOZ_2.twiz"
+Level_OOZ2:	BINCLUDE	"level/layout/OOZ_2.kosp"
 	even
-Level_MCZ1:	BINCLUDE	"level/layout/MCZ_1.twiz"
+Level_MCZ1:	BINCLUDE	"level/layout/MCZ_1.kosp"
 	even
-Level_MCZ2:	BINCLUDE	"level/layout/MCZ_2.twiz"
+Level_MCZ2:	BINCLUDE	"level/layout/MCZ_2.kosp"
 	even
-Level_CNZ1:	BINCLUDE	"level/layout/CNZ_1.twiz"
+Level_CNZ1:	BINCLUDE	"level/layout/CNZ_1.kosp"
 	even
-Level_CNZ2:	BINCLUDE	"level/layout/CNZ_2.twiz"
+Level_CNZ2:	BINCLUDE	"level/layout/CNZ_2.kosp"
 	even
-Level_CPZ1:	BINCLUDE	"level/layout/CPZ_1.twiz"
+Level_CPZ1:	BINCLUDE	"level/layout/CPZ_1.kosp"
 	even
-Level_CPZ2:	BINCLUDE	"level/layout/CPZ_2.twiz"
+Level_CPZ2:	BINCLUDE	"level/layout/CPZ_2.kosp"
 	even
-Level_DEZ:	BINCLUDE	"level/layout/DEZ.twiz"
+Level_DEZ:	BINCLUDE	"level/layout/DEZ.kosp"
 	even
-Level_ARZ1:	BINCLUDE	"level/layout/ARZ_1.twiz"
+Level_ARZ1:	BINCLUDE	"level/layout/ARZ_1.kosp"
 	even
-Level_ARZ2:	BINCLUDE	"level/layout/ARZ_2.twiz"
+Level_ARZ2:	BINCLUDE	"level/layout/ARZ_2.kosp"
 	even
-Level_SCZ:	BINCLUDE	"level/layout/SCZ.twiz"
+Level_SCZ:	BINCLUDE	"level/layout/SCZ.kosp"
 	even
-
-
-
 
 ;---------------------------------------------------------------------------------------
 ; Animated Level Art
@@ -82060,43 +82055,43 @@ BM16_EHZ:	BINCLUDE	"mappings/16x16/EHZ.kosp"
 ArtKos_EHZ:	BINCLUDE	"art/kosinski/EHZ_HTZ.kosp"
 BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.kosp"
 ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.kosp" ; HTZ pattern suppliment to EHZ level patterns
-BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.kosp"
+BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.twiz"
 
 BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.kosp"
 ArtKos_MTZ:	BINCLUDE	"art/kosinski/MTZ.kosp"
-BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.kosp"
+BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.twiz"
 
 BM16_HPZ:	;BINCLUDE	"mappings/16x16/HPZ.kosp"
 ArtKos_HPZ:	;BINCLUDE	"art/kosinski/HPZ.kosp"
-BM128_HPZ:	;BINCLUDE	"mappings/128x128/HPZ.kosp"
+BM128_HPZ:	;BINCLUDE	"mappings/128x128/HPZ.twiz"
 
 BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.kosp"
 ArtKos_OOZ:	BINCLUDE	"art/kosinski/OOZ.kosp"
-BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.kosp"
+BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.twiz"
 
 BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.kosp"
 ArtKos_MCZ:	BINCLUDE	"art/kosinski/MCZ.kosp"
-BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.kosp"
+BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.twiz"
 
 BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.kosp"
 ArtKos_CNZ:	BINCLUDE	"art/kosinski/CNZ.kosp"
-BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.kosp"
+BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.twiz"
 
 BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.kosp"
 ArtKos_CPZ:	BINCLUDE	"art/kosinski/CPZ_DEZ.kosp"
-BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.kosp"
+BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.twiz"
 
 ; This file contains $320 blocks, overflowing the 'Block_table' buffer. This causes
 ; 'TempArray_LayerDef' to be overwritten with (empty) block data.
 ; If only 'fixBugs' could fix this...
 BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.kosp"
 ArtKos_ARZ:	BINCLUDE	"art/kosinski/ARZ.kosp"
-BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.kosp"
+BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.twiz"
 
 BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.kosp"
 ArtKos_SCZ:	BINCLUDE	"art/kosinski/WFZ_SCZ.kosp"
 ArtKos_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.kosp" ; WFZ pattern suppliment to SCZ tiles
-BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.kosp"
+BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.twiz"
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ;-----------------------------------------------------------------------------------
