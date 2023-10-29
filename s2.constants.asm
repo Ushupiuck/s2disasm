@@ -155,7 +155,14 @@ ss_last_angle_index = objoff_3F
 object_size_bits =	6
 object_size =		1<<object_size_bits ; the size of an object
 next_object =		object_size
-
+; ---------------------------------------------------------------------------
+; Animation flags
+afEnd:		equ $FF	; return to beginning of animation
+afBack:		equ $FE	; go back (specified number) bytes
+afChange:	equ $FD	; run specified animation
+afRoutine:	equ $FC	; increment routine counter
+afReset:	equ $FB	; reset animation and 2nd object routine counter
+af2ndRoutine:	equ $FA	; increment 2nd routine counter
 ; ---------------------------------------------------------------------------
 ; Bits 3-6 of an object's status after a SolidObject call is a
 ; bitfield with the following meaning:
@@ -696,8 +703,8 @@ ObjID_Balkiry =			id(ObjPtr_Balkiry)		; AC
 ObjID_CluckerBase =		id(ObjPtr_CluckerBase)		; AD
 ObjID_Clucker =			id(ObjPtr_Clucker)		; AE
 ObjID_MechaSonic =		id(ObjPtr_MechaSonic)		; AF
-ObjID_SonicOnSegaScr =		id(ObjPtr_SonicOnSegaScr)	; B0
-ObjID_SegaHideTM =		id(ObjPtr_SegaHideTM)		; B1
+
+
 ObjID_Tornado =			id(ObjPtr_Tornado)		; B2
 ObjID_Cloud =			id(ObjPtr_Cloud)		; B3
 ObjID_VPropeller =		id(ObjPtr_VPropeller)		; B4
@@ -936,18 +943,19 @@ AniIDSonAni_Dash2		= id(SonAni_Dash2_ptr)		; 18 ; $12
 AniIDSonAni_Dash3		= id(SonAni_Dash3_ptr)		; 19 ; $13
 AniIDSonAni_Hang2		= id(SonAni_Hang2_ptr)		; 20 ; $14
 AniIDSonAni_Bubble		= id(SonAni_Bubble_ptr)		; 21 ; $15
-AniIDSonAni_DeathBW		= id(SonAni_DeathBW_ptr)	; 22 ; $16
-AniIDSonAni_Drown		= id(SonAni_Drown_ptr)		; 23 ; $17
-AniIDSonAni_Death		= id(SonAni_Death_ptr)		; 24 ; $18
-AniIDSonAni_Hurt		= id(SonAni_Hurt_ptr)		; 25 ; $19
-AniIDSonAni_Hurt2		= id(SonAni_Hurt2_ptr)		; 26 ; $1A
-AniIDSonAni_Slide		= id(SonAni_Slide_ptr)		; 27 ; $1B
-AniIDSonAni_Blank		= id(SonAni_Blank_ptr)		; 28 ; $1C
-AniIDSonAni_Balance3		= id(SonAni_Balance3_ptr)	; 29 ; $1D
-AniIDSonAni_Balance4		= id(SonAni_Balance4_ptr)	; 30 ; $1E
-AniIDSupSonAni_Transform	= id(SupSonAni_Transform_ptr)	; 31 ; $1F
-AniIDSonAni_Lying		= id(SonAni_Lying_ptr)		; 32 ; $20
-AniIDSonAni_LieDown		= id(SonAni_LieDown_ptr)	; 33 ; $21
+AniIDSonAni_Leap1		= id(SonAni_Leap1_ptr)		; 22 ; $16
+AniIDSonAni_Leap2		= id(SonAni_Leap2_ptr)		; 23 ; $17
+AniIDSonAni_Drown		= id(SonAni_Drown_ptr)		; 24 ; $18
+AniIDSonAni_Death		= id(SonAni_Death_ptr)		; 25 ; $19
+AniIDSonAni_Hurt		= id(SonAni_Hurt_ptr)		; 26 ; $1A
+AniIDSonAni_Hurt2		= id(SonAni_Hurt2_ptr)		; 27 ; $1B
+AniIDSonAni_Slide		= id(SonAni_Slide_ptr)		; 28 ; $1C
+AniIDSonAni_Blank		= id(SonAni_Blank_ptr)		; 29 ; $1D
+AniIDSonAni_Balance3		= id(SonAni_Balance3_ptr)	; 30 ; $1E
+AniIDSonAni_Balance4		= id(SonAni_Balance4_ptr)	; 31 ; $1F
+AniIDSupSonAni_Transform	= id(SupSonAni_Transform_ptr)	; 32 ; $20
+AniIDSonAni_Lying		= id(SonAni_Lying_ptr)		; 33 ; $21
+AniIDSonAni_LieDown		= id(SonAni_LieDown_ptr)	; 34 ; $22
 
 
 offset :=	TailsAniData

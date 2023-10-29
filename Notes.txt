@@ -3,6 +3,7 @@ Mix and match beta layouts, potentially, like this one:
 https://tcrf.net/Proto:Sonic_the_Hedgehog_2_(Genesis)/Simon_Wai_Prototype/Oil_Ocean_Zone
 https://tcrf.net/Proto:Sonic_the_Hedgehog_2_(Genesis)
 TODO:
+Optimize "SlotMachine" Routine
 Boss_MoveObject
 SSObjectMoveAndFall
 New Routine:
