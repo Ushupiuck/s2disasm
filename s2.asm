@@ -79981,14 +79981,14 @@ PlrList_Htz2_End
 ; PATTERN LOAD REQUEST LIST
 ; HPZ Primary
 ;---------------------------------------------------------------------------------------
-PlrList_Hpz1: ;plrlistheader
+PlrList_Hpz1: plrlistheader
 	plreq ArtTile_ArtNem_WaterSurface, ArtNem_WaterSurface
 PlrList_Hpz1_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
 ; HPZ Secondary
 ;---------------------------------------------------------------------------------------
-PlrList_Hpz2: ;plrlistheader
+PlrList_Hpz2: plrlistheader
 	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
 	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
 PlrList_Hpz2_End
