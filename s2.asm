@@ -21,6 +21,9 @@ gameRevision = 2
 ;	| If 0, a REV00 ROM is built
 ;	| If 1, a REV01 ROM is built, which contains some fixes
 ;	| If 2, a (theoretical) REV02 ROM is built, which contains even more fixes
+AdvancedErrorHandler = 1
+;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
+;
 padToPowerOfTwo = 0
 ;	| If 1, pads the end of the ROM to the next power of two bytes (for real hardware)
 ;
@@ -41,9 +44,6 @@ addsubOptimize = 1
 ;
 relativeLea = 1
 ;	| If 1, makes some instructions use pc-relative addressing, instead of absolute long
-;
-AdvancedErrorHandler = 0
-;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
 ;
 useFullWaterTables = 1
 ;	| If 1, zone offset tables for water levels cover all level slots instead of only slots 8-$F
@@ -3388,8 +3388,8 @@ SegaScreen:
 	moveq	#28-1,d2	; 28 cells tall
 	bsr.w	PlaneMapToVRAM_H80
 
-	tst.b	(Graphics_Flags).w ; are we on a Japanese Mega Drive?
-	bmi.s	SegaScreen_Contin ; if not, branch
+;	tst.b	(Graphics_Flags).w ; are we on a Japanese Mega Drive?
+;	bmi.s	SegaScreen_Contin ; if not, branch
 
 	; load an extra sprite to hide the TM (trademark) symbol on the SEGA screen
 ;	lea	(SegaHideTM).w,a1
@@ -3939,13 +3939,12 @@ Level:
 	moveq	#PLCID_Std2,d0
 	bsr.w	LoadPLC
 	bsr.w	Level_SetPlayerMode
-	moveq	#PLCID_MilesLife2P,d0
+	moveq	#PLCID_MilesLife,d0
 	cmpi.w	#2,(Player_mode).w
 	bne.s	Level_ClrRam
-	addq.w	#PLCID_MilesLife-PLCID_MilesLife2P,d0
 	tst.b	(Graphics_Flags).w
 	bpl.s	+
-	addq.w	#PLCID_TailsLife2P-PLCID_MilesLife2P,d0
+	moveq	#PLCID_TailsLife,d0
 +
 	bsr.w	LoadPLC
 ; loc_3F48:
@@ -11111,7 +11110,7 @@ LevelSelect_Return:
 ; -----------------------------------------------------------------------------
 ;Misc_9454:
 LevelSelect_Order:
-	dc.w	emerald_hill_zone_act_1
+	dc.w	hidden_palace_zone_act_1
 	dc.w	emerald_hill_zone_act_2	; 1
 	dc.w	chemical_plant_zone_act_1	; 2
 	dc.w	chemical_plant_zone_act_2	; 3
@@ -13333,14 +13332,14 @@ StartLocations: zoneOrderedTable 2,4	; WrdArr_StartLoc
 	zoneTableBinEntry	2, "startpos/EHZ_1.bin"	; Act 1
 	zoneTableBinEntry	2, "startpos/EHZ_2.bin"	; Act 2
 	; Zone 1
-	zoneTableBinEntry	2, "startpos/01_1.bin"	; Act 1
-	zoneTableBinEntry	2, "startpos/01_2.bin"	; Act 2
+	zoneTableBinEntry	2, "startpos/001_1.bin"	; Act 1
+	zoneTableBinEntry	2, "startpos/001_2.bin"	; Act 2
 	; WZ
 	zoneTableBinEntry	2, "startpos/WZ_1.bin"	; Act 1
 	zoneTableBinEntry	2, "startpos/WZ_2.bin"	; Act 2
 	; Zone 3
-	zoneTableBinEntry	2, "startpos/03_1.bin"	; Act 1
-	zoneTableBinEntry	2, "startpos/03_2.bin"	; Act 2
+	zoneTableBinEntry	2, "startpos/003_1.bin"	; Act 1
+	zoneTableBinEntry	2, "startpos/003_2.bin"	; Act 2
 	; MTZ
 	zoneTableBinEntry	2, "startpos/MTZ_1.bin"	; Act 1
 	zoneTableBinEntry	2, "startpos/MTZ_2.bin"	; Act 2
@@ -13357,8 +13356,8 @@ StartLocations: zoneOrderedTable 2,4	; WrdArr_StartLoc
 	zoneTableBinEntry	2, "startpos/HPZ_1.bin"	; Act 1
 	zoneTableBinEntry	2, "startpos/HPZ_2.bin"	; Act 2
 	; Zone 9
-	zoneTableBinEntry	2, "startpos/09_1.bin"	; Act 1
-	zoneTableBinEntry	2, "startpos/09_2.bin"	; Act 2
+	zoneTableBinEntry	2, "startpos/009_1.bin"	; Act 1
+	zoneTableBinEntry	2, "startpos/009_2.bin"	; Act 2
 	; OOZ
 	zoneTableBinEntry	2, "startpos/OOZ_1.bin"	; Act 1
 	zoneTableBinEntry	2, "startpos/OOZ_2.bin"	; Act 2
@@ -23818,7 +23817,7 @@ Obj3A: ; (screen-space obj)
 Obj3A_Index:	offsetTable
 		offsetTableEntry.w loc_140AC					;   0
 		offsetTableEntry.w loc_14102					;   2
-		offsetTableEntry.w Obj34_MoveTowardsTargetPosition	;   4
+		offsetTableEntry.w Obj34_MoveTowardsTargetPosition		;   4
 		offsetTableEntry.w loc_14146					;   6
 		offsetTableEntry.w loc_14168					;   8
 		offsetTableEntry.w loc_1419C					;  $A
@@ -79611,15 +79610,15 @@ cur_zone_str := "\{cur_zone_id}"
 ; dword_42594: MainLoadBlocks: saArtPtrs:
 LevelArtPointers:
 	levartptrs PLCID_Ehz1,        PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; EHZ    ; EMERALD HILL ZONE
-	levartptrs PLCID_MilesLife2P, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; Zone 1 ; LEVEL 1 (UNUSED)
-	levartptrs PLCID_TailsLife2P, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; WZ     ; WOOD ZONE (UNUSED)
-	levartptrs PLCID_Unused1,     PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; Zone 3 ; LEVEL 3 (UNUSED)
+	levartptrs PLCID_001z1,       PLCID_001z2,     PalID_EHZ2, ArtKos_001Z,BM16_001Z,BM128_001Z; Zone 1 ; LEVEL 1 (UNUSED)
+	levartptrs PLCID_Wz1,         PLCID_Wz2,       PalID_WZ,   ArtKos_WZ,  BM16_WZ,  BM128_WZ  ; WZ     ; WOOD ZONE (UNUSED)
+	levartptrs PLCID_003z1,       PLCID_003z2,     PalID_EHZ3, ArtKos_003Z,BM16_003Z,BM128_003Z; Zone 3 ; LEVEL 3 (UNUSED)
 	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ; MTZ1,2 ; METROPOLIS ZONE ACTS 1 & 2
 	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ; MTZ3   ; METROPOLIS ZONE ACT 3
 	levartptrs PLCID_Wfz1,        PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ ; WFZ    ; WING FORTRESS ZONE
 	levartptrs PLCID_Htz1,        PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; HTZ    ; HILL TOP ZONE
 	levartptrs PLCID_Hpz1,        PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ ; HPZ    ; HIDDEN PALACE ZONE (UNUSED)
-	levartptrs PLCID_Unused3,     PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; Zone 9 ; LEVEL 9 (UNUSED)
+	levartptrs PLCID_009z1,       PLCID_009z2,     PalID_EHZ4, ArtKos_009Z,BM16_009Z,BM128_009Z; Zone 9 ; LEVEL 9 (UNUSED)
 	levartptrs PLCID_Ooz1,        PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ, BM16_OOZ, BM128_OOZ ; OOZ    ; OIL OCEAN ZONE
 	levartptrs PLCID_Mcz1,        PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ, BM16_MCZ, BM128_MCZ ; MCZ    ; MYSTIC CAVE ZONE
 	levartptrs PLCID_Cnz1,        PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ, BM16_CNZ, BM128_CNZ ; CNZ    ; CASINO NIGHT ZONE
@@ -79671,28 +79670,28 @@ LevelArtPointers:
 ArtLoadCues:		offsetTable
 PLCptr_Std1:		offsetTableEntry.w PlrList_Std1			; 0
 PLCptr_Std2:		offsetTableEntry.w PlrList_Std2			; 1
+PLCptr_MilesLife:	offsetTableEntry.w PlrList_MilesLife		; 7
+PLCptr_TailsLife:	offsetTableEntry.w PlrList_TailsLife		; 9
 PLCptr_StdWtr:		offsetTableEntry.w PlrList_StdWtr		; 2
 PLCptr_GameOver:	offsetTableEntry.w PlrList_GameOver		; 3
 PLCptr_Ehz1:		offsetTableEntry.w PlrList_Ehz1			; 4
 PLCptr_Ehz2:		offsetTableEntry.w PlrList_Ehz2			; 5
-PLCptr_MilesLife2P:	offsetTableEntry.w PlrList_MilesLife2P		; 6
-PLCptr_MilesLife:	offsetTableEntry.w PlrList_MilesLife		; 7
-PLCptr_TailsLife2P:	offsetTableEntry.w PlrList_TailsLife2P		; 8
-PLCptr_TailsLife:	offsetTableEntry.w PlrList_TailsLife		; 9
-PLCptr_Unused1:		offsetTableEntry.w PlrList_Mtz1			; 10
-PLCptr_Unused2:		offsetTableEntry.w PlrList_Mtz1			; 11
+PLCptr_001z1:		offsetTableEntry.w PlrList_Empty11		; 6
+PLCptr_001z2:		offsetTableEntry.w PlrList_Empty12		; 8
+PLCptr_Wz1:		offsetTableEntry.w PlrList_Wz1			; 14
+PLCptr_Wz2:		offsetTableEntry.w PlrList_Wz2			; 15
+PLCptr_003z1:		offsetTableEntry.w PlrList_Empty31		; 10
+PLCptr_003z2:		offsetTableEntry.w PlrList_Empty32		; 11
 PLCptr_Mtz1:		offsetTableEntry.w PlrList_Mtz1			; 12
 PLCptr_Mtz2:		offsetTableEntry.w PlrList_Mtz2			; 13
-			offsetTableEntry.w PlrList_Wfz1			; 14
-			offsetTableEntry.w PlrList_Wfz1			; 15
 PLCptr_Wfz1:		offsetTableEntry.w PlrList_Wfz1			; 16
 PLCptr_Wfz2:		offsetTableEntry.w PlrList_Wfz2			; 17
 PLCptr_Htz1:		offsetTableEntry.w PlrList_Htz1			; 18
 PLCptr_Htz2:		offsetTableEntry.w PlrList_Htz2			; 19
 PLCptr_Hpz1:		offsetTableEntry.w PlrList_Hpz1			; 20
 PLCptr_Hpz2:		offsetTableEntry.w PlrList_Hpz2			; 21
-PLCptr_Unused3:		offsetTableEntry.w PlrList_Ooz1			; 22
-PLCptr_Unused4:		offsetTableEntry.w PlrList_Ooz1			; 23
+PLCptr_009z1:		offsetTableEntry.w PlrList_Empty91		; 22
+PLCptr_009z2:		offsetTableEntry.w PlrList_Empty92		; 23
 PLCptr_Ooz1:		offsetTableEntry.w PlrList_Ooz1			; 24
 PLCptr_Ooz2:		offsetTableEntry.w PlrList_Ooz2			; 25
 PLCptr_Mcz1:		offsetTableEntry.w PlrList_Mcz1			; 26
@@ -79775,6 +79774,20 @@ PlrList_Std2: plrlistheader
 PlrList_Std2_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
+; Miles life counter
+;---------------------------------------------------------------------------------------
+PlrList_MilesLife: plrlistheader
+	plreq ArtTile_ArtNem_life_counter, ArtNem_MilesLife
+PlrList_MilesLife_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
+; Tails life counter
+;---------------------------------------------------------------------------------------
+PlrList_TailsLife: plrlistheader
+	plreq ArtTile_ArtNem_life_counter, ArtNem_TailsLife
+PlrList_TailsLife_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
 ; Aquatic level standard
 ;---------------------------------------------------------------------------------------
 PlrList_StdWtr:	plrlistheader
@@ -79813,32 +79826,68 @@ PlrList_Ehz2: plrlistheader
 PlrList_Ehz2_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
-; Miles 1up patch
+; Empty 1 Zone primary
 ;---------------------------------------------------------------------------------------
-PlrList_MilesLife2P: plrlistheader
-	plreq ArtTile_ArtNem_2p_life_counter, ArtNem_MilesLife
-PlrList_MilesLife2P_End
-;---------------------------------------------------------------------------------------
-; PATTERN LOAD REQUEST LIST
-; Miles life counter
-;---------------------------------------------------------------------------------------
-PlrList_MilesLife: plrlistheader
-	plreq ArtTile_ArtNem_life_counter, ArtNem_MilesLife
-PlrList_MilesLife_End
+PlrList_Empty11: plrlistheader
+	plreq ArtTile_ArtNem_HorizSpike, ArtNem_HorizSpike
+	plreq ArtTile_ArtNem_Spikes, ArtNem_Spikes
+PlrList_Empty11_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
-; Tails 1up patch
+; Empty 1 Zone secondary
 ;---------------------------------------------------------------------------------------
-PlrList_TailsLife2P: plrlistheader
-	plreq ArtTile_ArtNem_2p_life_counter, ArtNem_TailsLife
-PlrList_TailsLife2P_End
+PlrList_Empty12: plrlistheader
+	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
+	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
+PlrList_Empty12_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
-; Tails life counter
+; Wood Zone primary
 ;---------------------------------------------------------------------------------------
-PlrList_TailsLife: plrlistheader
-	plreq ArtTile_ArtNem_life_counter, ArtNem_TailsLife
-PlrList_TailsLife_End
+PlrList_Wz1: plrlistheader
+	plreq ArtTile_ArtNem_HorizSpike, ArtNem_HorizSpike
+	plreq ArtTile_ArtNem_Spikes, ArtNem_Spikes
+PlrList_Wz1_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
+; Wood 1 Zone secondary
+;---------------------------------------------------------------------------------------
+PlrList_Wz2: plrlistheader
+	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
+	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
+PlrList_Wz2_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
+; Empty 3 Zone primary
+;---------------------------------------------------------------------------------------
+PlrList_Empty31: plrlistheader
+	plreq ArtTile_ArtNem_HorizSpike, ArtNem_HorizSpike
+	plreq ArtTile_ArtNem_Spikes, ArtNem_Spikes
+PlrList_Empty31_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
+; Empty 3 Zone secondary
+;---------------------------------------------------------------------------------------
+PlrList_Empty32: plrlistheader
+	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
+	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
+PlrList_Empty32_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
+; Empty 9 Zone primary
+;---------------------------------------------------------------------------------------
+PlrList_Empty91: plrlistheader
+	plreq ArtTile_ArtNem_HorizSpike, ArtNem_HorizSpike
+	plreq ArtTile_ArtNem_Spikes, ArtNem_Spikes
+PlrList_Empty91_End
+;---------------------------------------------------------------------------------------
+; PATTERN LOAD REQUEST LIST
+; Empty 9 Zone secondary
+;---------------------------------------------------------------------------------------
+PlrList_Empty92: plrlistheader
+	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
+	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
+PlrList_Empty92_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
 ; Metropolis Zone primary
@@ -79940,6 +79989,8 @@ PlrList_Hpz1_End
 ; HPZ Secondary
 ;---------------------------------------------------------------------------------------
 PlrList_Hpz2: ;plrlistheader
+	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
+	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
 PlrList_Hpz2_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
@@ -80462,20 +80513,20 @@ Off_Level: zoneOrderedOffsetTable 2,2
 	zoneOffsetTableEntry.w Level_EHZ1	; Act 1
 	zoneOffsetTableEntry.w Level_EHZ2	; Act 2
 	; Zone 1
-	zoneOffsetTableEntry.w Level_Invalid	; Act 1
-	zoneOffsetTableEntry.w Level_Invalid	; Act 2
+	zoneOffsetTableEntry.w Level_001Z1	; Act 1
+	zoneOffsetTableEntry.w Level_001Z2	; Act 2
 	; WZ
-	zoneOffsetTableEntry.w Level_Invalid	; Act 1
-	zoneOffsetTableEntry.w Level_Invalid	; Act 2
+	zoneOffsetTableEntry.w Level_WZ1	; Act 1
+	zoneOffsetTableEntry.w Level_WZ2	; Act 2
 	; Zone 3
-	zoneOffsetTableEntry.w Level_Invalid	; Act 1
-	zoneOffsetTableEntry.w Level_Invalid	; Act 2
+	zoneOffsetTableEntry.w Level_003Z1	; Act 1
+	zoneOffsetTableEntry.w Level_003Z2	; Act 2
 	; MTZ
 	zoneOffsetTableEntry.w Level_MTZ1	; Act 1
 	zoneOffsetTableEntry.w Level_MTZ2	; Act 2
 	; MTZ
 	zoneOffsetTableEntry.w Level_MTZ3	; Act 3
-	zoneOffsetTableEntry.w Level_MTZ3	; Act 4
+	zoneOffsetTableEntry.w Level_MTZ4	; Act 4
 	; WFZ
 	zoneOffsetTableEntry.w Level_WFZ	; Act 1
 	zoneOffsetTableEntry.w Level_WFZ	; Act 2
@@ -80484,10 +80535,10 @@ Off_Level: zoneOrderedOffsetTable 2,2
 	zoneOffsetTableEntry.w Level_HTZ2	; Act 2
 	; HPZ
 	zoneOffsetTableEntry.w Level_HPZ1	; Act 1
-	zoneOffsetTableEntry.w Level_HPZ1	; Act 2
+	zoneOffsetTableEntry.w Level_HPZ2	; Act 2
 	; Zone 9
-	zoneOffsetTableEntry.w Level_Invalid	; Act 1
-	zoneOffsetTableEntry.w Level_Invalid	; Act 2
+	zoneOffsetTableEntry.w Level_009Z1	; Act 1
+	zoneOffsetTableEntry.w Level_009Z2	; Act 2
 	; OOZ
 	zoneOffsetTableEntry.w Level_OOZ1	; Act 1
 	zoneOffsetTableEntry.w Level_OOZ2	; Act 2
@@ -80517,11 +80568,25 @@ Level_EHZ1:	BINCLUDE	"level/layout/EHZ_1.kosp"
 	even
 Level_EHZ2:	BINCLUDE	"level/layout/EHZ_2.kosp"
 	even
+Level_001Z1:	BINCLUDE	"level/layout/001_1.kosp"
+	even
+Level_001Z2:	BINCLUDE	"level/layout/001_2.kosp"
+	even
+Level_WZ1:	BINCLUDE	"level/layout/WZ_1.kosp"
+	even
+Level_WZ2:	BINCLUDE	"level/layout/WZ_2.kosp"
+	even
+Level_003Z1:	BINCLUDE	"level/layout/003_1.kosp"
+	even
+Level_003Z2:	BINCLUDE	"level/layout/003_2.kosp"
+	even
 Level_MTZ1:	BINCLUDE	"level/layout/MTZ_1.kosp"
 	even
 Level_MTZ2:	BINCLUDE	"level/layout/MTZ_2.kosp"
 	even
 Level_MTZ3:	BINCLUDE	"level/layout/MTZ_3.kosp"
+	even
+Level_MTZ4:	BINCLUDE	"level/layout/MTZ_4.kosp"
 	even
 Level_WFZ:	BINCLUDE	"level/layout/WFZ.kosp"
 	even
@@ -80529,8 +80594,14 @@ Level_HTZ1:	BINCLUDE	"level/layout/HTZ_1.kosp"
 	even
 Level_HTZ2:	BINCLUDE	"level/layout/HTZ_2.kosp"
 	even
-Level_HPZ1:	;BINCLUDE	"level/layout/HPZ_1.kosp"
-	;even
+Level_HPZ1:	BINCLUDE	"level/layout/HPZ_1.kosp"
+	even
+Level_HPZ2:	BINCLUDE	"level/layout/HPZ_2.kosp"
+	even
+Level_009Z1:	BINCLUDE	"level/layout/009_1.kosp"
+	even
+Level_009Z2:	BINCLUDE	"level/layout/009_2.kosp"
+	even
 Level_OOZ1:	BINCLUDE	"level/layout/OOZ_1.kosp"
 	even
 Level_OOZ2:	BINCLUDE	"level/layout/OOZ_2.kosp"
@@ -80575,7 +80646,7 @@ ArtUnc_Lava:		BINCLUDE	"art/uncompressed/Lava.bin"
 ArtUnc_MTZAnimBack:	BINCLUDE	"art/uncompressed/Animated section of MTZ background.bin"
 
 ; HPZ
-ArtUnc_HPZPulseOrb:	;BINCLUDE	"art/uncompressed/Pulsing orb (HPZ).bin"
+ArtUnc_HPZPulseOrb:	BINCLUDE	"art/uncompressed/Pulsing orb (HPZ).bin"
 
 ; OOZ
 ArtUnc_OOZPulseBall:	BINCLUDE	"art/uncompressed/Pulsing ball (OOZ).bin"
@@ -80601,17 +80672,17 @@ ArtUnc_Waterfall3:	BINCLUDE	"art/uncompressed/ARZ waterfall patterns - 3.bin"
 ArtUnc_Sonic:			BINCLUDE	"art/uncompressed/Sonic's art.bin"
 	align $20
 ArtUnc_Tails:			BINCLUDE	"art/uncompressed/Tails's art.bin"
-
+	even
 MapUnc_Sonic:			BINCLUDE	"mappings/sprite/Sonic mappings.bin"
-
+	even
 MapRUnc_Sonic:			BINCLUDE	"mappings/spriteDPLC/Sonic DPLC's.bin"
-
+	even
 ArtNem_Shield:			BINCLUDE	"art/nemesis/Shield.nem"
 	even
 ArtNem_Invincible_stars:	BINCLUDE	"art/nemesis/Invincibility stars.nem"
 	even
 ArtUnc_SplashAndDust:		BINCLUDE	"art/uncompressed/Splash and skid dust.bin"
-
+	even
 ArtNem_SuperSonic_stars:	BINCLUDE	"art/nemesis/Super Sonic stars.nem"
 	even
 MapUnc_Tails:			include		"mappings/sprite/Tails.asm"
@@ -81106,46 +81177,100 @@ ArtNem_EndingTitle:		BINCLUDE	"art/nemesis/Sonic the Hedgehog 2 image at end of 
 ; All of these are compressed in the Kosinski format.
 
 BM16_EHZ:	BINCLUDE	"mappings/16x16/EHZ.kosp"
+	even
 ArtKos_EHZ:	BINCLUDE	"art/kosinski/EHZ_HTZ.kosp"
+	even
 BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.kosp"
+	even
 ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.kosp" ; HTZ pattern suppliment to EHZ level patterns
+	even
 BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.twiz"
+	even
+
+BM16_001Z:	BINCLUDE	"mappings/16x16/001.kosp"
+	even
+ArtKos_001Z:	BINCLUDE	"art/kosinski/001.kosp"
+	even
+BM128_001Z:	BINCLUDE	"mappings/128x128/001.twiz"
+	even
+
+BM16_WZ:	BINCLUDE	"mappings/16x16/WZ.kosp"
+	even
+ArtKos_WZ:	BINCLUDE	"art/kosinski/WZ.kosp"
+	even
+BM128_WZ:	BINCLUDE	"mappings/128x128/WZ.twiz"
+	even
+
+BM16_003Z:	BINCLUDE	"mappings/16x16/003.kosp"
+	even
+ArtKos_003Z:	BINCLUDE	"art/kosinski/003.kosp"
+	even
+BM128_003Z:	BINCLUDE	"mappings/128x128/003.twiz"
+	even
 
 BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.kosp"
+	even
 ArtKos_MTZ:	BINCLUDE	"art/kosinski/MTZ.kosp"
+	even
 BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.twiz"
+	even
 
-BM16_HPZ:	;BINCLUDE	"mappings/16x16/HPZ.kosp"
-ArtKos_HPZ:	;BINCLUDE	"art/kosinski/HPZ.kosp"
-BM128_HPZ:	;BINCLUDE	"mappings/128x128/HPZ.twiz"
+BM16_HPZ:	BINCLUDE	"mappings/16x16/HPZ.kosp"
+	even
+ArtKos_HPZ:	BINCLUDE	"art/kosinski/HPZ.kosp"
+	even
+BM128_HPZ:	BINCLUDE	"mappings/128x128/HPZ.twiz"
+	even
+
+BM16_009Z:	BINCLUDE	"mappings/16x16/009.kosp"
+	even
+ArtKos_009Z:	BINCLUDE	"art/kosinski/009.kosp"
+	even
+BM128_009Z:	BINCLUDE	"mappings/128x128/009.twiz"
+	even
 
 BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.kosp"
+	even
 ArtKos_OOZ:	BINCLUDE	"art/kosinski/OOZ.kosp"
+	even
 BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.twiz"
+	even
 
 BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.kosp"
+	even
 ArtKos_MCZ:	BINCLUDE	"art/kosinski/MCZ.kosp"
+	even
 BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.twiz"
+	even
 
 BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.kosp"
+	even
 ArtKos_CNZ:	BINCLUDE	"art/kosinski/CNZ.kosp"
+	even
 BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.twiz"
 
 BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.kosp"
+	even
 ArtKos_CPZ:	BINCLUDE	"art/kosinski/CPZ_DEZ.kosp"
+	even
 BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.twiz"
+	even
 
-; This file contains $320 blocks, overflowing the 'Block_table' buffer. This causes
-; 'TempArray_LayerDef' to be overwritten with (empty) block data.
-; If only 'fixBugs' could fix this...
 BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.kosp"
+	even
 ArtKos_ARZ:	BINCLUDE	"art/kosinski/ARZ.kosp"
+	even
 BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.twiz"
+	even
 
 BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.kosp"
+	even
 ArtKos_SCZ:	BINCLUDE	"art/kosinski/WFZ_SCZ.kosp"
+	even
 ArtKos_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.kosp" ; WFZ pattern suppliment to SCZ tiles
+	even
 BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.twiz"
+	even
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ;-----------------------------------------------------------------------------------
@@ -81156,6 +81281,7 @@ BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.twiz"
 ; Exit curve + slope up
 ;-----------------------------------------------------------------------------------
 MapSpec_Rise1:		BINCLUDE	"mappings/special stage/Slope up - Frame 1.bin"
+	even
 MapSpec_Rise2:		BINCLUDE	"mappings/special stage/Slope up - Frame 2.bin"
 MapSpec_Rise3:		BINCLUDE	"mappings/special stage/Slope up - Frame 3.bin"
 MapSpec_Rise4:		BINCLUDE	"mappings/special stage/Slope up - Frame 4.bin"
@@ -81231,7 +81357,7 @@ MapSpec_Turn4:		BINCLUDE	"mappings/special stage/Begin curve right - Frame 4.bin
 MapSpec_Turn5:		BINCLUDE	"mappings/special stage/Begin curve right - Frame 5.bin"
 MapSpec_Turn6:		BINCLUDE	"mappings/special stage/Begin curve right - Frame 6.bin"
 MapSpec_Turn7:		BINCLUDE	"mappings/special stage/Begin curve right - Frame 7.bin"
-
+	even
 ;--------------------------------------------------------------------------------------
 ; Special stage level patterns
 ; Note: Only one line of each tile is stored in this archive. The other 7 lines are
@@ -81342,12 +81468,12 @@ Off_Rings: zoneOrderedOffsetTable 2,2
 
 Rings_EHZ_1:	BINCLUDE	"level/rings/EHZ_1.bin"
 Rings_EHZ_2:	BINCLUDE	"level/rings/EHZ_2.bin"
-Rings_Lev1_1:	BINCLUDE	"level/rings/01_1.bin"
-Rings_Lev1_2:	BINCLUDE	"level/rings/01_2.bin"
+Rings_Lev1_1:	BINCLUDE	"level/rings/001_1.bin"
+Rings_Lev1_2:	BINCLUDE	"level/rings/001_2.bin"
 Rings_WZ_1:	BINCLUDE	"level/rings/WZ_1.bin"
 Rings_WZ_2:	BINCLUDE	"level/rings/WZ_2.bin"
-Rings_Lev3_1:	BINCLUDE	"level/rings/03_1.bin"
-Rings_Lev3_2:	BINCLUDE	"level/rings/03_2.bin"
+Rings_Lev3_1:	BINCLUDE	"level/rings/003_1.bin"
+Rings_Lev3_2:	BINCLUDE	"level/rings/003_2.bin"
 Rings_MTZ_1:	BINCLUDE	"level/rings/MTZ_1.bin"
 Rings_MTZ_2:	BINCLUDE	"level/rings/MTZ_2.bin"
 Rings_MTZ_3:	BINCLUDE	"level/rings/MTZ_3.bin"
@@ -81356,8 +81482,8 @@ Rings_HTZ_1:	BINCLUDE	"level/rings/HTZ_1.bin"
 Rings_HTZ_2:	BINCLUDE	"level/rings/HTZ_2.bin"
 Rings_HPZ_1:	BINCLUDE	"level/rings/HPZ_1.bin"
 Rings_HPZ_2:	BINCLUDE	"level/rings/HPZ_2.bin"
-Rings_Lev9_1:	BINCLUDE	"level/rings/09_1.bin"
-Rings_Lev9_2:	BINCLUDE	"level/rings/09_2.bin"
+Rings_Lev9_1:	BINCLUDE	"level/rings/009_1.bin"
+Rings_Lev9_2:	BINCLUDE	"level/rings/009_2.bin"
 Rings_OOZ_1:	BINCLUDE	"level/rings/OOZ_1.bin"
 Rings_OOZ_2:	BINCLUDE	"level/rings/OOZ_2.bin"
 Rings_MCZ_1:	BINCLUDE	"level/rings/MCZ_1.bin"
@@ -81384,20 +81510,20 @@ Off_Objects: zoneOrderedOffsetTable 2,2
 	zoneOffsetTableEntry.w  Objects_EHZ_1	; Act 1
 	zoneOffsetTableEntry.w  Objects_EHZ_2	; Act 2
 	; Zone 1
-	zoneOffsetTableEntry.w  Objects_Null	; Act 1
-	zoneOffsetTableEntry.w  Objects_Null	; Act 2
+	zoneOffsetTableEntry.w  Objects_001z_1	; Act 1
+	zoneOffsetTableEntry.w  Objects_001z_2	; Act 2
 	; WZ
-	zoneOffsetTableEntry.w  Objects_Null	; Act 1
-	zoneOffsetTableEntry.w  Objects_Null	; Act 2
+	zoneOffsetTableEntry.w  Objects_WZ_1	; Act 1
+	zoneOffsetTableEntry.w  Objects_WZ_2	; Act 2
 	; Zone 3
-	zoneOffsetTableEntry.w  Objects_Null	; Act 1
-	zoneOffsetTableEntry.w  Objects_Null	; Act 2
+	zoneOffsetTableEntry.w  Objects_003z_1	; Act 1
+	zoneOffsetTableEntry.w  Objects_003z_2	; Act 2
 	; MTZ
 	zoneOffsetTableEntry.w  Objects_MTZ_1	; Act 1
 	zoneOffsetTableEntry.w  Objects_MTZ_2	; Act 2
 	; MTZ
 	zoneOffsetTableEntry.w  Objects_MTZ_3	; Act 3
-	zoneOffsetTableEntry.w  Objects_MTZ_3	; Act 4
+	zoneOffsetTableEntry.w  Objects_MTZ_4	; Act 4
 	; WFZ
 	zoneOffsetTableEntry.w  Objects_WFZ_1	; Act 1
 	zoneOffsetTableEntry.w  Objects_WFZ_2	; Act 2
@@ -81408,8 +81534,8 @@ Off_Objects: zoneOrderedOffsetTable 2,2
 	zoneOffsetTableEntry.w  Objects_HPZ_1	; Act 1
 	zoneOffsetTableEntry.w  Objects_HPZ_2	; Act 2
 	; Zone 9
-	zoneOffsetTableEntry.w  Objects_Null	; Act 1
-	zoneOffsetTableEntry.w  Objects_Null	; Act 2
+	zoneOffsetTableEntry.w  Objects_009z_1	; Act 1
+	zoneOffsetTableEntry.w  Objects_009z_2	; Act 2
 	; OOZ
 	zoneOffsetTableEntry.w  Objects_OOZ_1	; Act 1
 	zoneOffsetTableEntry.w  Objects_OOZ_2	; Act 2
@@ -81439,11 +81565,25 @@ Objects_EHZ_1:	BINCLUDE	"level/objects/EHZ_1.bin"
 	ObjectLayoutBoundary
 Objects_EHZ_2:	BINCLUDE	"level/objects/EHZ_2.bin"
 	ObjectLayoutBoundary
+Objects_001z_1:	BINCLUDE	"level/objects/001_1.bin"
+	ObjectLayoutBoundary
+Objects_001z_2:	BINCLUDE	"level/objects/001_2.bin"
+	ObjectLayoutBoundary
+Objects_WZ_1:	BINCLUDE	"level/objects/WZ_1.bin"
+	ObjectLayoutBoundary
+Objects_WZ_2:	BINCLUDE	"level/objects/WZ_2.bin"
+	ObjectLayoutBoundary
+Objects_003z_1:	BINCLUDE	"level/objects/003_1.bin"
+	ObjectLayoutBoundary
+Objects_003z_2:	BINCLUDE	"level/objects/003_2.bin"
+	ObjectLayoutBoundary
 Objects_MTZ_1:	BINCLUDE	"level/objects/MTZ_1.bin"
 	ObjectLayoutBoundary
 Objects_MTZ_2:	BINCLUDE	"level/objects/MTZ_2.bin"
 	ObjectLayoutBoundary
 Objects_MTZ_3:	BINCLUDE	"level/objects/MTZ_3.bin"
+	ObjectLayoutBoundary
+Objects_MTZ_4:	BINCLUDE	"level/objects/MTZ_4.bin"
 	ObjectLayoutBoundary
 Objects_WFZ_1:	BINCLUDE	"level/objects/WFZ_1.bin"
 	ObjectLayoutBoundary
@@ -81457,7 +81597,9 @@ Objects_HPZ_1:	BINCLUDE	"level/objects/HPZ_1.bin"
 	ObjectLayoutBoundary
 Objects_HPZ_2:	BINCLUDE	"level/objects/HPZ_2.bin"
 	ObjectLayoutBoundary
-	; Oddly, there's a gap for another layout here
+Objects_009z_1:	BINCLUDE	"level/objects/009_1.bin"
+	ObjectLayoutBoundary
+Objects_009z_2:	BINCLUDE	"level/objects/009_2.bin"
 	ObjectLayoutBoundary
 Objects_OOZ_1:	BINCLUDE	"level/objects/OOZ_1.bin"
 	ObjectLayoutBoundary
@@ -81486,8 +81628,6 @@ Objects_ARZ_2:	BINCLUDE	"level/objects/ARZ_2.bin"
 Objects_SCZ_1:	BINCLUDE	"level/objects/SCZ_1.bin"
 	ObjectLayoutBoundary
 Objects_SCZ_2:	BINCLUDE	"level/objects/SCZ_2.bin"
-	ObjectLayoutBoundary
-Objects_Null:
 	ObjectLayoutBoundary
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; Handles the decompression of the sound driver (Saxman compression, an LZSS variant)

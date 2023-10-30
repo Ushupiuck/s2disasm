@@ -8,7 +8,7 @@
 -- Having this set to false will use an inferior compression algorithm that
 -- results in an accurate ROM being produced.
 local improved_sound_driver_compression = true
-local advanced_error_handler = false
+local advanced_error_handler = true
 
 -- These describe the Saxman decompression buffer in the sound driver.
 local music_buffer_address = 0x1380 -- Should always match zMusicData in s2.sounddriver.asm.
