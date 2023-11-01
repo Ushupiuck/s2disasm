@@ -45,7 +45,7 @@ respawn_index =		$1E
 subtype =		$28
 ; ---------------------------------------------------------------------------
 ; conventions specific to Sonic/Tails (Obj01, Obj02, and ObjDB):
-; note: $19, $1E, and $1F are unused and available (however, $1F is cleared by loc_A53A and ObjB2_Landed_on_plane)
+; note: $19, $1E, and $1F are unused and available
 inertia =		$30 ; and $31 ; directionless representation of speed... not updated in the air
 flip_angle =		$27 ; angle about the x axis (360 degrees = 256) (twist/tumble)
 air_left =		$28
