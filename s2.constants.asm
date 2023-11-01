@@ -348,6 +348,7 @@ metropolis_zone_act_3 =		(metropolis_zone_2<<8)|$00
 sky_chase_zone_act_1 =		(sky_chase_zone<<8)|$00
 wing_fortress_zone_act_1 =	(wing_fortress_zone<<8)|$00
 death_egg_zone_act_1 =		(death_egg_zone<<8)|$00
+death_egg_zone_act_2 =		(death_egg_zone<<8)|$01
 ; Prototype zone and act IDs
 wood_zone_act_1 =		(wood_zone<<8)|$00
 wood_zone_act_2 =		(wood_zone<<8)|$01
@@ -564,7 +565,6 @@ ObjID_BlueBalls =		id(ObjPtr_BlueBalls)		; 1D
 ObjID_CPZSpinTube =		id(ObjPtr_CPZSpinTube)		; 1E
 ObjID_CollapsPform =		id(ObjPtr_CollapsPform)		; 1F
 ObjID_LavaBubble =		id(ObjPtr_LavaBubble)		; 20
-ObjID_2PResults =		id(ObjPtr_2PResults)		; 21
 ObjID_ArrowShooter =		id(ObjPtr_ArrowShooter)		; 22
 ObjID_FallingPillar =		id(ObjPtr_FallingPillar)	; 23
 ObjID_ARZBubbles =		id(ObjPtr_ARZBubbles)		; 24
@@ -1671,40 +1671,8 @@ Update_HUD_lives_2P:		ds.b	1
 Update_HUD_rings_2P:		ds.b	1
 Update_HUD_timer_2P:		ds.b	1
 Update_HUD_score_2P:		ds.b	1	; mostly unused
-Time_Over_flag_2P:		ds.b	1
-				ds.b	3	; $FFFFFECD-$FFFFFECF ; seems unused
 Ring_count_2P:			ds.w	1
-Timer_2P:					; 4 bytes
-Timer_minute_word_2P:				; 2 bytes
-				ds.b	1	; filler
-Timer_minute_2P:		ds.b	1	; 1 byte
-Timer_second_2P:		ds.b	1	; 1 byte
-Timer_frame_2P:			ds.b	1	; 1 byte
-Score_2P:			ds.l	1
-Last_star_pole_hit_2P:		ds.b	1
-Saved_Last_star_pole_hit_2P:	ds.b	1
-Saved_x_pos_2P:			ds.w	1
-Saved_y_pos_2P:			ds.w	1
-Saved_Ring_count_2P:		ds.w	1
-Saved_Timer_2P:			ds.l	1
-Saved_art_tile_2P:		ds.w	1
-Saved_Solid_bits_2P:		ds.w	1
-Rings_Collected:		ds.w	1	; number of rings collected during an act in two player mode
-Rings_Collected_2P:		ds.w	1
-Monitors_Broken:		ds.w	1	; number of monitors broken during an act in two player mode
-Monitors_Broken_2P:		ds.w	1
-Loser_Time_Left:				; 2 bytes
-				ds.b	1	; seconds
-				ds.b	1	; frames
-
-Results_Screen_2P:		ds.w	1	; 0 = act, 1 = zone, 2 = game, 3 = SS, 4 = SS all
-
-Results_Data_2P:				; $18 (24) bytes
-EHZ_Results_2P:			ds.b	6	; 6 bytes
-MCZ_Results_2P:			ds.b	6	; 6 bytes
-CNZ_Results_2P:			ds.b	6	; 6 bytes
-SS_Results_2P:			ds.b	6	; 6 bytes
-Results_Data_2P_End:
+				ds.b	$40
 
 SS_Total_Won:			ds.b	2	; 2 bytes (player 1 then player 2)
 Perfect_rings_left:		ds.w	1

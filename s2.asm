@@ -21,7 +21,7 @@ gameRevision = 2
 ;	| If 0, a REV00 ROM is built
 ;	| If 1, a REV01 ROM is built, which contains some fixes
 ;	| If 2, a (theoretical) REV02 ROM is built, which contains even more fixes
-AdvancedErrorHandler = 1
+AdvancedErrorHandler = 0
 ;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
 ;
 padToPowerOfTwo = 0
@@ -3587,7 +3587,7 @@ TitleScreen:
 	clr.w	(Ctrl_1).w
 
 	; Load the object responsible for the intro animation.
-	move.b	#ObjID_TitleIntro,(IntroSonic+id).w
+	_move.b	#ObjID_TitleIntro,(IntroSonic+id).w
 	move.b	#2,(IntroSonic+subtype).w
 
 	; Run it for a frame, so that it initialises.
@@ -3676,13 +3676,9 @@ TitleScreen_Loop:
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
-	move.w	d0,(Ring_count_2P).w
-	move.l	d0,(Timer_2P).w
-	move.l	d0,(Score_2P).w
 	move.b	d0,(Continue_count).w
 
 	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
 
 	move.b	#MusID_FadeOut,d0 ; prepare to stop music (fade out)
 	bsr.w	PlaySound
@@ -3753,11 +3749,7 @@ TitleScreen_Demo:
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
-	move.w	d0,(Ring_count_2P).w
-	move.l	d0,(Timer_2P).w
-	move.l	d0,(Score_2P).w
 	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
 	move.b	#3,(Life_count).w
 	rts
 ; ===========================================================================
@@ -4043,7 +4035,7 @@ Level_PlayBgm:
 	move.b	(a1,d0.w),d0		; load from music playlist
 	move.w	d0,(Level_Music).w	; store level music
 	bsr.w	PlayMusic		; play level music
-	move.b	#ObjID_TitleCard,(TitleCard+id).w ; load Obj34 (level title card) at $FFFFB080
+	_move.b	#ObjID_TitleCard,(TitleCard+id).w ; load Obj34 (level title card) at $FFFFB080
 ; loc_40DA:
 Level_TtlCard:
 	move.b	#VintID_TitleCard,(Vint_routine).w
@@ -4086,18 +4078,18 @@ Level_TtlCard:
 ; Level_ChkWater:
 	tst.b	(Water_flag).w	; does level have water?
 	beq.s	+	; if not, branch
-	move.b	#ObjID_WaterSurface,(WaterSurface1+id).w ; load Obj04 (water surface) at $FFFFB380
+	_move.b	#ObjID_WaterSurface,(WaterSurface1+id).w ; load Obj04 (water surface) at $FFFFB380
 	move.w	#$60,(WaterSurface1+x_pos).w ; set horizontal offset
-	move.b	#ObjID_WaterSurface,(WaterSurface2+id).w ; load Obj04 (water surface) at $FFFFB3C0
+	_move.b	#ObjID_WaterSurface,(WaterSurface2+id).w ; load Obj04 (water surface) at $FFFFB3C0
 	move.w	#$120,(WaterSurface2+x_pos).w ; set different horizontal offset
 +
 	cmpi.b	#chemical_plant_zone,(Current_Zone).w	; check if zone == CPZ
 	bne.s	+			; branch if not
-	move.b	#ObjID_CPZPylon,(CPZPylon+id).w ; load Obj7C (CPZ pylon) at $FFFFB340
+	_move.b	#ObjID_CPZPylon,(CPZPylon+id).w ; load Obj7C (CPZ pylon) at $FFFFB340
 +
 	cmpi.b	#oil_ocean_zone,(Current_Zone).w	; check if zone == OOZ
 	bne.s	Level_ClrHUD		; branch if not
-	move.b	#ObjID_Oil,(Oil+id).w ; load Obj07 (OOZ oil) at $FFFFB380
+	_move.b	#ObjID_Oil,(Oil+id).w ; load Obj07 (OOZ oil) at $FFFFB380
 ; Level_LoadObj: misnomer now
 Level_ClrHUD:
 	moveq	#0,d0
@@ -4106,29 +4098,19 @@ Level_ClrHUD:
 	move.w	d0,(Ring_count).w	; clear rings
 	move.l	d0,(Timer).w		; clear time
 	move.b	d0,(Extra_life_flags).w	; clear extra lives counter
-	move.w	d0,(Ring_count_2P).w	; ditto for player 2
-	move.l	d0,(Timer_2P).w
-	move.b	d0,(Extra_life_flags_2P).w
 ; loc_41E4:
 Level_FromCheckpoint:
 	move.b	d0,(Time_Over_flag).w
-	move.b	d0,(Time_Over_flag_2P).w
 	move.b	d0,(SlotMachine_Routine).w
 	move.w	d0,(SlotMachineInUse).w
 	move.w	d0,(Debug_placement_mode).w
 	move.w	d0,(Level_Inactive_flag).w
 	move.b	d0,(Teleport_timer).w
 	move.b	d0,(Teleport_flag).w
-	move.w	d0,(Rings_Collected).w
-	move.w	d0,(Rings_Collected_2P).w
-	move.w	d0,(Monitors_Broken).w
-	move.w	d0,(Monitors_Broken_2P).w
-	move.w	d0,(Loser_Time_Left).w
 	bsr.w	OscillateNumInit
 	move.b	#1,(Update_HUD_score).w
 	move.b	#1,(Update_HUD_rings).w
 	move.b	#1,(Update_HUD_timer).w
-	move.b	#1,(Update_HUD_timer_2P).w
 	jsr	(ObjectsManager).l
 	jsr	(RingsManager).l
 	jsr	(SpecialCNZBumpers).l
@@ -6021,7 +6003,7 @@ SpecialStage:
 	clearRAM Object_Display_Lists,Object_Display_Lists_End
 	clearRAM Object_RAM,Object_RAM_End
 
-	move.b	#ObjID_SSResults,(SpecialStageResults+id).w ; load Obj6F (special stage results) at $FFFFB800
+	_move.b	#ObjID_SSResults,(SpecialStageResults+id).w ; load Obj6F (special stage results) at $FFFFB800
 -
 	move.b	#VintID_Level,(Vint_routine).w
 	bsr.w	WaitForVint
@@ -6042,7 +6024,7 @@ SpecialStage:
 ; ===========================================================================
 
 loc_540C:
-	move.w	#VsRSID_SS,(Results_Screen_2P).w
+;	move.w	#VsRSID_SS,(Results_Screen_2P).w
 	move.b	#GameModeID_2PResults,(Game_Mode).w ; => TwoPlayerResults
 	rts
 ; ===========================================================================
@@ -9577,18 +9559,12 @@ ContinueScreen:
 +
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#3,(Life_count).w
-	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
 	move.b	d0,(Last_star_pole_hit).w
-	move.w	d0,(Ring_count_2P).w
-	move.l	d0,(Timer_2P).w
-	move.l	d0,(Score_2P).w
-	move.b	d0,(Last_star_pole_hit_2P).w
 	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
 	subq.b	#1,(Continue_count).w
 	rts
 
@@ -9859,162 +9835,6 @@ Ani_objDB:	offsetTable
 ObjDA_MapUnc_7CB6:	include	"mappings/sprite/objDA.asm"
 
 ; ===========================================================================
-; loc_7D50:
-TwoPlayerResults:
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_FontStuff),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_FontStuff).l,a0
-;	bsr.w	NemDec
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_1P2PWins),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_1P2PWins).l,a0
-;	bsr.w	NemDec
-	lea	(Chunk_Table).l,a1
-	lea	(MapEng_MenuBack).l,a0
-	move.w	#make_art_tile(ArtTile_VRAM_Start,3,0),d0
-;	bsr.w	EniDec
-	lea	(Chunk_Table).l,a1
-	move.l	#vdpComm(VRAM_Plane_B_Name_Table,VRAM,WRITE),d0
-	moveq	#40-1,d1
-	moveq	#28-1,d2
-	jsr	(PlaneMapToVRAM_H40).l
-;	move.w	(Results_Screen_2P).w,d0
-	add.w	d0,d0
-	add.w	d0,d0
-	add.w	d0,d0
-	lea	TwoPlayerResultsPointers(pc),a2
-	movea.l	(a2,d0.w),a0
-	movea.l	4(a2,d0.w),a2
-	lea	(Chunk_Table).l,a1
-	move.w	#make_art_tile(ArtTile_VRAM_Start,0,0),d0
-;	bsr.w	EniDec
-;	jsr	(a2)	; dynamic call! to Setup2PResults_Act, Setup2PResults_Zone, Setup2PResults_Game, Setup2PResults_SpecialAct, or Setup2PResults_SpecialZone, assuming the pointers in TwoPlayerResultsPointers have not been changed
-	lea	(Chunk_Table).l,a1
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_TwoPlayerResults),VRAM,WRITE),d0
-	moveq	#40-1,d1
-	moveq	#28-1,d2
-	jsr	(PlaneMapToVRAM_H40).l
-	ResetDMAQueue
-	clr.b	(Level_started_flag).w
-	clr.w	(Anim_Counters).w
-	lea	(Anim_SonicMilesBG).l,a2
-	jsr	(Dynamic_Normal).l
-	moveq	#PLCID_Std1,d0
-;	bsr.w	LoadPLC2
-	moveq	#PalID_Menu,d0
-;	bsr.w	PalLoad_ForFade
-	moveq	#0,d0
-	move.b	#MusID_2PResult,d0
-	cmp.w	(Level_Music).w,d0
-	beq.s	+
-	move.w	d0,(Level_Music).w
-;	bsr.w	PlayMusic
-+
-	move.w	#(30*60)-1,(Demo_Time_left).w	; 30 seconds
-	clr.w	(Two_player_mode).w
-	clr.l	(Camera_X_pos).w
-	clr.l	(Camera_Y_pos).w
-	clr.l	(Vscroll_Factor).w
-	clr.l	(Vscroll_Factor_P2).w
-	clr.l	(Vscroll_Factor_P2_HInt).w
-	move.b	#ObjID_2PResults,(VSResults_HUD+id).w
-	move.b	#VintID_Menu,(Vint_routine).w
-;	bsr.w	WaitForVint
-	move.w	(VDP_Reg1_val).w,d0
-	ori.b	#$40,d0
-	move.w	d0,(VDP_control_port).l
-;	bsr.w	Pal_FadeFromBlack
-
--	move.b	#VintID_Menu,(Vint_routine).w
-;	bsr.w	WaitForVint
-	lea	(Anim_SonicMilesBG).l,a2
-	jsr	(Dynamic_Normal).l
-	jsr	(RunObjects).l
-	jsr	(BuildSprites).l
-;	bsr.w	RunPLC_RAM
-	tst.l	(Plc_Buffer).w
-	bne.s	-
-	move.b	(Ctrl_1_Press).w,d0
-	or.b	(Ctrl_2_Press).w,d0
-	andi.b	#button_start_mask,d0
-	beq.s	-			; stay on that screen until either player presses start
-
-	move.w	(Results_Screen_2P).w,d0 ; were we at the act results screen? (VsRSID_Act)
-	bne.w	TwoPlayerResultsDone_Zone ; if not, branch
-	tst.b	(Current_Act).w		; did we just finish act 1?
-	bne.s	+			; if not, branch
-	addq.b	#1,(Current_Act).w	; go to the next act
-	move.b	#1,(Current_Act_2P).w
-	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
-	move.b	#0,(Last_star_pole_hit).w
-	move.b	#0,(Last_star_pole_hit_2P).w
-	moveq	#0,d0
-	move.l	d0,(Score).w
-	move.l	d0,(Score_2P).w
-	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
-+	rts
-; ===========================================================================
-
-; loc_7FB2:
-TwoPlayerResultsDone_Zone:
-	subq.w	#1,d0			; were we at the zone results screen? (VsRSID_Zone)
-	bne.s	TwoPlayerResultsDone_Game ; if not, branch
-
-; loc_7FB6:
-TwoPlayerResultsDone_ZoneOrSpecialStages:
-	lea	(Results_Data_2P).w,a4
-	moveq	#0,d0
-	moveq	#0,d1
-    rept 3
-	move.w	(a4)+,d0
-	add.l	d0,d1
-	move.w	(a4)+,d0
-	add.l	d0,d1
-	addq.w	#2,a4
-    endm
-	move.w	(a4)+,d0
-	add.l	d0,d1
-	move.w	(a4)+,d0
-	add.l	d0,d1
-	swap	d1
-	tst.w	d1	; have all levels been completed?
-	bne.s	+	; if not, branch
-	move.w	#VsRSID_Game,(Results_Screen_2P).w
-	move.b	#GameModeID_2PResults,(Game_Mode).w ; => TwoPlayerResults
-	rts
-; ===========================================================================
-+
-	tst.w	(Game_Over_2P).w
-	beq.s	+		; if there's a Game Over, clear the results
-	lea	(Results_Data_2P).w,a1
-
-	moveq	#bytesToWcnt(Results_Data_2P_End-Results_Data_2P),d0
--	move.w	#-1,(a1)+
-	dbf	d0,-
-
-	move.b	#3,(Life_count).w
-	move.b	#3,(Life_count_2P).w
-+
-	move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
-	rts
-; ===========================================================================
-; loc_8020:
-TwoPlayerResultsDone_Game:
-	rts
-; ===========================================================================
-; loc_802C:
-TwoPlayerResultsDone_SpecialStage:
-	rts
-; End of function sub_8094
-
-; ===========================================================================
-
-loc_80AC:
-	rts
-; ===========================================================================
-; loc_80BA: BranchTo_loc_7FB6:
-TwoPlayerResultsDone_SpecialStages:
-
-; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 21 - Score/Rings/Time display (in 2P results)
 ; ----------------------------------------------------------------------------
@@ -10042,7 +9862,7 @@ Obj21_PositionTable:
 ; loc_80E4:
 Obj21_Init:
 	addq.b	#2,routine(a0) ; => Obj21_Main
-	move.w	(Results_Screen_2P).w,d0
+;	move.w	(Results_Screen_2P).w,d0
 	add.w	d0,d0
 	add.w	d0,d0
 	move.l	Obj21_PositionTable(pc,d0.w),x_pixel(a0) ; and y_pixel(a0)
@@ -10376,39 +10196,30 @@ MenuScreen:
 	beq.w	MenuScreen_LevelSelect	; if yes, branch
 
 ;MenuScreen_LevSel2P:
-	lea	(Chunk_Table).l,a1
-	lea	(MapEng_LevSel2P).l,a0
-	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,0,0),d0
-	jsr	(EniDec).l
-	lea	(Chunk_Table+$198).l,a1
-	lea	(MapEng_LevSel2P).l,a0
-	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,1,0),d0
-	jsr	(EniDec).l
-	lea	(Chunk_Table+$330).l,a1
-	lea	(MapEng_LevSelIcon).l,a0
-	move.w	#make_art_tile(ArtTile_ArtNem_LevelSelectPics,0,0),d0
-	jsr	(EniDec).l
-	lea	(Chunk_Table+$498).l,a2
+;	lea	(Chunk_Table).l,a1
+;	lea	(MapEng_LevSel2P).l,a0
+;	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,0,0),d0
+;	jsr	(EniDec).l
+;	lea	(Chunk_Table+$198).l,a1
+;	lea	(MapEng_LevSel2P).l,a0
+;	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,1,0),d0
+;	jsr	(EniDec).l
+;	lea	(Chunk_Table+$330).l,a1
+;	lea	(MapEng_LevSelIcon).l,a0
+;	move.w	#make_art_tile(ArtTile_ArtNem_LevelSelectPics,0,0),d0
+;	jsr	(EniDec).l
+;	lea	(Chunk_Table+$498).l,a2
 
-	moveq	#bytesToWcnt(tiles_to_bytes(1)),d1
--	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox+11,1,0),(a2)+
-	dbf	d1,-
+;	moveq	#bytesToWcnt(tiles_to_bytes(1)),d1
+;-	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox+11,1,0),(a2)+
+;	dbf	d1,-
 
-	bsr.w	Update2PLevSelSelection
-	addq.b	#1,(Current_Zone_2P).w
-	andi.b	#3,(Current_Zone_2P).w
-	bsr.w	ClearOld2PLevSelSelection
-	addq.b	#1,(Current_Zone_2P).w
-	andi.b	#3,(Current_Zone_2P).w
-	bsr.w	ClearOld2PLevSelSelection
-	addq.b	#1,(Current_Zone_2P).w
-	andi.b	#3,(Current_Zone_2P).w
-	bsr.w	ClearOld2PLevSelSelection
-	addq.b	#1,(Current_Zone_2P).w
-	andi.b	#3,(Current_Zone_2P).w
+;	bsr.w	Update2PLevSelSelection
+;	bsr.w	ClearOld2PLevSelSelection
+;	bsr.w	ClearOld2PLevSelSelection
+;	bsr.w	ClearOld2PLevSelSelection
 	clr.w	(Player_mode).w
-	clr.b	(Current_Act_2P).w
-	clr.w	(Results_Screen_2P).w	; VsRSID_Act
+;	clr.w	(Results_Screen_2P).w	; VsRSID_Act
 	clr.b	(Level_started_flag).w
 	clr.w	(Anim_Counters).w
 	clr.w	(Game_Over_2P).w
@@ -10456,7 +10267,6 @@ LevelSelect2P_Main:
 ; ===========================================================================
 ;loc_8DE2:
 LevelSelect2P_PressStart:
-	bsr.w	Chk2PZoneCompletion
 	bmi.s	loc_8DF4
 	move.w	#SndID_Error,d0
 	jsr	(PlaySound).l
@@ -10465,19 +10275,15 @@ LevelSelect2P_PressStart:
 
 loc_8DF4:
 	moveq	#0,d0
-	move.b	(Current_Zone_2P).w,d0
 	add.w	d0,d0
 	move.w	LevelSelect2P_LevelOrder(pc,d0.w),d0
 	bmi.s	loc_8E3A
 	move.w	d0,(Current_ZoneAndAct).w
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#0,(Last_star_pole_hit).w
-	move.b	#0,(Last_star_pole_hit_2P).w
 	moveq	#0,d0
 	move.l	d0,(Score).w
-	move.l	d0,(Score_2P).w
 	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
 	rts
 ; ===========================================================================
 
@@ -10534,10 +10340,6 @@ Update2PLevSelSelection:
 	bsr.w	MenuScreenTextToRAM
 	lea	(Chunk_Table+$D8).l,a2
 	movea.l	4(a3),a1
-	bsr.w	Chk2PZoneCompletion	; has the zone been completed?
-	bmi.s	+	; if not, branch
-	lea	(Chunk_Table+$468).l,a1	; display large X instead of icon
-+
 	moveq	#2,d1
 -	move.l	(a1)+,(a2)+
 	move.l	(a1)+,(a2)+
@@ -10564,28 +10366,6 @@ Update2PLevSelSelection:
 ; End of function Update2PLevSelSelection
 
 ; ---------------------------------------------------------------------------
-; Subroutine to check if a 2P zone has been completed
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_8EFE:
-Chk2PZoneCompletion:
-	moveq	#0,d0
-	move.b	(Current_Zone_2P).w,d0
-	; multiply d0 by 6
-	move.w	d0,d1
-	add.w	d0,d0
-	add.w	d1,d0
-	add.w	d0,d0
-	lea	(Results_Data_2P).w,a5
-	lea	(a5,d0.w),a5
-	move.w	(a5),d0
-	add.w	2(a5),d0
-	rts
-; End of function Chk2PZoneCompletion
-
-; ---------------------------------------------------------------------------
 ; Subroutine to clear the old 2P level select selection
 ; ---------------------------------------------------------------------------
 
@@ -10607,10 +10387,6 @@ ClearOld2PLevSelSelection:
 	bsr.w	MenuScreenTextToRAM
 	lea	(Chunk_Table+$270).l,a2
 	lea	(Chunk_Table+$498).l,a1
-	bsr.w	Chk2PZoneCompletion
-	bmi.s	+
-	lea	(Chunk_Table+$468).l,a1
-+
 	moveq	#2,d1
 -	move.l	(a1)+,(a2)+
 	move.l	(a1)+,(a2)+
@@ -11000,7 +10776,7 @@ MenuScreen_LevelSelect:
 	bsr.w	LevelSelect_DrawIcon
 
 	clr.w	(Player_mode).w
-	clr.w	(Results_Screen_2P).w	; VsRSID_Act
+;	clr.w	(Results_Screen_2P).w	; VsRSID_Act
 	clr.b	(Level_started_flag).w
 	clr.w	(Anim_Counters).w
 
@@ -11082,16 +10858,11 @@ LevelSelect_PressStart:
 	move.w	#emerald_hill_zone_act_1,(Current_ZoneAndAct).w
     endif
 	move.b	#3,(Life_count).w
-	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
-	move.w	d0,(Ring_count_2P).w
-	move.l	d0,(Timer_2P).w
-	move.l	d0,(Score_2P).w
 	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
 	move.w	(Player_option).w,(Player_mode).w
 	rts
 ; ===========================================================================
@@ -11140,19 +10911,12 @@ LevelSelect_StartZone:
 	move.w	d0,(Current_ZoneAndAct).w
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#3,(Life_count).w
-	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
-	move.w	d0,(Ring_count_2P).w
-	move.l	d0,(Timer_2P).w
-	move.l	d0,(Score_2P).w
 	move.b	d0,(Continue_count).w
-	move.w	d0,(Two_player_mode_copy).w
-	move.w	d0,(Two_player_mode).w
 	move.l	#5000,(Next_Extra_life_score).w
-	move.l	#5000,(Next_Extra_life_score_2P).w
 	move.b	#MusID_FadeOut,d0
 	jmp	(PlaySound).l
 
@@ -11456,7 +11220,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	adda.w	d0,a2
 	move.w	(Sound_test_sound).w,d0
 	cmp.b	(a2),d0
-	bne.s	++
+	bne.s	++	; Correct cheat entries
 	addq.w	#1,(Correct_cheat_entries_2).w
 	tst.b	1(a2)
 	bne.s	+++	; rts
@@ -11465,7 +11229,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	move.b	#$F,(Continue_count).w		; Give 15 continues
 	move.b	#SndID_ContinueJingle,d0	; Play the continue jingle
 	jsr	(PlayMusic).l
-	bra.s	++
+	bra.s	++	; Correct cheat entries
 ; ===========================================================================
 +
 	move.w	#7,(Got_Emerald).w		; Give 7 emeralds to the player
@@ -11525,8 +11289,8 @@ Pal_LevelIcons:	BINCLUDE "art/palettes/Level Select Icons.bin"
 
 ; 2-player level select screen mappings (Enigma compressed)
 ; byte_9A60:
-MapEng_LevSel2P:	BINCLUDE "mappings/misc/Level Select 2P.eni"
-	even
+MapEng_LevSel2P:;	BINCLUDE "mappings/misc/Level Select 2P.eni"
+;	even
 
 ; options screen mappings (Enigma compressed)
 ; byte_9AB2:
@@ -11903,7 +11667,7 @@ ObjCA_Init:
 sub_A22A:
 
 	lea	(EndSeqPaletteChanger).w,a1
-	move.b	#ObjID_TtlScrPalChanger,id(a1) ; load objC9 (palette change handler) at $FFFFB0C0
+	_move.b	#ObjID_TtlScrPalChanger,id(a1) ; load objC9 (palette change handler) at $FFFFB0C0
 	move.b	d0,subtype(a1)
 	addq.b	#2,routine(a0)
 	move.w	d1,objoff_3C(a0)
@@ -11977,7 +11741,7 @@ ObjCA_State5_States:	offsetTable
 loc_A2E0:
 	moveq	#8,d0
 -
-	move.b	#ObjID_Sonic,id(a1) ; load Sonic object
+	_move.b	#ObjID_Sonic,id(a1) ; load Sonic object
 	move.b	#$81,obj_control(a1)
 	rts
 ; ===========================================================================
@@ -11989,9 +11753,9 @@ loc_A2EE:
 
 loc_A2F2:
 	moveq	#$E,d0
-	move.b	#ObjID_Tails,id(a1) ; load Tails object
+	_move.b	#ObjID_Tails,id(a1) ; load Tails object
 	move.b	#$81,obj_control(a1)
-	move.b	#ObjID_TailsTails,(Tails_Tails_Cutscene+id).w ; load Obj05 (Tails' tails) at $FFFFB080
+	_move.b	#ObjID_TailsTails,(Tails_Tails_Cutscene+id).w ; load Obj05 (Tails' tails) at $FFFFB080
 	move.w	a1,(Tails_Tails_Cutscene+parent).w
 	rts
 ; ===========================================================================
@@ -22218,7 +21982,6 @@ robotnik_monitor:
 ; gives Sonic an extra life, or Tails in a 'Tails alone' game
 ; ---------------------------------------------------------------------------
 sonic_1up:
-	addq.w	#1,(Monitors_Broken).w
 	addq.b	#1,(Life_count).w
 	addq.b	#1,(Update_HUD_lives).w
 	move.w	#MusID_ExtraLife,d0
@@ -22229,9 +21992,8 @@ sonic_1up:
 ; gives Tails an extra life in two player mode
 ; ---------------------------------------------------------------------------
 tails_1up:
-	addq.w	#1,(Monitors_Broken_2P).w
-	addq.b	#1,(Life_count_2P).w
-	addq.b	#1,(Update_HUD_lives_2P).w
+	addq.b	#1,(Life_count).w
+	addq.b	#1,(Update_HUD_lives).w
 	move.w	#MusID_ExtraLife,d0
 	jmp	(PlayMusic).l	; Play extra life music
 ; ===========================================================================
@@ -22243,14 +22005,6 @@ super_ring:
 	lea	(Ring_count).w,a2
 	lea	(Update_HUD_rings).w,a3
 	lea	(Extra_life_flags).w,a4
-	lea	(Rings_Collected).w,a5
-	cmpa.w	#MainCharacter,a1
-	beq.s	+
-	lea	(Ring_count_2P).w,a2
-	lea	(Update_HUD_rings_2P).w,a3
-	lea	(Extra_life_flags_2P).w,a4
-	lea	(Rings_Collected_2P).w,a5
-+
 	addi.w	#10,(a5)
 	cmpi.w	#999,(a5)
 	blo.s	+
@@ -22267,21 +22021,14 @@ super_ring:
 	cmpi.w	#100,(a2)
 	blo.s	+		; branch, if player has less than 100 rings
 	bset	#1,(a4)		; set flag for first 1up
-	beq.s	ChkPlayer_1up	; branch, if not yet set
+	beq.s	sonic_1up	; branch, if not yet set
 	cmpi.w	#200,(a2)
 	blo.s	+		; branch, if player has less than 200 rings
 	bset	#2,(a4)		; set flag for second 1up
-	beq.s	ChkPlayer_1up	; branch, if not yet set
+	beq.s	sonic_1up	; branch, if not yet set
 +
 	move.w	#SndID_Ring,d0
 	jmp	(PlayMusic).l
-; ---------------------------------------------------------------------------
-;loc_129D4:
-ChkPlayer_1up:
-	; give 1up to correct player
-	cmpa.w	#MainCharacter,a1
-	beq.w	sonic_1up
-	bra.w	tails_1up
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Super Sneakers Monitor
@@ -22361,8 +22108,8 @@ invincible_monitor:
 ; ---------------------------------------------------------------------------
 ;loc_12AA6:
 teleport_monitor:
-	bsr.w	super_shoes			; TO BE REPLACED
-	bra.s	invincible_monitor
+	bsr.s	invincible_monitor			; TO BE FINISHED
+	bra.w	super_shoes
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; '?' Monitor
@@ -25992,7 +25739,7 @@ ObjPtr_BlueBalls:	dc.l Obj1D	; Blue balls in CPZ (jumping droplets hazard)
 ObjPtr_CPZSpinTube:	dc.l Obj1E	; Spin tube from CPZ
 ObjPtr_CollapsPform:	dc.l Obj1F	; Collapsing platform from ARZ, MCZ and OOZ (and MZ, SLZ and SBZ)
 ObjPtr_LavaBubble:	dc.l Obj20	; Lava bubble from Hill Top Zone (boss weapon)
-ObjPtr_2PResults:	dc.l Obj21	; 2P results
+			dc.l ObjNull	; Obj21
 ObjPtr_ArrowShooter:	dc.l Obj22	; Arrow shooter from ARZ
 ObjPtr_FallingPillar:	dc.l Obj23	; Pillar that drops its lower part from ARZ
 ObjPtr_ARZBubbles:	dc.l Obj24	; Bubbles in Aquatic Ruin Zone
@@ -28968,7 +28715,7 @@ Obj0D:
 	jsr	Obj0D_Index(pc,d1.w)
 	lea	(Ani_obj0D).l,a1
 	bsr.w	AnimateSprite
-	bsr.w	PLCLoad_Signpost
+;	bsr.w	PLCLoad_Signpost	; TODO ; Temporarily disabled.
 	bra.w	MarkObjGone
 ; ===========================================================================
 ; off_191D8: Obj_0D_subtbl: Obj0D_States:
@@ -28978,20 +28725,6 @@ Obj0D_Index:	offsetTable
 ; ===========================================================================
 ; loc_191DC: Obj_0D_sub_0:
 Obj0D_Init:
-	tst.w	(Two_player_mode).w
-	beq.s	loc_19208
-	move.l	#Obj0D_MapUnc_19656,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_2p_Signpost,0,0),art_tile(a0)
-	move.b	#-1,(Signpost_prev_frame).w
-	moveq	#0,d1
-	move.w	#$1020,d1
-	move.w	#-$80,d4
-	moveq	#0,d5
-	bsr.w	loc_19564
-	bra.s	loc_1922C
-; ---------------------------------------------------------------------------
-
-loc_19208:
 	cmpi.w	#metropolis_zone_act_2,(Current_ZoneAndAct).w
 	beq.s	loc_1921E
 	tst.b	(Current_Act).w
@@ -29008,27 +28741,24 @@ loc_1922C:
 	ori.b	#4,render_flags(a0)
 	move.b	#$18,width_pixels(a0)
 	move.b	#4,priority(a0)
-	move.w	#$3C3C,(Loser_Time_Left).w
 
 ; loc_1924C: Obj_0D_sub_2:
 Obj0D_Main:
 	tst.b	(Update_HUD_timer).w
-	beq.w	loc_192D6
+	beq.w	loc_19350
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	x_pos(a1),d0
 	sub.w	x_pos(a0),d0
-	bcs.s	loc_192D6
-	cmpi.w	#$20,d0
-	bhs.s	loc_192D6
+	bcs.s	loc_19350
+	cmpi.w	#$20,d0		; is Sonic within $20 pixels of	the signpost?
+	bhs.s	loc_19350	; if not, branch
 	move.w	#SndID_Signpost,d0
 	jsr	(PlayMusic).l	; play spinning sound
-	clr.b	(Update_HUD_timer).w
+	clr.b	(Update_HUD_timer).w	; stop time counter
 	move.w	#(0<<8)|(1<<0),anim(a0)
 	move.w	#0,obj0D_spinframe(a0)
 	move.w	(Camera_Max_X_pos).w,(Camera_Min_X_pos).w	; lock screen
 	move.b	#2,routine_secondary(a0) ; => Obj0D_Main_State2
-	cmpi.b	#$C,(Loser_Time_Left).w
-	bhi.s	loc_192A0
 	move.w	(Level_Music).w,d0
 	jsr	(PlayMusic).l	; play zone music
 
@@ -29037,50 +28767,8 @@ loc_192A0:
 	bne.w	loc_19350
 	move.b	#3,obj0D_finalanim(a0)
 	cmpi.w	#2,(Player_mode).w
-	bne.s	loc_192BC
-	move.b	#4,obj0D_finalanim(a0)
-
-loc_192BC:
-	tst.w	(Two_player_mode).w
-	beq.w	loc_19350
-	move.w	#$3C3C,(Loser_Time_Left).w
-	move.w	#SndID_Signpost2P,d0	; play different spinning sound
-	jsr	(PlaySound).l
-	bra.s	loc_19350
-; ---------------------------------------------------------------------------
-
-loc_192D6:
-	tst.w	(Two_player_mode).w
-	beq.s	loc_19350
-	tst.b	(Update_HUD_timer_2P).w
-	beq.s	loc_19350
-	lea	(Sidekick).w,a1 ; a1=character
-	move.w	x_pos(a1),d0
-	sub.w	x_pos(a0),d0
-	bcs.s	loc_19350
-	cmpi.w	#$20,d0
-	bhs.s	loc_19350
-	move.w	#SndID_Signpost,d0
-	jsr	(PlayMusic).l
-	clr.b	(Update_HUD_timer_2P).w
-	move.w	#(0<<8)|(1<<0),anim(a0)
-	move.w	#0,obj0D_spinframe(a0)
-	move.w	(Tails_Max_X_pos).w,(Tails_Min_X_pos).w
-	move.b	#2,routine_secondary(a0) ; => Obj0D_Main_State2
-	cmpi.b	#$C,(Loser_Time_Left).w
-	bhi.s	loc_1932E
-	move.w	(Level_Music).w,d0
-	jsr	(PlayMusic).l
-
-loc_1932E:
-	tst.b	obj0D_finalanim(a0)
 	bne.s	loc_19350
 	move.b	#4,obj0D_finalanim(a0)
-	tst.w	(Two_player_mode).w
-	beq.s	loc_19350
-	move.w	#$3C3C,(Loser_Time_Left).w
-	move.w	#SndID_Signpost2P,d0
-	jsr	(PlaySound).l
 
 loc_19350:
 	moveq	#0,d0
@@ -29092,7 +28780,6 @@ Obj0D_Main_States: offsetTable
 	offsetTableEntry.w Obj0D_Main_StateNull	; 0
 	offsetTableEntry.w Obj0D_Main_State2	; 2
 	offsetTableEntry.w Obj0D_Main_State3	; 4
-	offsetTableEntry.w Obj0D_Main_State4	; 6
 ; ===========================================================================
 ; return_19366:
 Obj0D_Main_StateNull:
@@ -29108,9 +28795,6 @@ Obj0D_Main_State2:
 	bne.s	loc_19398
 	move.b	#4,routine_secondary(a0) ; => Obj0D_Main_State3
 	move.b	obj0D_finalanim(a0),anim(a0)
-	tst.w	(Two_player_mode).w
-	beq.s	loc_19398
-	move.b	#6,routine_secondary(a0) ; => Obj0D_Main_State4
 
 loc_19398:
 	subq.w	#1,objoff_32(a0)
@@ -29179,7 +28863,7 @@ Load_EndOfAct:
 	clr.b	(Update_HUD_timer).w
 	bsr.w	AllocateObject
 	bne.s	+
-	move.b	#ObjID_Results,id(a1) ; load obj3A (end of level results screen)
+	_move.b	#ObjID_Results,id(a1) ; load obj3A (end of level results screen)
 +
 	moveq	#PLCID_Results,d0
 	cmpi.w	#2,(Player_mode).w
@@ -29224,48 +28908,16 @@ TimeBonuses:
 	dc.w   50,   50,   50,  50,   0
 TimeBonuses_End:
 ; ===========================================================================
-; loc_194FC:
-Obj0D_Main_State4:
-	subq.w	#1,obj0D_spinframe(a0)
-	bpl.s	return_19532
-	tst.b	(Time_Over_flag).w
-	bne.s	return_19532
-	tst.b	(Time_Over_flag_2P).w
-	bne.s	return_19532
-	tst.b	(Update_HUD_timer).w
-	bne.s	return_19532
-	tst.b	(Update_HUD_timer_2P).w
-	bne.s	return_19532
-	move.b	#0,(Last_star_pole_hit).w
-	move.b	#0,(Last_star_pole_hit_2P).w
-	move.b	#GameModeID_2PResults,(Game_Mode).w ; => TwoPlayerResults
-	move.w	#VsRSID_Act,(Results_Screen_2P).w
 
-return_19532:
-	rts
-; ===========================================================================
-
-PLCLoad_Signpost:
-	tst.w	(Two_player_mode).w
-	beq.s	return_1958C
-	moveq	#0,d0
-	move.b	mapping_frame(a0),d0
-	cmp.b	(Signpost_prev_frame).w,d0
-	beq.s	return_1958C
-	move.b	d0,(Signpost_prev_frame).w
-	lea	(Obj0D_MapRUnc_196EE).l,a2
+PLCLoad_Signpost:	; TODO
 	add.w	d0,d0
 	adda.w	(a2,d0.w),a2
 	move.w	(a2)+,d5
 	subq.w	#1,d5
-	bmi.s	return_1958C
+	bmi.s	+
 	move.w	#tiles_to_bytes(ArtTile_ArtUnc_Signpost),d4
-
-loc_19560:
 	moveq	#0,d1
 	move.w	(a2)+,d1
-
-loc_19564:
 	move.w	d1,d3
 	lsr.w	#8,d3
 	andi.w	#$F0,d3
@@ -29277,10 +28929,8 @@ loc_19564:
 	add.w	d3,d4
 	add.w	d3,d4
 	jsr	(QueueDMATransfer).l
-	dbf	d5,loc_19560
-
-return_1958C:
-	rts
+	dbf	d5,PLCLoad_Signpost
++	rts
 ; ===========================================================================
 ; animation script
 ; off_1958E:
@@ -32830,7 +32480,7 @@ LoadSonicDynPLC:
 	move.b	mapping_frame(a0),d0	; load frame number
 ; loc_1B84E:
 LoadSonicDynPLC_Part2:
-	cmp.b	(Sonic_LastLoadedDPLC).w,d0
+	cmp.b	(Sonic_LastLoadedDPLC).w,d0		; If frame number remains the same as before, don't do anything
 	beq.s	return_1B89A
 	move.b	d0,(Sonic_LastLoadedDPLC).w
 	lea	(MapRUnc_Sonic).l,a2
@@ -32921,10 +32571,6 @@ Obj02_Init:
 	move.w	top_solid_bit(a0),(Saved_Solid_bits).w
 
 Obj02_Init_Continued:
-	move.w	x_pos(a0),(Saved_x_pos_2P).w
-	move.w	y_pos(a0),(Saved_y_pos_2P).w
-	move.w	art_tile(a0),(Saved_art_tile_2P).w
-	move.w	top_solid_bit(a0),(Saved_Solid_bits_2P).w
 	move.b	#0,flips_remaining(a0)
 	move.b	#4,flip_speed(a0)
 	move.b	#30,air_left(a0)
@@ -70475,7 +70121,6 @@ ObjB2_Start_DEZ:
 ObjB2_Deactivate_level:
 	move.w	#1,(Level_Inactive_flag).w
 	clr.b	(Last_star_pole_hit).w
-	clr.b	(Last_star_pole_hit_2P).w
 	rts
 ; ===========================================================================
 ; loc_3AC56:
