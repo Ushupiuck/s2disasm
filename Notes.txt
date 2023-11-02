@@ -72,6 +72,7 @@ Delete_Sprite_If_Not_In_Range:
 | I | 5   | 280 |
 | T | 6   | 300 |
 | Y | 7   | 380 |
+(Steps 8 & 9 skipped)
 ===============================
 
 
