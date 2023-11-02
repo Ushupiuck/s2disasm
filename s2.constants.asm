@@ -1592,7 +1592,7 @@ Timer_centisecond:				; inaccurate name (the seconds increase when this reaches 
 Timer_frame:			ds.b	1	; 1 byte
 
 Score:				ds.l	1	; 4 bytes
-				ds.b	6	; $FFFFFE2A-$FFFFFE2F ; seems unused
+				ds.b	2	; $FFFFFE2A-$FFFFFE2F ; seems unused
 Last_star_pole_hit:		ds.b	1	; 1 byte -- max activated starpole ID in this act
 Saved_Last_star_pole_hit:	ds.b	1
 Saved_x_pos:			ds.w	1
@@ -1600,7 +1600,9 @@ Saved_y_pos:			ds.w	1
 Saved_Ring_count:		ds.w	1
 Saved_Timer:			ds.l	1
 Saved_art_tile:			ds.w	1
+Saved_art_tile_Sidekick:			ds.w	1
 Saved_Solid_bits:		ds.w	1
+Saved_Solid_bits_Sidekick:			ds.w	1
 Saved_Camera_X_pos:		ds.w	1
 Saved_Camera_Y_pos:		ds.w	1
 Saved_Camera_BG_X_pos:		ds.w	1

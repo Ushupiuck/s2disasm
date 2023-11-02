@@ -32037,6 +32037,8 @@ Obj02_Init:
 	move.w	top_solid_bit(a0),(Saved_Solid_bits).w
 
 Obj02_Init_Continued:
+    move.w	top_solid_bit(a0),(Saved_Solid_bits_Sidekick).w
+    move.w	art_tile(a0),(Saved_art_tile_Sidekick).w
 	move.b	#0,flips_remaining(a0)
 	move.b	#4,flip_speed(a0)
 	move.b	#30,air_left(a0)
@@ -37220,7 +37222,9 @@ Obj79_SaveData:
 	move.w	x_pos(a0),(Saved_x_pos).w
 	move.w	y_pos(a0),(Saved_y_pos).w
 	move.w	(MainCharacter+art_tile).w,(Saved_art_tile).w
+	move.w	(Sidekick+art_tile).w,(Saved_art_tile_Sidekick).w
 	move.w	(MainCharacter+top_solid_bit).w,(Saved_Solid_bits).w
+	move.w	(Sidekick+top_solid_bit).w,(Saved_Solid_bits_Sidekick).w
 	move.w	(Ring_count).w,(Saved_Ring_count).w
 	move.b	(Extra_life_flags).w,(Saved_Extra_life_flags).w
 	move.l	(Timer).w,(Saved_Timer).w
@@ -37253,7 +37257,9 @@ Obj79_LoadData:
 	move.b	#59,(Timer_frame).w
 	subq.b	#1,(Timer_second).w
 	move.w	(Saved_art_tile).w,(MainCharacter+art_tile).w
+	move.w	(Saved_art_tile_Sidekick).w,(Sidekick+art_tile).w
 	move.w	(Saved_Solid_bits).w,(MainCharacter+top_solid_bit).w
+	move.w	(Saved_Solid_bits_Sidekick).w,(Sidekick+top_solid_bit).w
 	move.b	(Saved_Dynamic_Resize_Routine).w,(Dynamic_Resize_Routine).w
 	move.b	(Saved_Water_routine).w,(Water_routine).w
 	move.w	(Saved_Camera_Max_Y_pos).w,(Camera_Max_Y_pos).w
