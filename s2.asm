@@ -42337,7 +42337,7 @@ Obj07_SuffocateCharacter:
 	move.l	a0,-(sp)
 	movea.l	a0,a2
 	movea.l	a1,a0
-	jmp	(KillCharacter).l
+	jsr	(KillCharacter).l
 	movea.l	(sp)+,a0 ; load 0bj address
 
 Obj07_End:
