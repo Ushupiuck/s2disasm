@@ -21,7 +21,7 @@ gameRevision = 2
 ;	| If 0, a REV00 ROM is built
 ;	| If 1, a REV01 ROM is built, which contains some fixes
 ;	| If 2, a (theoretical) REV02 ROM is built, which contains even more fixes
-AdvancedErrorHandler = 0
+AdvancedErrorHandler = 1
 ;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
 ;
 padToPowerOfTwo = 0
