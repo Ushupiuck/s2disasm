@@ -20,7 +20,7 @@ x_pos =			  8 ; and 9 ... some objects use $A and $B as well when extra precisio
 x_sub =			 $A ; and $B
 y_pos =			 $C ; and $D ... some objects use $E and $F as well when extra precision is required ... screen-space objects use y_pixel instead
 y_sub =			 $E ; and $F
-priority =		$18 ; 0 = front
+priority =		$18 ; and $19 ; 0 = front
 width_pixels =		$14
 mapping_frame =		$1A
 ; ---------------------------------------------------------------------------
@@ -907,17 +907,6 @@ CmdID__End =		id(CmdPtr__End)		; FE
 MusID_Pause =		$7E+$80			; FE
 MusID_Unpause =		$7F+$80			; FF
 
-; 2P VS results screens
-offset := TwoPlayerResultsPointers
-ptrsize := 8
-idstart := 0
-
-VsRSID_Act =	id(VsResultsScreen_Act)		; 0
-VsRSID_Zone =	id(VsResultsScreen_Zone)	; 1
-VsRSID_Game =	id(VsResultsScreen_Game)	; 2
-VsRSID_SS =	id(VsResultsScreen_SS)		; 3
-VsRSID_SSZone =	id(VsResultsScreen_SSZone)	; 4
-
 ; Animation IDs
 offset :=	SonicAniData
 ptrsize :=	2
@@ -1409,6 +1398,7 @@ Tails_CPU_target_x:		ds.w	1
 Tails_CPU_target_y:		ds.w	1
 Tails_interact_ID:		ds.b	1	; object ID of last object stood on
 Tails_CPU_jumping:		ds.b	1
+Tails_Tails_ptr:		ds.w	1
 
 Rings_manager_routine:		ds.b	1
 Level_started_flag:		ds.b	1
@@ -1458,7 +1448,6 @@ Boss_Y_pos:			ds.w	1
 Boss_X_vel:			ds.w	1
 Boss_Y_vel:			ds.w	1
 Boss_Countdown:			ds.w	1
-				ds.w	1	; $FFFFF75E-$FFFFF75F ; unused
 Boss_variables_end:
 
 Sonic_Speeds:
@@ -1483,18 +1472,6 @@ Object_Manager_Addresses_P2:
 Obj_load_addr_right_P2:		ds.l	1
 Obj_load_addr_left_P2:		ds.l	1
 Object_Manager_Addresses_P2_End:
-
-Object_manager_2P_RAM:	; The next 16 bytes belong to this.
-Object_RAM_block_indices:	ds.b	6	; seems to be an array of horizontal chunk positions, used for object position range checks
-Player_1_loaded_object_blocks:	ds.b	3
-Player_2_loaded_object_blocks:	ds.b	3
-
-Camera_X_pos_last_P2:		ds.w	1
-Camera_X_pos_last_P2_End:
-
-Obj_respawn_index_P2:		ds.b	2	; respawn table indices of the next objects when moving left or right for the second player
-Obj_respawn_index_P2_End:
-Object_manager_2P_RAM_End:
 
 Demo_button_index:		ds.w	1	; index into button press demo data, for player 1
 Demo_press_counter:		ds.b	1	; frames remaining until next button press, for player 1
@@ -1672,7 +1649,7 @@ Update_HUD_rings_2P:		ds.b	1
 Update_HUD_timer_2P:		ds.b	1
 Update_HUD_score_2P:		ds.b	1	; mostly unused
 Ring_count_2P:			ds.w	1
-				ds.b	$40
+				ds.b	$50
 
 SS_Total_Won:			ds.b	2	; 2 bytes (player 1 then player 2)
 Perfect_rings_left:		ds.w	1

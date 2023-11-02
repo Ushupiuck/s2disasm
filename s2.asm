@@ -4286,8 +4286,8 @@ InitPlayers:
 	move.w	(Player_mode).w,d0
 	bne.s	InitPlayers_Alone ; branch if this isn't a Sonic and Tails game
 
-	move.b	#ObjID_Sonic,(MainCharacter+id).w ; load Obj01 Sonic object at $FFFFB000
-	move.b	#ObjID_SpindashDust,(Sonic_Dust+id).w ; load Obj08 Sonic's spindash dust/splash object at $FFFFD100
+	_move.b	#ObjID_Sonic,(MainCharacter+id).w ; load Obj01 Sonic object at $FFFFB000
+	_move.b	#ObjID_SpindashDust,(Sonic_Dust+id).w ; load Obj08 Sonic's spindash dust/splash object at $FFFFD100
 
 	cmpi.b	#wing_fortress_zone,(Current_Zone).w
 	beq.s	+ ; skip loading Tails if this is WFZ
@@ -4296,12 +4296,13 @@ InitPlayers:
 	cmpi.b	#sky_chase_zone,(Current_Zone).w
 	beq.s	+ ; skip loading Tails if this is SCZ
 
-	move.b	#ObjID_Tails,(Sidekick+id).w ; load Obj02 Tails object at $FFFFB040
+	_move.b	#ObjID_Tails,(Sidekick+id).w ; load Obj02 Tails object at $FFFFB040
+	move.w	#Tails_Tails,(Tails_Tails_ptr).w
 	move.w	(MainCharacter+x_pos).w,(Sidekick+x_pos).w
 	move.w	(MainCharacter+y_pos).w,(Sidekick+y_pos).w
 	subi.w	#$20,(Sidekick+x_pos).w
 	addi_.w	#4,(Sidekick+y_pos).w
-	move.b	#ObjID_SpindashDust,(Tails_Dust+id).w ; load Obj08 Tails' spindash dust/splash object at $FFFFD140
+	_move.b	#ObjID_SpindashDust,(Tails_Dust+id).w ; load Obj08 Tails' spindash dust/splash object at $FFFFD140
 +
 	rts
 ; ===========================================================================
@@ -4310,20 +4311,18 @@ InitPlayers_Alone: ; either Sonic or Tails but not both
 	subq.w	#1,d0
 	bne.s	InitPlayers_TailsAlone ; branch if this is a Tails alone game
 
-	move.b	#ObjID_Sonic,(MainCharacter+id).w ; load Obj01 Sonic object at $FFFFB000
-	move.b	#ObjID_SpindashDust,(Sonic_Dust+id).w ; load Obj08 Sonic's spindash dust/splash object at $FFFFD100
+	_move.b	#ObjID_Sonic,(MainCharacter+id).w ; load Obj01 Sonic object at $FFFFB000
+	_move.b	#ObjID_SpindashDust,(Sonic_Dust+id).w ; load Obj08 Sonic's spindash dust/splash object at $FFFFD100
 	rts
 ; ===========================================================================
 ; loc_44D0:
 InitPlayers_TailsAlone:
-	move.b	#ObjID_Tails,(MainCharacter+id).w ; load Obj02 Tails object at $FFFFB000
-	move.b	#ObjID_SpindashDust,(Tails_Dust+id).w ; load Obj08 Tails' spindash dust/splash object at $FFFFD100
+	_move.b	#ObjID_Tails,(MainCharacter+id).w ; load Obj02 Tails object at $FFFFB000
+	move.w	#Tails_Tails,(Tails_Tails_ptr).w
+	_move.b	#ObjID_SpindashDust,(Tails_Dust+id).w ; load Obj08 Tails' spindash dust/splash object at $FFFFD100
 	addi_.w	#4,(MainCharacter+y_pos).w
 	rts
 ; End of function InitPlayers
-
-
-
 
 
 ; ---------------------------------------------------------------------------
@@ -8851,35 +8850,31 @@ Obj5F_Init:
 	tst.b	(SS_2p_Flag).w
 	beq.s	+
 	move.w	#8,d0
-	jsrto	Obj5A_PrintPhrase, JmpTo_Obj5A_PrintPhrase
+	jsr	(Obj5A_PrintPhrase).l
 +	move.w	#$80,x_pos(a0)
 	move.w	#-$40,y_pos(a0)
 	move.w	#$100,y_vel(a0)
 	move.l	#Obj5F_MapUnc_7240,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialStart,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#2,routine(a0)
 
 ; loc_718A:
 Obj5F_Main:
-	jsrto	ObjectMove, JmpTo_ObjectMove
+	jsr	(ObjectMove).l
 	cmpi.w	#$48,y_pos(a0)
 	blt.w	JmpTo_DisplaySprite
 	move.w	#0,y_vel(a0)
 	move.w	#$48,y_pos(a0)
 	move.b	#4,routine(a0)
 	move.b	#$F,objoff_2A(a0)
-	jmpto	DisplaySprite, JmpTo_DisplaySprite
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 
 loc_71B4:
 	subi_.b	#1,objoff_2A(a0)
-    if ~~removeJmpTos
 	bne.w	JmpTo_DisplaySprite
-    else
-	bne.s	JmpTo_DisplaySprite
-    endif
 	moveq	#6,d6
 
 	lea	(Obj5F_MapUnc_7240.frame2).l,a2
@@ -9748,7 +9743,7 @@ ObjDB_Sonic_Init:
 	move.l	#MapUnc_Sonic,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtUnc_Sonic,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#AniIDSonAni_Lying,anim(a0)
 
 ; loc_7BD2:
@@ -9788,7 +9783,7 @@ ObjDB_Tails_Init:
 	move.l	#ObjDA_MapUnc_7CB6,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_ContinueTails,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#0,anim(a0) ; This is animation 0 of Ani_objDB, not Tails' usual animation script.
 
 ; loc_7C52:
@@ -9833,274 +9828,6 @@ Ani_objDB:	offsetTable
 ; Art starts at $A000 in VRAM
 ; -------------------------------------------------------------------------------
 ObjDA_MapUnc_7CB6:	include	"mappings/sprite/objDA.asm"
-
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; Object 21 - Score/Rings/Time display (in 2P results)
-; ----------------------------------------------------------------------------
-; Sprite_80BE:
-Obj21: ; (screen-space obj)
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	Obj21_Index(pc,d0.w),d1
-	jmp	Obj21_Index(pc,d1.w)
-; ===========================================================================
-; JmpTbl_80CC: Obj21_States:
-Obj21_Index:	offsetTable
-		offsetTableEntry.w Obj21_Init	; 0
-		offsetTableEntry.w Obj21_Main	; 2
-; ---------------------------------------------------------------------------
-; word_80D0:
-Obj21_PositionTable:
-	;      x,    y
-	dc.w $F0, $148
-	dc.w $F0, $130
-	dc.w $E0, $148
-	dc.w $F0, $148
-	dc.w $F0, $148
-; ===========================================================================
-; loc_80E4:
-Obj21_Init:
-	addq.b	#2,routine(a0) ; => Obj21_Main
-;	move.w	(Results_Screen_2P).w,d0
-	add.w	d0,d0
-	add.w	d0,d0
-	move.l	Obj21_PositionTable(pc,d0.w),x_pixel(a0) ; and y_pixel(a0)
-	move.l	#Obj21_MapUnc_8146,mappings(a0)
- 	move.w	#make_art_tile(ArtTile_ArtNem_1P2PWins,0,0),art_tile(a0)
-	move.b	#0,render_flags(a0)
-	move.b	#0,priority(a0)
-	moveq	#2,d1
-	move.b	(SS_Total_Won).w,d0	; d0 = SS_Total_Won_1P
-	sub.b	(SS_Total_Won+1).w,d0	;    - SS_Total_Won_2P
-	beq.s	++
-	bcs.s	+
-	moveq	#0,d1
-	bra.s	++
-; ---------------------------------------------------------------------------
-+
-	moveq	#1,d1
-+
-	move.b	d1,mapping_frame(a0)
-
-; loc_812C:
-Obj21_Main:
-	andi.w	#tile_mask,art_tile(a0)
-	btst	#3,(Vint_runcount+3).w
-	beq.s	JmpTo4_DisplaySprite
-	ori.w	#palette_line_1,art_tile(a0)
-
-JmpTo4_DisplaySprite ; JmpTo
-	jmp	(DisplaySprite).l
-; ===========================================================================
-; --------------------------------------------------------------------------
-; sprite mappings
-; --------------------------------------------------------------------------
-Obj21_MapUnc_8146:	include "mappings/sprite/obj21.asm"
-; ===========================================================================
-
-; loc_819A:
-Setup2PResults_Act:
-; ===========================================================================
-; loc_82FA:
-Setup2PResults_Zone:
-; ===========================================================================
-; loc_8328:
-Setup2PResults_Game:
-; ===========================================================================
-; loc_83B0:
-Setup2PResults_SpecialAct:
-; ===========================================================================
-; loc_8452:
-Setup2PResults_SpecialZone:
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_8476:
-; End of function sub_8476
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_84A4:
-; End of function sub_84A4
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_84C4:
-; End of function sub_84C4
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_854A:
-; End of function sub_854A
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_85CE:
-
-; End of function sub_85CE
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_8652:
-; End of function sub_8652
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_8672:
-	lea	(Text2P_EmeraldHill).l,a1
-	move.b	(Current_Zone_2P).w,d1
-	beq.s	loc_8698
-	lea	(Text2P_MysticCave).l,a1
-	subq.b	#1,d1
-	beq.s	loc_8698
-	lea	(Text2P_CasinoNight).l,a1
-	subq.b	#1,d1
-	beq.s	loc_8698
-	lea	(Text2P_SpecialStage).l,a1
-
-loc_8698:
-	lea	(Chunk_Table).l,a2
-	lea	(a2,d2.w),a2
-	moveq	#0,d1
-
-	move.b	(a1)+,d1
--	move.b	(a1)+,d0
-	move.w	d0,(a2)+
-	dbf	d1,-
-
-	rts
-; End of function sub_8672
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_86B0:
-	lea	(Chunk_Table).l,a2
-	lea	(a2,d2.w),a2
-	lea	(word_86F0).l,a3
-	moveq	#0,d2
-
-	moveq	#2,d5
--	moveq	#0,d3
-	move.w	(a3)+,d4
-
--	sub.w	d4,d1
-	bcs.s	+
-	addq.w	#1,d3
-	bra.s	-
-; ---------------------------------------------------------------------------
-+
-	add.w	d4,d1
-	tst.w	d5
-	beq.s	++
-	tst.w	d3
-	beq.s	+
-	moveq	#1,d2
-+
-	tst.w	d2
-	beq.s	++
-+
-	addi.b	#$10,d3
-	move.b	d3,d0
-	move.w	d0,(a2)
-+
-	addq.w	#2,a2
-	dbf	d5,--
-
-	rts
-; End of function sub_86B0
-
-; ===========================================================================
-word_86F0:
-	dc.w   100
-	dc.w	10	; 1
-	dc.w	 1	; 2
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_86F6:
-	lea	(Chunk_Table).l,a2
-	lea	(a2,d2.w),a2
-	lea	(dword_8732).l,a3
-	moveq	#0,d2
-
-	moveq	#5,d5
--	moveq	#0,d3
-	move.l	(a3)+,d4
-
--	sub.l	d4,d1
-	bcs.s	+
-	addq.w	#1,d3
-	bra.s	-
-; ===========================================================================
-+
-	add.l	d4,d1
-	tst.w	d3
-	beq.s	+
-	moveq	#1,d2
-+
-	tst.w	d2
-	beq.s	+
-	addi.b	#$10,d3
-	move.b	d3,d0
-	move.w	d0,(a2)
-+
-	addq.w	#2,a2
-	dbf	d5,--
-
-	rts
-; End of function sub_86F6
-
-; ===========================================================================
-dword_8732:
-	dc.l 100000
-	dc.l  10000
-	dc.l   1000
-	dc.l    100
-	dc.l     10
-	dc.l      1
-
-	; set the character set for menu text
-	charset '@',"\27\30\31\32\33\34\35\36\37\38\39\40\41\42\43\44\45\46\47\48\49\50\51\52\53\54\55"
-	charset '0',"\16\17\18\19\20\21\22\23\24\25"
-	charset '*',$1A
-	charset ':',$1C
-	charset '.',$1D
-	charset ' ',0
-
-	; Menu text
-Text2P_EmeraldHill:	menutxt	"EMERALD HILL"	; byte_874A:
-Text2P_MysticCave:	menutxt	" MYSTIC CAVE"	; byte_8757:
-Text2P_CasinoNight:	menutxt	"CASINO NIGHT"	; byte_8764:
-Text2P_SpecialStage:	menutxt	"SPECIAL STAGE"	; byte_8771:
-Text2P_Special:		menutxt	"   SPECIAL  "	; byte_877F:
-Text2P_Zone:		menutxt	"ZONE "		; byte_878C:
-Text2P_Stage:		menutxt	"STAGE"		; byte_8792:
-Text2P_GameOver:	menutxt	"GAME OVER"	; byte_8798:
-Text2P_TimeOver:	menutxt	"TIME OVER"
-Text2P_NoGame:		menutxt	"NO GAME"	; byte_87AC:
-Text2P_Tied:		menutxt	"TIED"		; byte_87B4:
-Text2P_1P:		menutxt	" 1P"		; byte_87B9:
-Text2P_2P:		menutxt	" 2P"		; byte_87BD:
-Text2P_Blank:		menutxt	"    "		; byte_87C1:
-	charset ; reset character set
-
 ; ------------------------------------------------------------------------
 ; MENU ANIMATION SCRIPT
 ; ------------------------------------------------------------------------
@@ -10115,38 +9842,7 @@ Anim_SonicMilesBG:	zoneanimstart
 	dc.b $14,  5
 	dc.b  $A,  5
 	even
-
 	zoneanimend
-
-; off_87DC:
-TwoPlayerResultsPointers:
-VsResultsScreen_Act:	dc.l Map_2PActResults, Setup2PResults_Act
-VsResultsScreen_Zone:	dc.l Map_2PZoneResults, Setup2PResults_Zone
-VsResultsScreen_Game:	dc.l Map_2PGameResults, Setup2PResults_Game
-VsResultsScreen_SS:	dc.l Map_2PSpecialStageActResults, Setup2PResults_SpecialAct
-VsResultsScreen_SSZone:	dc.l Map_2PSpecialStageZoneResults, Setup2PResults_SpecialZone
-
-; 2P single act results screen (enigma compressed)
-; byte_8804:
-Map_2PActResults:;	BINCLUDE "mappings/misc/2P Act Results.eni"
-
-; 2P zone results screen (enigma compressed)
-; byte_88CE:
-Map_2PZoneResults:;	BINCLUDE "mappings/misc/2P Zone Results.eni"
-
-; 2P game results screen (after all 4 zones) (enigma compressed)
-; byte_8960:
-Map_2PGameResults:;	BINCLUDE "mappings/misc/2P Game Results.eni"
-
-; 2P special stage act results screen (enigma compressed)
-; byte_8AA4:
-Map_2PSpecialStageActResults:;	BINCLUDE "mappings/misc/2P Special Stage Act Results.eni"
-
-; 2P special stage zone results screen (enigma compressed)
-; byte_8B30:
-Map_2PSpecialStageZoneResults:;	BINCLUDE "mappings/misc/2P Special Stage Zone Results.eni"
-	even
-
 ; ===========================================================================
 ; loc_8BD4:
 MenuScreen:
@@ -10188,257 +9884,9 @@ MenuScreen:
 	moveq	#40-1,d1
 	moveq	#28-1,d2
 	jsr	(PlaneMapToVRAM_H40).l	; fullscreen background
-
-	cmpi.b	#GameModeID_OptionsMenu,(Game_Mode).w	; options menu?
-	beq.w	MenuScreen_Options	; if yes, branch
-
 	cmpi.b	#GameModeID_LevelSelect,(Game_Mode).w	; level select menu?
 	beq.w	MenuScreen_LevelSelect	; if yes, branch
-
-;MenuScreen_LevSel2P:
-;	lea	(Chunk_Table).l,a1
-;	lea	(MapEng_LevSel2P).l,a0
-;	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,0,0),d0
-;	jsr	(EniDec).l
-;	lea	(Chunk_Table+$198).l,a1
-;	lea	(MapEng_LevSel2P).l,a0
-;	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,1,0),d0
-;	jsr	(EniDec).l
-;	lea	(Chunk_Table+$330).l,a1
-;	lea	(MapEng_LevSelIcon).l,a0
-;	move.w	#make_art_tile(ArtTile_ArtNem_LevelSelectPics,0,0),d0
-;	jsr	(EniDec).l
-;	lea	(Chunk_Table+$498).l,a2
-
-;	moveq	#bytesToWcnt(tiles_to_bytes(1)),d1
-;-	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox+11,1,0),(a2)+
-;	dbf	d1,-
-
-;	bsr.w	Update2PLevSelSelection
-;	bsr.w	ClearOld2PLevSelSelection
-;	bsr.w	ClearOld2PLevSelSelection
-;	bsr.w	ClearOld2PLevSelSelection
-	clr.w	(Player_mode).w
-;	clr.w	(Results_Screen_2P).w	; VsRSID_Act
-	clr.b	(Level_started_flag).w
-	clr.w	(Anim_Counters).w
-	clr.w	(Game_Over_2P).w
-	lea	(Anim_SonicMilesBG).l,a2
-	jsr	(Dynamic_Normal).l
-	moveq	#PalID_Menu,d0
-	bsr.w	PalLoad_ForFade
-	lea	(Normal_palette_line3).w,a1
-	lea	(Target_palette_line3).w,a2
-
-	moveq	#bytesToLcnt(tiles_to_bytes(1)),d1
--	move.l	(a1),(a2)+
-	clr.l	(a1)+
-	dbf	d1,-
-
-	move.b	#MusID_Options,d0
-	jsr	(PlayMusic).l
-	move.w	#(30*60)-1,(Demo_Time_left).w	; 30 seconds
-	clr.w	(Two_player_mode).w
-	clr.l	(Camera_X_pos).w
-	clr.l	(Camera_Y_pos).w
-	move.b	#VintID_Menu,(Vint_routine).w
-	bsr.w	WaitForVint
-	move.w	(VDP_Reg1_val).w,d0
-	ori.b	#$40,d0
-	move.w	d0,(VDP_control_port).l
-	bsr.w	Pal_FadeFromBlack
-
-;loc_8DA8:
-LevelSelect2P_Main:
-	move.b	#VintID_Menu,(Vint_routine).w
-	bsr.w	WaitForVint
-	disable_ints
-	bsr.w	ClearOld2PLevSelSelection
-	bsr.w	LevelSelect2P_Controls
-	bsr.w	Update2PLevSelSelection
-	enable_ints
-	lea	(Anim_SonicMilesBG).l,a2
-	jsr	(Dynamic_Normal).l
-	move.b	(Ctrl_1_Press).w,d0
-	or.b	(Ctrl_2_Press).w,d0
-	andi.b	#button_start_mask,d0
-	bne.s	LevelSelect2P_PressStart
-	bra.w	LevelSelect2P_Main
-; ===========================================================================
-;loc_8DE2:
-LevelSelect2P_PressStart:
-	bmi.s	loc_8DF4
-	move.w	#SndID_Error,d0
-	jsr	(PlaySound).l
-	bra.w	LevelSelect2P_Main
-; ===========================================================================
-
-loc_8DF4:
-	moveq	#0,d0
-	add.w	d0,d0
-	move.w	LevelSelect2P_LevelOrder(pc,d0.w),d0
-	bmi.s	loc_8E3A
-	move.w	d0,(Current_ZoneAndAct).w
-	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
-	move.b	#0,(Last_star_pole_hit).w
-	moveq	#0,d0
-	move.l	d0,(Score).w
-	move.l	#5000,(Next_Extra_life_score).w
-	rts
-; ===========================================================================
-
-loc_8E3A:
-	move.b	#4,(Current_Special_Stage).w
-	move.b	#GameModeID_SpecialStage,(Game_Mode).w ; => SpecialStage
-	rts
-; ===========================================================================
-; word_8E52:
-LevelSelect2P_LevelOrder:
-	dc.w	emerald_hill_zone_act_1
-	dc.w	mystic_cave_zone_act_1
-	dc.w	casino_night_zone_act_1
-	dc.w	$FFFF
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-;sub_8E5A:
-LevelSelect2P_Controls:
-	move.b	(Ctrl_1_Press).w,d0
-	or.b	(Ctrl_2_Press).w,d0
-	move.b	d0,d1
-	andi.b	#button_up_mask|button_down_mask,d0
-	beq.s	+
-	bchg	#1,(Current_Zone_2P).w
-
-+
-	andi.b	#button_left_mask|button_right_mask,d1
-	beq.s	+	; rts
-	bchg	#0,(Current_Zone_2P).w
-+
-	rts
-; End of function LevelSelect2P_Controls
-
-; ---------------------------------------------------------------------------
-; Subroutine to update the 2P level select selection graphically
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_8E7E:
-Update2PLevSelSelection:
-	moveq	#0,d0
-	move.b	(Current_Zone_2P).w,d0
-	lsl.w	#4,d0	; 16 bytes per entry
-	lea	(LevSel2PIconData).l,a3
-	lea	(a3,d0.w),a3
-	move.w	#palette_line_3,d0	; highlight text
-	lea	(Chunk_Table+$48).l,a2
-	movea.l	(a3)+,a1
-	bsr.w	MenuScreenTextToRAM
-	lea	(Chunk_Table+$94).l,a2
-	movea.l	(a3)+,a1
-	bsr.w	MenuScreenTextToRAM
-	lea	(Chunk_Table+$D8).l,a2
-	movea.l	4(a3),a1
-	moveq	#2,d1
--	move.l	(a1)+,(a2)+
-	move.l	(a1)+,(a2)+
-	lea	$1A(a2),a2
-	dbf	d1,-
-
-	lea	(Chunk_Table).l,a1
-	move.l	(a3)+,d0
-	moveq	#17-1,d1
-	moveq	#12-1,d2
-	jsr	(PlaneMapToVRAM_H40).l
-	lea	(Pal_LevelIcons).l,a1
-	moveq	#0,d0
-	move.b	(a3),d0
-	lsl.w	#5,d0
-	lea	(a1,d0.w),a1
-	lea	(Normal_palette_line3).w,a2
-
-	moveq	#bytesToLcnt(palette_line_size),d1
--	move.l	(a1)+,(a2)+
-	dbf	d1,-
-
-	rts
-; End of function Update2PLevSelSelection
-
-; ---------------------------------------------------------------------------
-; Subroutine to clear the old 2P level select selection
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_8F1C:
-ClearOld2PLevSelSelection:
-	moveq	#0,d0
-	move.b	(Current_Zone_2P).w,d0
-	lsl.w	#4,d0
-	lea	(LevSel2PIconData).l,a3
-	lea	(a3,d0.w),a3
-	moveq	#palette_line_0,d0
-	lea	(Chunk_Table+$1E0).l,a2
-	movea.l	(a3)+,a1
-	bsr.w	MenuScreenTextToRAM
-	lea	(Chunk_Table+$22C).l,a2
-	movea.l	(a3)+,a1
-	bsr.w	MenuScreenTextToRAM
-	lea	(Chunk_Table+$270).l,a2
-	lea	(Chunk_Table+$498).l,a1
-	moveq	#2,d1
--	move.l	(a1)+,(a2)+
-	move.l	(a1)+,(a2)+
-	lea	$1A(a2),a2
-	dbf	d1,-
-
-	lea	(Chunk_Table+$198).l,a1
-	move.l	(a3)+,d0
-	moveq	#17-1,d1
-	moveq	#12-1,d2
-	jmp	(PlaneMapToVRAM_H40).l
-; End of function ClearOld2PLevSelSelection
-
-; ===========================================================================
-; off_8F7E:
-LevSel2PIconData:
-
-; macro to declare icon data for a 2P level select icon
-iconData macro txtlabel,txtlabel2,vramAddr,iconPal,iconAddr
-	dc.l txtlabel, txtlabel2	; text locations
-	dc.l vdpComm(vramAddr,VRAM,WRITE)	; VRAM location to place data
-	dc.l iconPal<<24|((iconAddr)&$FFFFFF)	; icon palette and plane data location
-    endm
-
-	iconData	Text2P_EmeraldHill,Text2P_Zone, VRAM_Plane_A_Name_Table+planeLoc(64,2,2),   0,Chunk_Table+$330
-	iconData	Text2P_MysticCave, Text2P_Zone, VRAM_Plane_A_Name_Table+planeLoc(64,22,2),  5,Chunk_Table+$3A8
-	iconData	Text2P_CasinoNight,Text2P_Zone, VRAM_Plane_A_Name_Table+planeLoc(64,2,15),  6,Chunk_Table+$3C0
-	iconData	Text2P_Special,    Text2P_Stage,VRAM_Plane_A_Name_Table+planeLoc(64,22,15),12,Chunk_Table+$450
-
-; ---------------------------------------------------------------------------
-; Common menu screen subroutine for transferring text to RAM
-
-; ARGUMENTS:
-; d0 = starting art tile
-; a1 = data source
-; a2 = destination
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_8FBE:
-MenuScreenTextToRAM:
-	moveq	#0,d1
-	move.b	(a1)+,d1
--	move.b	(a1)+,d0
-	move.w	d0,(a2)+
-	dbf	d1,-
-	rts
-; End of function MenuScreenTextToRAM
-
-; ===========================================================================
-; loc_8FCC:
+	; Otherwise, we fall through to MenuScreen_Options
 MenuScreen_Options:
 	lea	(Chunk_Table).l,a1
 	lea	(MapEng_Options).l,a0
@@ -10617,7 +10065,7 @@ OptionScreen_DrawSelected:
 	move.w	#palette_line_3,d0
 	lea	(Chunk_Table+$30).l,a2
 	movea.l	(a3)+,a1
-	bsr.w	MenuScreenTextToRAM
+	bsr.s	MenuScreenTextToRAM
 	lea	(Chunk_Table+$B6).l,a2
 	moveq	#0,d1
 	cmpi.b	#2,(Options_menu_box).w
@@ -10630,7 +10078,7 @@ OptionScreen_DrawSelected:
 	lsl.w	#2,d1
 +
 	movea.l	(a4,d1.w),a1
-	bsr.w	MenuScreenTextToRAM
+	bsr.s	MenuScreenTextToRAM
 	cmpi.b	#2,(Options_menu_box).w
 	bne.s	+
 	lea	(Chunk_Table+$C2).l,a2
@@ -10641,6 +10089,26 @@ OptionScreen_DrawSelected:
 	moveq	#22-1,d1
 	moveq	#8-1,d2
 	jmp	(PlaneMapToVRAM_H40).l
+; ---------------------------------------------------------------------------
+; Common menu screen subroutine for transferring text to RAM
+
+; ARGUMENTS:
+; d0 = starting art tile
+; a1 = data source
+; a2 = destination
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_8FBE:
+MenuScreenTextToRAM:
+	moveq	#0,d1
+	move.b	(a1)+,d1
+-	move.b	(a1)+,d0
+	move.w	d0,(a2)+
+	dbf	d1,-
+	rts
+; End of function MenuScreenTextToRAM
 ; ===========================================================================
 
 ;loc_91F8
@@ -10654,7 +10122,7 @@ OptionScreen_DrawUnselected:
 	moveq	#palette_line_0,d0
 	lea	(Chunk_Table+$190).l,a2
 	movea.l	(a3)+,a1
-	bsr.w	MenuScreenTextToRAM
+	bsr.s	MenuScreenTextToRAM
 	lea	(Chunk_Table+$216).l,a2
 	moveq	#0,d1
 	cmpi.b	#2,(Options_menu_box).w
@@ -10668,7 +10136,7 @@ OptionScreen_DrawUnselected:
 
 +
 	movea.l	(a4,d1.w),a1
-	bsr.w	MenuScreenTextToRAM
+	bsr.s	MenuScreenTextToRAM
 	cmpi.b	#2,(Options_menu_box).w
 	bne.s	+
 	lea	(Chunk_Table+$222).l,a2
@@ -11755,8 +11223,7 @@ loc_A2F2:
 	moveq	#$E,d0
 	_move.b	#ObjID_Tails,id(a1) ; load Tails object
 	move.b	#$81,obj_control(a1)
-	_move.b	#ObjID_TailsTails,(Tails_Tails_Cutscene+id).w ; load Obj05 (Tails' tails) at $FFFFB080
-	move.w	a1,(Tails_Tails_Cutscene+parent).w
+	move.w	#Tails_Tails_Cutscene,(Tails_Tails_ptr).w
 	rts
 ; ===========================================================================
 
@@ -11857,7 +11324,7 @@ ObjCC_Init:
 	move.w	#$100,x_vel(a0)
 	move.w	#-$80,y_vel(a0)
 	move.b	#$14,objoff_35(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.w	#4,(Ending_VInt_Subrout).w
 	move.l	a0,-(sp)
 	lea	(MapEng_EndingTailsPlane).l,a0
@@ -12229,7 +11696,7 @@ ObjCE_Init:
 	jsr	(LoadSubObject_Part3).l
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$C,mapping_frame(a0)
 	cmpi.w	#4,(Ending_Routine).w
 	bne.s	+
@@ -12321,7 +11788,7 @@ ObjCF_Init:
 	jsr	(LoadSubObject_Part3).l
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#5,mapping_frame(a0)
 	move.b	#2,anim(a0)
 	move.w	#$10F,d0
@@ -18492,7 +17959,7 @@ Obj11_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj11_MapUnc_FC70,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_EHZ_Bridge,2,0),art_tile(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	cmpi.b	#hidden_palace_zone,(Current_Zone).w	; is this an HPZ bridge?
 	bne.s	+			; if not, branch
 	addq.b	#4,routine(a0)
@@ -18620,7 +18087,6 @@ Obj11_Unload:
 	bsr.w	DeleteObject2
 	bra.w	DeleteObject
 ; ===========================================================================
-; loc_F80C: BranchTo_DisplaySprite:
 Obj11_Display:
 	bra.w	DisplaySprite
 ; ===========================================================================
@@ -18992,7 +18458,7 @@ Obj15_Init:
 	move.l	#Obj15_MapUnc_101E8,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_OOZSwingPlat,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#$10,y_radius(a0)
 	move.w	y_pos(a0),objoff_38(a0)
@@ -19030,7 +18496,7 @@ Obj15_Init:
 	cmpi.b	#$20,d4
 	bne.s	+
 	move.b	#4,routine(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.b	#$50,y_radius(a1)
 	bset	#4,render_flags(a1)
@@ -19512,7 +18978,7 @@ Obj17_Init:
 	move.l	#Obj17_MapUnc_10452,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_GHZ_Spiked_Log,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.w	y_pos(a0),d2
 	move.w	x_pos(a0),d3
@@ -19552,7 +19018,7 @@ Obj17_MakeHelix:
 	move.l	mappings(a0),mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_GHZ_Spiked_Log,2,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#8,width_pixels(a1)
 	move.b	d6,objoff_3E(a1)
 	addq.b	#1,d6
@@ -19672,7 +19138,7 @@ Obj18_Init:
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
 +
 	move.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	y_pos(a0),objoff_2C(a0)
 	move.w	y_pos(a0),objoff_34(a0)
 	move.w	x_pos(a0),objoff_32(a0)
@@ -20033,7 +19499,7 @@ Obj1A_Init:
 	move.l	#Obj1A_MapUnc_10C6C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#7,collapsing_platform_delay_counter(a0)
 	move.b	subtype(a0),mapping_frame(a0)
 	move.l	#Obj1A_DelayData,collapsing_platform_delay_pointer(a0)
@@ -20143,7 +19609,7 @@ Obj1F_Init:
 	move.l	#Obj1F_MapUnc_10F0C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_MZ_Platform,2,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#7,collapsing_platform_delay_counter(a0)
 	move.b	#$44,width_pixels(a0)
 	lea	(Obj1F_DelayData_EvenSubtype).l,a4
@@ -20267,7 +19733,7 @@ Obj1A_CreateFragments:
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.w	art_tile(a0),art_tile(a1)
-	move.b	priority(a0),priority(a1)
+	move.w	priority(a0),priority(a1)
 	move.b	width_pixels(a0),width_pixels(a1)
 	move.b	y_radius(a0),y_radius(a1)
 	move.b	(a4)+,collapsing_platform_delay_counter(a1)
@@ -20439,6 +19905,10 @@ Obj1C_Init:
 	ori.b	#4,render_flags(a0)
 	move.b	(a1)+,width_pixels(a0)
 	move.b	(a1)+,priority(a0)
+	move.w	priority(a0),d0
+	lsr.w	#8-object_display_list_size_bits,d0
+	andi.w	#(1<<total_object_display_lists_bits-1)<<object_display_list_size_bits,d0
+	move.w	d0,priority(a0)
 	lea	Obj1C_Radii(pc),a1
 	move.b	(a1,d1.w),d1
 	beq.w	MarkObjGone	; if the radius is zero, branch
@@ -20482,6 +19952,10 @@ Obj71_Init:
 	ori.b	#4,render_flags(a0)
 	move.b	(a1)+,width_pixels(a0)
 	move.b	(a1)+,priority(a0)
+	move.w	priority(a0),d0
+	lsr.w	#8-object_display_list_size_bits,d0
+	andi.w	#(1<<total_object_display_lists_bits-1)<<object_display_list_size_bits,d0
+	move.w	d0,priority(a0)
 	move.b	subtype(a0),d0
 	andi.w	#$F0,d0
 	lsr.b	#4,d0
@@ -20556,7 +20030,7 @@ Obj2A_Init:
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	move.b	#$50,y_radius(a0)
 	bset	#4,render_flags(a0)
@@ -20640,7 +20114,7 @@ Obj2D_Init:
 	move.b	#8,width_pixels(a0)
 +
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	move.b	subtype(a0),mapping_frame(a0)
 	move.w	x_pos(a0),d2
@@ -20897,7 +20371,7 @@ Obj28_Init:
 	move.b	#$C,y_radius(a0)
 	move.b	#4,render_flags(a0)
 	bset	#0,render_flags(a0)
-	move.b	#6,priority(a0)
+	move.w	#$300,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.b	#7,anim_frame_duration(a0)
 	bra.w	DisplaySprite
@@ -20927,7 +20401,7 @@ Obj28_InitRandom:
 	move.b	#$C,y_radius(a0)
 	move.b	#4,render_flags(a0)
 	bset	#0,render_flags(a0)
-	move.b	#6,priority(a0)
+	move.w	#$300,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.b	#7,anim_frame_duration(a0)
 	move.b	#2,mapping_frame(a0)
@@ -21044,7 +20518,7 @@ Obj28_Prison:
 	subq.w	#1,objoff_36(a0)
 	bne.w	+
 	move.b	#2,routine(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 +
 	bra.w	DisplaySprite
 ; ===========================================================================
@@ -21229,7 +20703,7 @@ Obj29_Init:
 	move.l	#Obj29_MapUnc_11ED0,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Numbers,0,1),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.w	#-$300,y_vel(a0)	; set initial speed (upwards)
 
@@ -21290,7 +20764,7 @@ Obj25_Init:
 	move.l	#Obj25_MapUnc_12382,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#$47,collision_flags(a0)
 	move.b	#8,width_pixels(a0)
 ; Obj_25_sub_2:
@@ -21303,7 +20777,7 @@ Obj25_Animate:
 Obj25_Collect:
 	addq.b	#2,routine(a0)
 	move.b	#0,collision_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	bsr.s	CollectRing
 ; Obj_25_sub_6:
 Obj25_Sparkle:
@@ -21389,7 +20863,7 @@ Obj37_Init:
 	move.l	#Obj25_MapUnc_12382,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a1)
 	move.b	#$84,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#$47,collision_flags(a1)
 	move.b	#8,width_pixels(a1)
 	move.b	#-1,(Ring_spill_anim_counter).w
@@ -21463,7 +20937,7 @@ loc_121B8:
 Obj37_Collect:
 	addq.b	#2,routine(a0)
 	move.b	#0,collision_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	bsr.w	CollectRing
 ; Obj_37_sub_6:
 Obj37_Sparkle:
@@ -21506,7 +20980,7 @@ BigRing_Init:
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#$52,collision_flags(a0)
 	move.w	#$C40,(BigRingGraphics).w
 ; loc_12264:
@@ -21566,7 +21040,7 @@ BigRingFlash_Init:
 	move.l	#Obj37_MapUnc_124E6,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_BigRing_Flash,1,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#-1,mapping_frame(a0)
 ; loc_12306:
@@ -21730,7 +21204,7 @@ Obj26_Init:
 	move.l	#Obj26_MapUnc_12D36,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Powerups,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#$E,width_pixels(a0)
 
 	lea	(Object_Respawn_Table).w,a2
@@ -21904,7 +21378,7 @@ Obj2E_Init:
 	addq.b	#2,routine(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Powerups,0,1),art_tile(a0)
 	ori.b	#$24,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.w	#-$300,y_vel(a0)
 	moveq	#0,d0
@@ -22218,7 +21692,7 @@ Obj0E_Index: offsetTable
 Obj0E_Init:
 	move.l	#Obj0E_MapUnc_136A8,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_TitleSprites,0,0),art_tile(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),routine(a0)
 	bra.s	Obj0E
 ; ===========================================================================
@@ -22489,7 +21963,7 @@ Obj0E_Tails_Index: offsetTable
 
 Obj0E_Tails_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_Tails_Move
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.w	#128+88,x_pixel(a0)
 	move.w	#128+88,y_pixel(a0)
 	move.b	#1,anim(a0)
@@ -22545,7 +22019,7 @@ Obj0E_LogoTop_Init:
 	bmi.s	+
 	move.b	#$A,mapping_frame(a0)
 +
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.w	#128+320/2,x_pixel(a0)
 	move.w	#128+104,y_pixel(a0)
 ; loc_1310A:
@@ -22565,21 +22039,19 @@ Obj0E_MaskingSprite:
 ; off_13120:
 Obj0E_MaskingSprite_Index: offsetTable
 	offsetTableEntry.w Obj0E_MaskingSprite_Init	; 0
-	offsetTableEntry.w BranchTo12_DisplaySprite	; 2
+	offsetTableEntry.w BranchTo11_DisplaySprite	; 2
 ; ===========================================================================
 
 Obj0E_MaskingSprite_Init:
 	addq.b	#2,routine_secondary(a0)	; BranchTo12_DisplaySprite
 	move.w	#make_art_tile(ArtTile_ArtNem_Title,0,0),art_tile(a0)
 	move.b	#$11,mapping_frame(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	; Masking sprites normally must have an X coordinate of 0. I don't
 	; know why it isn't set to that here, but it is corrected to 0 in
 	; 'TitleScreen_Loop'.
 	move.w	#128+128,x_pixel(a0)
 	move.w	#128+224/2,y_pixel(a0)
-
-BranchTo12_DisplaySprite
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; Obj0E_LargeStar:
@@ -22602,7 +22074,7 @@ Obj0E_FlashingStar_Init:
 	move.b	#$C,mapping_frame(a0)
 	ori.w	#high_priority,art_tile(a0)
 	move.b	#2,anim(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.w	#128+128,x_pixel(a0)
 	move.w	#128+40,y_pixel(a0)
 	move.w	#4,obj0e_counter(a0)
@@ -22667,17 +22139,15 @@ Obj0E_SonicHand:
 Obj0E_SonicHand_Index: offsetTable
 	offsetTableEntry.w Obj0E_SonicHand_Init		; 0
 	offsetTableEntry.w Obj0E_SonicHand_Move		; 2
-	offsetTableEntry.w BranchTo13_DisplaySprite	; 4
+	offsetTableEntry.w BranchTo11_DisplaySprite	; 4
 ; ===========================================================================
 
 Obj0E_SonicHand_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_SonicHand_Move
 	move.b	#9,mapping_frame(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.w	#128+197,x_pixel(a0)
 	move.w	#128+63,y_pixel(a0)
-
-BranchTo13_DisplaySprite
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_13234:
@@ -22704,17 +22174,15 @@ Obj0E_TailsHand:
 Obj0E_TailsHand_Index: offsetTable
 	offsetTableEntry.w Obj0E_TailsHand_Init		; 0
 	offsetTableEntry.w Obj0E_TailsHand_Move		; 2
-	offsetTableEntry.w BranchTo14_DisplaySprite	; 4
+	offsetTableEntry.w BranchTo11_DisplaySprite	; 4
 ; ===========================================================================
 
 Obj0E_TailsHand_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_TailsHand_Move
 	move.b	#$13,mapping_frame(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.w	#128+143,x_pixel(a0)
 	move.w	#128+85,y_pixel(a0)
-
-BranchTo14_DisplaySprite
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_13280:
@@ -22745,7 +22213,7 @@ Obj0E_FallingStar_Index: offsetTable
 Obj0E_FallingStar_Init:
 	addq.b	#2,routine_secondary(a0)	; Obj0E_FallingStar_Main
 	move.b	#$C,mapping_frame(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.w	#128+240,x_pixel(a0)
 	move.w	#128+0,y_pixel(a0)
 	move.b	#3,anim(a0)
@@ -22953,9 +22421,9 @@ TitleScreen_SetFinalState:
 	; Initialise Sonic's hand object.
 	lea	(IntroSonicHand).w,a1
 	bsr.w	TitleScreen_InitSprite
-	move.b	#ObjID_TitleIntro,id(a1)
+	_move.b	#ObjID_TitleIntro,id(a1)
 	move.b	#$A,routine(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.b	#9,mapping_frame(a1)
 	move.b	#4,routine_secondary(a1)
 	move.w	#128+193,x_pixel(a1)
@@ -22964,20 +22432,20 @@ TitleScreen_SetFinalState:
 	; Initialise Tails object.
 	lea	(IntroTails).w,a1
 	bsr.w	TitleScreen_InitSprite
-	move.b	#ObjID_TitleIntro,id(a1)
+	_move.b	#ObjID_TitleIntro,id(a1)
 	move.b	#4,routine(a1)
 	move.b	#4,mapping_frame(a1)
 	move.b	#6,routine_secondary(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.w	#128+72,x_pixel(a1)
 	move.w	#128+32,y_pixel(a1)
 
 	; Initialise Tails' hand object.
 	lea	(IntroTailsHand).w,a1
 	bsr.w	TitleScreen_InitSprite
-	move.b	#ObjID_TitleIntro,id(a1)
+	_move.b	#ObjID_TitleIntro,id(a1)
 	move.b	#$10,routine(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.b	#$13,mapping_frame(a1)
 	move.b	#4,routine_secondary(a1)
 	move.w	#128+141,x_pixel(a1)
@@ -22985,14 +22453,14 @@ TitleScreen_SetFinalState:
 
 	; Initialise top-of-emblem object.
 	lea	(IntroEmblemTop).w,a1
-	move.b	#ObjID_TitleIntro,id(a1)
+	_move.b	#ObjID_TitleIntro,id(a1)
 	move.b	#6,subtype(a1)
 
 	; Initialise sprite mask object.
 	bsr.w	Obj0E_LoadMaskingSprite
 
 	; Initialise title screen menu object.
-	move.b	#ObjID_TitleMenu,(TitleScreenMenu+id).w
+	_move.b	#ObjID_TitleMenu,(TitleScreenMenu+id).w
 
 	; Delete palette-changer object.
 	lea	(TitleScreenPaletteChanger).w,a1
@@ -23036,7 +22504,7 @@ TitleScreen_SetFinalState:
 TitleScreen_InitSprite:
 	move.l	#Obj0E_MapUnc_136A8,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_TitleSprites,0,0),art_tile(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	rts
 ; End of function TitleScreen_InitSprite
 
@@ -23499,7 +22967,7 @@ Over_1stWord:
 	move.l	#Obj39_MapUnc_14C6C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Game_Over,0,1),art_tile(a0)
 	move.b	#0,render_flags(a0)
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 ; loc_13FCC:
 Obj39_SlideIn:
 	moveq	#$10,d1			; set horizontal speed
@@ -25047,7 +24515,7 @@ Obj36_Init:
 	move.l	#Obj36_MapUnc_15B68,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Spikes,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),d0
 	andi.b	#$F,subtype(a0)		; lower 4 bits determine behavior, upper bits need to be removed
 	andi.w	#$F0,d0
@@ -25301,7 +24769,7 @@ Obj12_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_GHZ_Purple_Rock,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$13,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	bra.s	Obj12_Main
 
 .emerald_mappings:
@@ -25309,7 +24777,7 @@ Obj12_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_HPZ_Emerald,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 ; loc_20356:
 Obj12_Main:
 	move.w	#$20,d1
@@ -25356,7 +24824,7 @@ Obj13_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_HPZ_Waterfall,3,1),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$12,mapping_frame(a0)
 	bsr.s	Obj13_LoadSubObject
 	move.b	#$A0,y_radius(a1)
@@ -25384,7 +24852,7 @@ Obj13_LoadSubObject:
 	move.w	#make_art_tile(ArtTile_ArtNem_HPZ_Waterfall,3,1),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 +	rts
 ; ===========================================================================
 
@@ -25487,7 +24955,7 @@ Obj3C_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_BreakWall,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),mapping_frame(a0)
 ; loc_15D8A:
 Obj3C_Main:
@@ -25560,7 +25028,7 @@ BreakObjectToPieces_InitObject:
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.w	art_tile(a0),art_tile(a1)
-	move.b	priority(a0),priority(a1)
+	move.w	priority(a0),priority(a1)
 	move.b	width_pixels(a0),width_pixels(a1)
 	move.w	(a4)+,x_vel(a1)
 	move.w	(a4)+,y_vel(a1)
@@ -25662,8 +25130,7 @@ RunObjectsWhenPlayerIsDead:
 
 ; sub_15FF2:
 RunObjectDisplayOnly:
-	moveq	#0,d0
-	; This check prevent objects that don't exist from being displayed.
+	moveq	#0,d0	; This check prevent objects that don't exist from being displayed.
 	move.b	id(a0),d0	; get the object's ID
 	beq.s	+	; if it's obj00, skip it
 	; This check prevents objects that do exist, but haven't been initialised yet, from being displayed.
@@ -26085,10 +25552,7 @@ DeleteObject2:
 ; sub_164F4:
 DisplaySprite:
 	lea	(Object_Display_Lists).w,a1
-	move.w	priority(a0),d0
-	lsr.w	#8-object_display_list_size_bits,d0
-	andi.w	#(1<<total_object_display_lists_bits-1)<<object_display_list_size_bits,d0
-	adda.w	d0,a1
+	adda.w	priority(a0),a1
 	cmpi.w	#object_display_list_size-2,(a1)
 	bhs.s	.return
 	addq.w	#2,(a1)
@@ -26108,10 +25572,7 @@ DisplaySprite:
 ; sub_16512:
 DisplaySprite2:
 	lea	(Object_Display_Lists).w,a2
-	move.w	priority(a1),d0
-	lsr.w	#8-object_display_list_size_bits,d0
-	andi.w	#(1<<total_object_display_lists_bits-1)<<object_display_list_size_bits,d0
-	adda.w	d0,a2
+	adda.w	priority(a1),a2
 	cmpi.w	#object_display_list_size-2,(a2)
 	bhs.s	.return
 	addq.w	#2,(a2)
@@ -27680,7 +27141,6 @@ loc_17B62:
 	move.l	a0,(Obj_load_addr_left).w	; remember current object from the left
 	move.l	a0,(Obj_load_addr_left_P2).w
 	move.w	#-1,(Camera_X_pos_last).w	; make sure ObjectsManager_GoingForward is run
-	move.w	#-1,(Camera_X_pos_last_P2).w
 	; continue to ObjectsManager_Main
 ; ---------------------------------------------------------------------------
 ; loc_17B84
@@ -27931,7 +27391,7 @@ Obj41_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_VrtclSprng,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),d0
 	lsr.w	#3,d0
 	andi.w	#$E,d0
@@ -28740,7 +28200,7 @@ loc_1922C:
 	addq.b	#2,routine(a0) ; => Obj0D_Main
 	ori.b	#4,render_flags(a0)
 	move.b	#$18,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 
 ; loc_1924C: Obj_0D_sub_2:
 Obj0D_Main:
@@ -28820,7 +28280,7 @@ loc_19398:
 	move.l	#Obj25_MapUnc_12382,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.b	#8,width_pixels(a1)
 
 return_19406:
@@ -30028,7 +29488,7 @@ Obj01_Init:
 	move.b	#$13,y_radius(a0) ; this sets Sonic's collision height (2*pixels)
 	move.b	#9,x_radius(a0)
 	move.l	#MapUnc_Sonic,mappings(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#$18,width_pixels(a0)
 	move.b	#4,render_flags(a0)
 	move.w	#$600,(Sonic_top_speed).w	; set Sonic's top speed
@@ -32537,7 +31997,13 @@ Obj02:
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	Obj02_Index(pc,d0.w),d1
-	jmp	Obj02_Index(pc,d1.w)
+	jsr	Obj02_Index(pc,d1.w)
+	movea.w	(Tails_Tails_ptr).w,a1
+	tst.b	routine(a1)
+	beq.s	+
+	jmp	(DisplaySprite2).l
++
+	rts
 ; ===========================================================================
 ; off_1B8CC: Obj02_States:
 Obj02_Index:	offsetTable
@@ -32553,7 +32019,7 @@ Obj02_Init:
 	move.b	#$F,y_radius(a0) ; this sets Tails' collision height (2*pixels) to less than Sonic's height
 	move.b	#9,x_radius(a0)
 	move.l	#MapUnc_Tails,mappings(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#$18,width_pixels(a0)
 	move.b	#$84,render_flags(a0) ; render_flags(Tails) = $80 | initial render_flags(Sonic)
 	move.w	#$600,(Tails_top_speed).w	; set Tails' top speed
@@ -32577,8 +32043,9 @@ Obj02_Init_Continued:
 	move.w	#0,(Tails_CPU_routine).w	; set AI state to TailsCPU_Init
 	move.w	#0,(Tails_control_counter).w
 	move.w	#0,(Tails_respawn_counter).w
-	move.b	#ObjID_TailsTails,(Tails_Tails+id).w ; load Obj05 (Tails' Tails) at $FFFFD000
-	move.w	a0,(Tails_Tails+parent).w ; set its parent object to this
+	movea.w	(Tails_Tails_ptr).w,a1
+	_move.b	#ObjID_TailsTails,id(a1) ; load Obj05 (Tails' Tails)
+	move.w	a0,parent(a1) ; set its parent object to this
 
 ; ---------------------------------------------------------------------------
 ; Normal state for Tails
@@ -34973,7 +34440,7 @@ Obj05_Init:
 	addq.b	#2,routine(a0) ; => Obj05_Main
 	move.l	#MapUnc_Tails,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtUnc_Tails_Tails,0,0),art_tile(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#$18,width_pixels(a0)
 	move.b	#4,render_flags(a0)
 
@@ -35132,7 +34599,7 @@ Obj0A_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_BigBubbles,0,1),art_tile(a0)
 	move.b	#$84,render_flags(a0)
 	move.b	#16,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	subtype(a0),d0
 	bpl.s	loc_1D388
 	addq.b	#8,routine(a0) ; Obj0A_Countdown
@@ -35610,7 +35077,7 @@ Obj38_Main:
 	addq.b	#2,routine(a0)
 	move.l	#Obj38_MapUnc_1DBE4,mappings(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$18,width_pixels(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Shield,0,0),art_tile(a0)
 ; loc_1D92C:
@@ -35888,7 +35355,7 @@ Obj08_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj08_MapUnc_1DF5E,mappings(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SonicDust,0,0),art_tile(a0)
 	move.w	#MainCharacter,parent(a0)
@@ -36003,7 +35470,7 @@ Obj08_SkidDust:
 	addq.b	#2,routine(a1)
 	move.l	mappings(a0),mappings(a1)
 	move.b	render_flags(a0),render_flags(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 	move.b	#4,width_pixels(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	move.w	parent(a0),parent(a1)
@@ -36090,7 +35557,7 @@ Obj7E_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj7E_MapUnc_1E1BE,mappings(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$18,width_pixels(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SuperSonic_stars,0,0),art_tile(a0)
 	btst	#high_priority_bit,(MainCharacter+art_tile).w
@@ -37623,7 +37090,7 @@ Obj79_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Checkpoint,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#8,width_pixels(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	lea	(Object_Respawn_Table).w,a2
 	moveq	#0,d0
 	move.b	respawn_index(a0),d0
@@ -37680,7 +37147,7 @@ Obj79_CheckActivation:
 	move.w	art_tile(a0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#8,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#2,mapping_frame(a1)
 	move.w	#$20,objoff_36(a1)
 	move.w	a0,parent(a1)
@@ -37856,7 +37323,7 @@ Obj79_MakeSpecialStars:
 	subi.w	#$30,d0
 	move.w	d0,y_pos(a1)
 	move.w	d0,objoff_32(a1)
-	move.b	priority(a0),priority(a1)
+	move.w	priority(a0),priority(a1)
 	move.b	#8,width_pixels(a1)
 	move.b	#1,mapping_frame(a1)
 	move.w	#-$400,x_vel(a1)
@@ -38000,7 +37467,7 @@ Obj7D_Init:
 	move.l	#Obj7D_MapUnc_1F6FE,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_EndPoints,0,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	subtype(a0),mapping_frame(a0)
 	move.w	#$77,objoff_30(a0)
@@ -38070,7 +37537,7 @@ Obj44_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZRoundBumper,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$D7,collision_flags(a0)
 
 ; loc_1F770:
@@ -38182,7 +37649,7 @@ Obj24_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_BigBubbles,0,1),art_tile(a0)
 	move.b	#$84,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	subtype(a0),d0
 	bpl.s	loc_1F90A
 	addq.b	#8,routine(a0)
@@ -38571,7 +38038,7 @@ Obj03_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	subtype(a0),d0
 	btst	#2,d0
 	beq.s	Obj03_Init_CheckX
@@ -38818,7 +38285,7 @@ Obj0B_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZAnimatedBits,3,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
 	andi.w	#$F0,d0
@@ -38921,7 +38388,7 @@ Obj0C_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_FloatPlatform,3,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	y_pos(a0),d0
 	subi.w	#$10,d0
 	move.w	d0,objoff_3A(a0)
@@ -39130,7 +38597,7 @@ Obj49_Init:
 	move.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
 	move.w	x_pos(a0),objoff_30(a0)
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 	move.b	#$80,y_radius(a0)
 	bset	#4,render_flags(a0)
 ; loc_20BEA:
@@ -39210,7 +38677,7 @@ Obj31_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Powerups,0,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$80,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),mapping_frame(a0)
 
 ; loc_20E46:
@@ -39325,7 +38792,7 @@ Obj7C_Init:
 	move.l	#Obj7C_MapUnc_2103C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZMetalThings,2,1),art_tile(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#7,priority(a0)
+	move.w	#$380,priority(a0)
 
 ; loc_21006:
 Obj7C_Main:
@@ -39390,7 +38857,7 @@ Obj27_Init:
 	move.l	#Obj27_MapUnc_21120,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Explosion,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#0,collision_flags(a0)
 	move.b	#$C,width_pixels(a0)
 	move.b	#3,anim_frame_duration(a0)
@@ -39443,7 +38910,7 @@ Obj84_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	subtype(a0),d0
 	btst	#2,d0
 	beq.s	Obj84_Init_CheckX
@@ -39658,7 +39125,7 @@ Obj8B_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	subtype(a0),d0
 	andi.w	#3,d0
 	move.b	d0,mapping_frame(a0)
@@ -40096,7 +39563,7 @@ Obj14_Init:
 	move.l	#Obj14_MapUnc_21CF0,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HtzSeeSaw,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$30,width_pixels(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	tst.b	subtype(a0)
@@ -40228,7 +39695,7 @@ Obj14_Ball_Init:
 	move.l	#Obj14_MapUnc_21D7C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Sol,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$8B,collision_flags(a0)
 	move.b	#$C,width_pixels(a0)
 	move.w	x_pos(a0),objoff_30(a0) ; save seesaw x position
@@ -40454,7 +39921,7 @@ Obj16_Init:
 	ori.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#0,mapping_frame(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	move.b	#$40,y_radius(a0)
@@ -40605,7 +40072,7 @@ Obj19_Init:
 	lea	Obj19_SubtypeProperties(pc,d0.w),a2
 	move.b	(a2)+,width_pixels(a0)
 	move.b	(a2)+,mapping_frame(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	andi.b	#$F,subtype(a0)
@@ -40852,7 +40319,7 @@ Obj1B_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBooster,3,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	subtype(a0),d0
 	andi.w	#2,d0
 	move.w	Obj1B_BoosterSpeeds(pc,d0.w),speedbooster_boostspeed(a0)
@@ -41003,7 +40470,7 @@ Obj1D_InitBall:
 	move.l	#Obj1D_MapUnc_22576,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZDroplet,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#%10001011,collision_flags(a1)
 	move.w	x_pos(a1),objoff_38(a1)
 	move.w	y_pos(a1),objoff_30(a1)
@@ -41555,7 +41022,7 @@ Obj20_Init:
 	move.l	#Obj20_MapUnc_23254,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HtzFireball2,0,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.w	y_pos(a0),objoff_30(a0)
 	moveq	#0,d0
@@ -41612,7 +41079,7 @@ loc_230C2:
 	move.l	mappings(a0),mappings(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#8,width_pixels(a1)
 	move.b	#$8B,collision_flags(a1)
 	move.w	y_pos(a1),objoff_30(a1)
@@ -41789,7 +41256,7 @@ Obj2F_Init:
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,1),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
 	andi.w	#$1E,d0
@@ -42015,7 +41482,7 @@ Obj32_Init:
 	move.l	#Obj32_VelArray2,objoff_3C(a0)
 +
 	move.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 ; loc_23582:
 Obj32_Main:
 	move.w	(Chain_Bonus_counter).w,objoff_38(a0)
@@ -42370,7 +41837,7 @@ Obj33_Init:
 	move.l	#Obj33_MapUnc_23DDC,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_BurnerLid,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#$18,width_pixels(a0)
 	move.w	y_pos(a0),objoff_30(a0)
 	addq.b	#2,routine_secondary(a0)
@@ -42389,7 +41856,7 @@ Obj33_Init:
 	move.l	#Obj33_MapUnc_23DF0,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_OOZBurn,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.l	a0,objoff_3C(a1)
 ; loc_23B90:
@@ -42654,7 +42121,7 @@ loc_23EA8:
 	move.l	#Obj43_MapUnc_23FE0,mappings(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$18,width_pixels(a1)
 	move.b	#$A5,collision_flags(a1)
 	move.w	x_pos(a1),objoff_30(a1)
@@ -42901,7 +42368,7 @@ Obj45_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_PushSpring,2,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#16,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),d0
 	lsr.w	#3,d0
 	; Some instances of this object use a subtype of $30, which results
@@ -43308,7 +42775,7 @@ Obj46_Init:
 	move.l	#Obj46_MapUnc_24C52,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_BallThing,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.w	x_pos(a0),objoff_34(a0)
 	move.w	y_pos(a0),objoff_36(a0)
 	move.b	#$10,width_pixels(a0)
@@ -43328,7 +42795,7 @@ Obj46_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_PushSpring,2,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#9,mapping_frame(a1)
 	move.l	a0,objoff_3C(a1)
 +
@@ -43505,7 +42972,7 @@ Obj47_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Button,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	addq.w	#4,y_pos(a0)
 ; loc_24D32:
 Obj47_Main:
@@ -43592,7 +43059,7 @@ Obj3D_Init:
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	bset	#7,status(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 ; loc_24E26:
 Obj3D_Main:
 	move.b	(MainCharacter+anim).w,objoff_32(a0)
@@ -43891,7 +43358,7 @@ Obj48_Init:
 +
 	move.b	objoff_3F(a0),mapping_frame(a0)
 	move.b	#$28,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 ; loc_252C6:
 Obj48_Main:
 	lea	(MainCharacter).w,a1 ; a1=character
@@ -44127,7 +43594,7 @@ Obj22_Init:
 	move.l	#Obj22_MapUnc_25804,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_ArrowAndShooter,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#1,mapping_frame(a0)
 	andi.b	#$F,subtype(a0)
@@ -44191,7 +43658,7 @@ Obj22_Arrow_Init:
 	addq.b	#2,routine(a0)
 	move.b	#8,y_radius(a0)
 	move.b	#$10,x_radius(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$9B,collision_flags(a0)
 	move.b	#8,width_pixels(a0)
 	move.b	#0,mapping_frame(a0)
@@ -44284,7 +43751,7 @@ Obj23_Init:
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#$20,y_radius(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	jsr	(AllocateObjectAfterCurrent).l
 	bne.s	Obj23_Main
 	_move.b	id(a0),id(a1) ; load obj23
@@ -44299,7 +43766,7 @@ Obj23_Init:
 	move.b	render_flags(a0),render_flags(a1)
 	move.b	#$10,width_pixels(a1)
 	move.b	#$10,y_radius(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#1,mapping_frame(a1)
 ; loc_25922:
 Obj23_Main:
@@ -44424,7 +43891,7 @@ Obj2B_Init:
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#$18,y_radius(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 ; loc_25A9C:
 Obj2B_Main:
 	move.w	x_pos(a0),-(sp)
@@ -44594,7 +44061,7 @@ loc_25C24:
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.w	art_tile(a0),art_tile(a1)
-	move.b	priority(a0),priority(a1)
+	move.w	priority(a0),priority(a1)
 	move.b	width_pixels(a0),width_pixels(a1)
 	move.w	(a4)+,x_vel(a1)
 	move.w	(a4)+,y_vel(a1)
@@ -44668,7 +44135,7 @@ Obj2C_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Powerups,0,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$80,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	subtype(a0),mapping_frame(a0)
 ; loc_26152:
 Obj2C_Main:
@@ -44762,7 +44229,7 @@ loc_261EC:
 	move.w	#make_art_tile(ArtTile_ArtNem_Leaves,3,1),art_tile(a1)
 	move.b	#$84,render_flags(a1)
 	move.b	#8,width_pixels(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 	move.b	#4,objoff_38(a1)
 	; d1 is set to a random number by the above call to RandomNumber
 	move.b	d1,angle(a1)
@@ -44865,7 +44332,7 @@ Obj40_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_LeverSpring,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$1C,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	bset	#7,status(a0)
 	move.b	subtype(a0),d0
 	andi.w	#6,d0		; now properly capped at 4 (changed from 2 to 6)
@@ -45075,7 +44542,7 @@ Obj42_Init:
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#7,mapping_frame(a0)
 	move.w	y_pos(a0),objoff_34(a0)
 	move.w	#$10,objoff_36(a0)
@@ -45167,7 +44634,7 @@ loc_2674C:
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzSteam,1,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
 	move.b	#$18,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 +
 	rts
 ; ===========================================================================
@@ -45309,7 +44776,7 @@ Obj64_Init:
 	move.l	#Obj64_MapUnc_26A5C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	x_pos(a0),objoff_34(a0)
 	move.w	y_pos(a0),objoff_30(a0)
 	moveq	#0,d0
@@ -45452,7 +44919,7 @@ Obj65_Init:
 	move.l	#Obj65_Obj6A_Obj6B_MapUnc_26EC8,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
 	lsr.w	#2,d0
@@ -45507,7 +44974,7 @@ loc_26B6E:
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzCog,3,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	a0,objoff_3C(a1)
 
 loc_26C04:
@@ -45861,7 +45328,7 @@ Obj66_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Powerups,0,1),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#8,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$40,y_radius(a0)
 	move.b	subtype(a0),d0
 	lsr.b	#4,d0
@@ -46027,7 +45494,7 @@ Obj67_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzSpinTubeFlash,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 ; loc_271AC:
 Obj67_Main:
 	lea	(MainCharacter).w,a1 ; a1=character
@@ -46300,7 +45767,7 @@ Obj68_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzSpikeBlock,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	jsr	(AllocateObjectAfterCurrent).l
 	bne.s	+
 	_move.b	id(a0),id(a1) ; load obj68
@@ -46313,7 +45780,7 @@ Obj68_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzSpike,1,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.w	(Timer_frames).w,d0
 	lsr.w	#6,d0
 	move.w	d0,d1
@@ -46472,7 +45939,7 @@ Obj6D_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzSpike,1,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#4,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	x_pos(a0),floorspike_initial_x_pos(a0)
 	move.w	y_pos(a0),floorspike_initial_y_pos(a0)
 	move.b	#$84,collision_flags(a0)
@@ -46552,7 +46019,7 @@ Obj69_Init:
 	move.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#$B,y_radius(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	move.b	subtype(a0),d0
 	andi.w	#$7F,d0
@@ -46726,7 +46193,7 @@ Obj6A_Init:
 	move.l	#Obj65_Obj6A_Obj6B_MapUnc_26EC8,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#$C,y_radius(a0)
 	move.l	#byte_27CDC,objoff_2C(a0)
@@ -46938,7 +46405,7 @@ Obj6B_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZStairBlock,3,0),art_tile(a0)
 +
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
 	lsr.w	#2,d0
@@ -47237,7 +46704,7 @@ Obj6C_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_LavaCup,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#0,mapping_frame(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
@@ -47490,7 +46957,7 @@ Obj6E_Init:
 	move.l	#Obj6E_MapUnc_2852C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
 	lsr.w	#3,d0
@@ -47506,7 +46973,7 @@ Obj6E_Init:
 	bne.s	loc_28432
 	addq.b	#2,routine(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzWheelIndent,3,0),art_tile(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	bra.w	loc_284BC
 ; ===========================================================================
 
@@ -47643,7 +47110,7 @@ Obj70_LoadSubObject:
 	move.l	#Obj70_MapUnc_28786,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_MtzWheel,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.w	d2,objoff_32(a1)
 	move.w	d3,objoff_30(a1)
@@ -47876,7 +47343,7 @@ Obj73_Init:
 	move.l	#Obj73_MapUnc_28B9C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#8,width_pixels(a0)
 	move.w	x_pos(a0),objoff_3A(a0)
 	move.w	y_pos(a0),objoff_38(a0)
@@ -47926,7 +47393,7 @@ Obj73_LoadSubObject:
 	move.l	mappings(a0),mappings(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	move.b	render_flags(a0),render_flags(a1)
-	move.b	priority(a0),priority(a1)
+	move.w	priority(a0),priority(a1)
 	move.b	width_pixels(a0),width_pixels(a1)
 	move.b	collision_flags(a0),collision_flags(a1)
 	move.b	status(a0),status(a1)
@@ -48069,7 +47536,7 @@ Obj75_Init:
 	move.l	#Obj75_MapUnc_28D8A,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	move.w	y_pos(a0),objoff_32(a0)
@@ -48087,7 +47554,7 @@ Obj75_Init:
 	cmpi.b	#$F,d1
 	bne.s	+
 	addq.b	#2,routine(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#2,mapping_frame(a0)
 	rts
 ; ===========================================================================
@@ -48228,7 +47695,7 @@ Obj76_Init:
 	move.l	#Obj76_MapUnc_28F3A,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0	; this is always 0 in the original layouts...
 	lsr.w	#2,d0
@@ -48468,7 +47935,7 @@ Obj78_LoadSubObject:
 	move.l	#Obj6B_MapUnc_2800E,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZStairBlock,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.b	subtype(a0),subtype(a1)
 	move.w	d2,x_pos(a1)
@@ -48695,7 +48162,7 @@ Obj7A_LoadSubObject:
 	move.l	mappings(a0),mappings(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$18,width_pixels(a1)
 	move.w	x_pos(a1),objoff_30(a1)
 ; loc_2944A:
@@ -48847,7 +48314,7 @@ Obj7B_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZTubeSpring,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	subtype(a0),d0
 	andi.w	#2,d0
 	move.w	Obj7B_Strengths(pc,d0.w),objoff_30(a0)
@@ -49002,7 +48469,7 @@ Obj7F_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_VineSwitch,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#8,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 ; loc_2981E:
 Obj7F_Main:
 	lea	objoff_30(a0),a2
@@ -49115,7 +48582,7 @@ Obj80_Init:
 	addq.b	#2,routine(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$80,y_radius(a0)
 	bset	#4,render_flags(a0)
 	move.w	y_pos(a0),objoff_3C(a0)
@@ -49395,7 +48862,7 @@ Obj81_Init:
 	move.l	#Obj81_MapUnc_2A24E,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_MCZGateLog,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	#8,width_pixels(a0)
 	ori.b	#$80,status(a0)
 	move.w	x_pos(a0),objoff_30(a0)
@@ -49599,7 +49066,7 @@ Obj82_Init:
 	move.l	#Obj82_MapUnc_2A476,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
 	lsr.w	#3,d0
@@ -49829,7 +49296,7 @@ Obj83_Init:
 	move.l	#Obj15_Obj83_MapUnc_1021E,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$20,width_pixels(a0)
 	move.w	x_pos(a0),Obj83_initial_x_pos(a0)
 	move.w	y_pos(a0),Obj83_initial_y_pos(a0)
@@ -49892,7 +49359,7 @@ Obj83_LoadSubObject:
 	move.l	mappings(a0),mappings(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$20,width_pixels(a1)
 	move.w	x_pos(a0),Obj83_initial_x_pos(a1)
 	move.w	y_pos(a0),Obj83_initial_y_pos(a1)
@@ -50056,7 +49523,7 @@ Obj3F_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_OOZFanHoriz,3,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	tst.b	subtype(a0)
 	bpl.s	Obj3F_Horizontal
 	addq.b	#2,routine(a0)
@@ -50695,7 +50162,7 @@ Obj86_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZFlipper,2,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$18,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	tst.b	subtype(a0)
 	beq.s	Obj86_UpwardsType
 	addq.b	#2,routine(a0)
@@ -50954,7 +50421,7 @@ ObjD2_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZSnake,2,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#8,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	moveq	#0,d0
@@ -51127,7 +50594,7 @@ ObjD4_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_BigMovingBlock,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	x_pos(a0),objoff_30(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	move.w	#$8000,x_sub(a0)
@@ -51218,7 +50685,7 @@ ObjD5_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZElevator,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	y_pos(a0),objoff_32(a0)
 	move.w	#$8000,y_sub(a0)
 	moveq	#0,d0
@@ -51347,7 +50814,7 @@ ObjD6_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZCage,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$18,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 ; loc_2BBA6:
 ObjD6_Main:
 	move.w	#$23,d1
@@ -51439,7 +50906,7 @@ loc_2BC86:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZBonusSpike,0,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.w	#$1E,casino_prize_display_delay(a1)
 	move.w	objoff_2E(a0),objoff_2E(a1)
 	addi.w	#$90,objoff_2E(a0)
@@ -51481,7 +50948,7 @@ loc_2BD4E:
 	move.l	#Obj25_MapUnc_12382,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#8,width_pixels(a1)
 	move.w	#$1A,casino_prize_display_delay(a1)
 	move.w	objoff_2E(a0),objoff_2E(a1)
@@ -52164,7 +51631,7 @@ ObjD7_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZHexBumper,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$CA,collision_flags(a0)
 	btst	#0,status(a0)
 	beq.s	+
@@ -52349,7 +51816,7 @@ ObjD8_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZMiniBumper,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#$D7,collision_flags(a0)
 	move.b	subtype(a0),d0
 	rol.b	#2,d0
@@ -52558,7 +52025,7 @@ ObjD9_Init:
 	addq.b	#2,routine(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$18,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 ; loc_2C954:
 ObjD9_Main:
 	lea	objoff_30(a0),a2
@@ -52678,7 +52145,7 @@ Obj4A_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Octus,1,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$A,collision_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#$B,y_radius(a0)
 	move.b	#8,x_radius(a0)
@@ -52788,7 +52255,7 @@ Obj4A_FireBullet:
 	move.b	#6,routine(a1)
 	move.l	#Obj4A_MapUnc_2CBFE,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Octus,1,0),art_tile(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
@@ -52885,7 +52352,7 @@ Obj50_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Aquis,1,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$A,collision_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.w	#-$100,x_vel(a0)
 	move.b	subtype(a0),d0
@@ -52916,7 +52383,7 @@ Obj50_Init:
 	move.l	#Obj50_MapUnc_2CF94,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Aquis,1,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	status(a0),status(a1)
 	move.b	#3,anim(a1)
 	move.l	a1,Obj50_child(a0)
@@ -53004,7 +52471,7 @@ Obj50_ChkIfShoot:
 	move.l	#Obj50_MapUnc_2CF94,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Aquis,1,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#$98,collision_flags(a1)
 	move.b	#2,anim(a1)
 	move.w	#$A,d0		; set y offset
@@ -53217,11 +52684,11 @@ Obj4B_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Buzzer,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$A,collision_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#$10,y_radius(a0)
 	move.b	#$18,x_radius(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	addq.b	#2,routine(a0)	; => Obj4B_Main
 
 	; load exhaust flame object
@@ -53232,7 +52699,7 @@ Obj4B_Init:
 	move.b	#4,routine(a1)	; => Obj4B_Flame
 	move.l	#Obj4B_MapUnc_2D2EA,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Buzzer,0,0),art_tile(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.b	status(a0),status(a1)
 	move.b	render_flags(a0),render_flags(a1)
@@ -53356,7 +52823,7 @@ Obj4B_ShootProjectile:
 	move.b	#6,routine(a1)	; => Obj4B_Projectile
 	move.l	#Obj4B_MapUnc_2D2EA,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Buzzer,0,0),art_tile(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#$98,collision_flags(a1)
 	move.b	#$10,width_pixels(a1)
 	move.b	status(a0),status(a1)
@@ -53448,7 +52915,7 @@ Obj5C_Init:
 	move.l	#Obj5C_MapUnc_2D442,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Masher,0,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#9,collision_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	move.w	#-$400,y_vel(a0)
@@ -53513,7 +52980,7 @@ Obj58_Init:
 	move.l	#Obj58_MapUnc_2D50A,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_FieryExplosion,0,1),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 	move.b	#0,collision_flags(a0)
 	move.b	#$C,width_pixels(a0)
 	move.b	#7,anim_frame_duration(a0)
@@ -53798,7 +53265,7 @@ Obj5D_Init:
 	move.b	#$20,width_pixels(a0)
 	move.w	#$2B80,x_pos(a0)
 	move.w	#$4B0,y_pos(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#$F,collision_flags(a0)
 	move.b	#8,collision_property(a0)
 	addq.b	#2,routine(a0)	; => Obj5D_Main
@@ -53816,7 +53283,7 @@ Obj5D_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Eggpod_3,0,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#$16,routine(a1)	; => Obj5D_Robotnik
@@ -53835,7 +53302,7 @@ Obj5D_Init:
 	move.b	#1,anim_frame_duration(a0)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#$18,routine(a1)	; => Obj5D_Flame
@@ -53850,7 +53317,7 @@ Obj5D_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#$12,routine(a1)	; => Obj5D_Pump
@@ -53865,7 +53332,7 @@ loc_2D8AC:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	subi.w	#$38,y_pos(a1)
@@ -53884,7 +53351,7 @@ loc_2D908:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#4,routine(a1)		; => Obj5D_Pipe
@@ -54288,7 +53755,7 @@ Obj5D_Pump:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.b	status(a0),status(a1)
@@ -54358,7 +53825,7 @@ Obj5D_Pipe_Extend_Part2:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#5,priority(a1)
+	move.w	#$280,priority(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 
@@ -54408,7 +53875,7 @@ Obj5D_Pipe_Pump_0:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#2,Obj5D_timer3(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
@@ -54593,7 +54060,7 @@ Obj5D_Dripper_0:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$20,width_pixels(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	movea.l	Obj5D_parent(a0),a1 ; a1=object
 	move.w	x_pos(a1),x_pos(a0)
 	move.w	y_pos(a1),y_pos(a0)
@@ -54675,7 +54142,7 @@ Obj5D_Container_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#$10,routine(a1)
@@ -54690,7 +54157,7 @@ Obj5D_Container_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	addi.b	#$10,routine(a1)
@@ -54790,7 +54257,7 @@ loc_2E35C:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	render_flags(a0),render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	addi_.w	#8,y_pos(a1)
@@ -54876,7 +54343,7 @@ loc_2E464:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#5,priority(a1)
+	move.w	#$280,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#$B,anim(a1)
@@ -54907,7 +54374,7 @@ loc_2E4CE:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#4,routine(a1)		; => Obj5D_Pipe
@@ -55092,7 +54559,7 @@ Obj5D_Gunk_6:
 +
 	subi_.w	#1,Obj5D_timer2(a0)
 	bpl.s	+
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.b	#$25,mapping_frame(a0)
 	movea.l	Obj5D_parent(a0),a1 ; a1=object
 	movea.l	Obj5D_parent(a1),a1 ; a1=object
@@ -55163,7 +54630,7 @@ Obj5D_Gunk_Droplets_Loop:
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZBoss,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#4,y_radius(a1)
@@ -55461,7 +54928,7 @@ Obj56_Init:
 	move.w	#$426,y_pos(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#$14,y_radius(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$F,collision_flags(a0)
 	move.b	#8,collision_property(a0)	; hitcount
 	addq.b	#2,routine(a0)
@@ -55477,7 +54944,7 @@ Obj56_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Eggpod_1,0,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#$E,routine(a1)
@@ -55494,7 +54961,7 @@ Obj56_Init:
 	move.b	#4,render_flags(a1)
 	move.b	#$30,width_pixels(a1)
 	move.b	#$10,y_radius(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.w	#$2AF0,x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.b	#6,routine(a1)
@@ -55512,7 +54979,7 @@ Obj56_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_EggChoppers,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$40,width_pixels(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	move.w	#$1E,objoff_2A(a1)
@@ -55531,7 +54998,7 @@ loc_2F098:
 	move.w	#make_art_tile(ArtTile_ArtNem_EHZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.b	#$10,y_radius(a1)
 	move.b	#$10,x_radius(a1)
 	move.w	#$2AF0,x_pos(a1)
@@ -55553,7 +55020,7 @@ loc_2F098:
 	move.w	#make_art_tile(ArtTile_ArtNem_EHZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.b	#$10,y_radius(a1)
 	move.b	#$10,x_radius(a1)
 	move.w	#$2AF0,x_pos(a1)
@@ -55575,7 +55042,7 @@ loc_2F098:
 	move.w	#make_art_tile(ArtTile_ArtNem_EHZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#$10,y_radius(a1)
 	move.b	#$10,x_radius(a1)
 	move.w	#$2AF0,x_pos(a1)
@@ -55597,7 +55064,7 @@ loc_2F098:
 	move.w	#make_art_tile(ArtTile_ArtNem_EHZBoss,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.w	#$2AF0,x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	addi.w	#-$36,x_pos(a1)
@@ -55744,7 +55211,7 @@ loc_2F3A2:	; Obj56_VehicleMain_SubA_0:
 	move.w	#make_art_tile(ArtTile_ArtNem_EggChoppers,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
 	move.b	#$20,width_pixels(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.l	x_pos(a0),x_pos(a1)
 	move.l	y_pos(a0),y_pos(a1)
 	addi.w	#$C,y_pos(a1)
@@ -55922,7 +55389,7 @@ loc_2F5C6:	; Obj56_Propeller_Sub2
 	bpl.s	loc_2F5E8
 	cmpi.w	#-$10,objoff_2A(a0)
 	ble.w	JmpTo52_DeleteObject
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	addi_.w	#1,y_pos(a0)	; move down
 	jmp	(DisplaySprite).l
 ; ---------------------------------------------------------------------------
@@ -56046,7 +55513,7 @@ loc_2F714:	; Obj56_Wheel_Sub2:
 	btst	#1,objoff_2D(a1)
 	beq.w	JmpTo35_DisplaySprite	; boss not moving yet (inactive)
 	addq.b	#2,routine_secondary(a0)
-	cmpi.b	#2,priority(a0)
+	cmpi.w	#$100,priority(a0)
 	bne.s	BranchTo_JmpTo35_DisplaySprite
 	move.w	y_pos(a0),d0
 	movea.l	objoff_34(a0),a1 ; parent address (vehicle)
@@ -56076,7 +55543,7 @@ loc_2F768:
 
 loc_2F77E:
 	move.w	#$100,y_vel(a0)
-	cmpi.b	#2,priority(a0)
+	cmpi.w	#$100,priority(a0)
 	bne.s	loc_2F798
 	move.w	y_pos(a0),d0
 	movea.l	objoff_34(a0),a1 ; parent address (vehicle)
@@ -56094,7 +55561,7 @@ loc_2F7A6:	; Obj56_Wheel_Sub6:
 	addq.b	#2,routine_secondary(a0)	; Sub8
 	move.w	#$A,objoff_2A(a0)
 	move.w	#-$300,y_vel(a0)	; first bounce higher
-	cmpi.b	#2,priority(a0)
+	cmpi.w	#$100,priority(a0)
 	beq.w	JmpTo35_DisplaySprite
 	neg.w	x_vel(a0)	; into other direction
 	jmp	(DisplaySprite).l
@@ -56357,7 +55824,7 @@ Obj52_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Eggpod_2,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#$90,mainspr_width(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	#$3040,x_pos(a0)
 	move.w	#$580,y_pos(a0)
 	move.b	#1,boss_defeated(a0)
@@ -56575,7 +56042,7 @@ loc_2FF02:
 	move.l	#Obj52_MapUnc_302BC,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HTZBoss,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	addq.b	#2,routine_secondary(a0)
 	move.b	#5,anim(a0)
 	move.b	#$98,collision_flags(a0)
@@ -56632,7 +56099,7 @@ loc_2FF94:
 	move.l	#Obj52_MapUnc_302BC,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_HTZBoss,0,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	addq.b	#2,routine_secondary(a1)
 	move.b	#7,anim(a1)
 	move.b	#$8B,collision_flags(a1)
@@ -56820,7 +56287,7 @@ Obj52_CreateSmoke
 	move.l	#Obj52_MapUnc_30258,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_BossSmoke_2,0,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.w	x_pos(a0),objoff_2A(a1)
@@ -56986,13 +56453,13 @@ Obj89_Init_RaisePillars:
 	ori.b	#4,render_flags(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_ARZBoss,0,0),art_tile(a1)
 	move.b	#$10,width_pixels(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.w	#$2A50,x_pos(a1)
 	move.w	#$510,y_pos(a1)
 	addq.b	#4,boss_subtype(a1)	; => Obj89_Pillar
 	move.l	a0,obj89_pillar_parent(a1)
 	move.b	#0,mapping_frame(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.b	#$20,y_radius(a1)
 	movea.l	a1,a2				; save first pillar's address
 	jsr	(AllocateObjectAfterCurrent).l
@@ -57603,7 +57070,7 @@ Obj89_Arrow_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_ARZBoss,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
 	move.b	#-$70,mainspr_width(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	addq.b	#2,obj89_arrow_routine(a0)	; => Obj89_Arrow_Sub2
 	movea.l	obj89_arrow_parent2(a0),a1 ; a1=object
 	move.w	x_pos(a1),x_pos(a0)		; align with parent object
@@ -58142,7 +57609,7 @@ Obj57_LoadStoneSpike:
 	move.l	#Obj57_MapUnc_316EC,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtUnc_FallingRocks,0,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	move.b	#$D,mapping_frame(a1)
 	tst.b	d2
 	bne.s	return_31438	; stone
@@ -58900,7 +58367,7 @@ loc_31F48:
 	move.l	#Obj51_MapUnc_320EA,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_CNZBoss_Fudge,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#7,priority(a0)
+	move.w	#$380,priority(a0)
 	addq.b	#2,routine_secondary(a0)
 	movea.l	objoff_34(a0),a1 ; a1=object
 	move.w	x_pos(a1),x_pos(a0)
@@ -59086,20 +58553,20 @@ Obj54_Init:
 	move.b	#0,sub3_mapframe(a0)
 	jsr	(AllocateObject).l
 	bne.s	+
-	move.b	#ObjID_MTZBoss,id(a1) ; load obj54
+	_move.b	#ObjID_MTZBoss,id(a1) ; load obj54
 	move.b	#6,boss_subtype(a1)		; => Obj54_LaserShooter
 	move.b	#$13,mapping_frame(a1)
 	move.l	#Obj54_MapUnc_32DC6,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_MTZBoss,0,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#6,priority(a1)
+	move.w	#$300,priority(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.l	a0,objoff_34(a1)
 	move.b	#$20,width_pixels(a1)
 	jsr	(AllocateObject).l
 	bne.s	+
-	move.b	#ObjID_MTZBossOrb,id(a1) ; load obj53
+	_move.b	#ObjID_MTZBossOrb,id(a1) ; load obj53
 	move.l	a0,objoff_34(a1)
 +
 	lea	(Boss_AnimationArray).w,a2
@@ -59628,7 +59095,7 @@ Obj53_Init:
 	move.l	#Obj54_MapUnc_32DC6,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_MTZBoss,0,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
+	move.w	#$180,priority(a1)
 	addq.b	#2,routine(a1)		; => Obj53_Main
 	move.b	#5,mapping_frame(a1)
 	move.b	byte_329CC(pc,d2.w),objoff_28(a1)
@@ -59777,24 +59244,24 @@ Obj53_SetAnimPriority:
 	cmpi.w	#$C,d0
 	blt.s	+
 	move.b	#3,mapping_frame(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	rts
 ; ===========================================================================
 +
 	move.b	#4,mapping_frame(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	rts
 ; ===========================================================================
 +
 	cmpi.w	#-$C,d0
 	blt.s	+
 	move.b	#4,mapping_frame(a0)
-	move.b	#6,priority(a0)
+	move.w	#$300,priority(a0)
 	rts
 ; ===========================================================================
 +
 	move.b	#5,mapping_frame(a0)
-	move.b	#7,priority(a0)
+	move.w	#$380,priority(a0)
 	rts
 ; ===========================================================================
 ;loc_32B64
@@ -59920,7 +59387,7 @@ Obj54_Laser_Init:
 	move.l	#Obj54_MapUnc_32DC6,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_MTZBoss,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	#$12,mapping_frame(a0)
 	addq.b	#2,routine_secondary(a0)	; => Obj54_Laser_Main
 	movea.l	objoff_34(a0),a1 ; a1=object
@@ -60592,7 +60059,7 @@ Obj55_Laser_Init:
 	move.l	#Obj55_MapUnc_33756,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_OOZBoss,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	movea.l	Obj55_Wave_parent(a0),a1 ; a1=object
 	move.w	x_pos(a1),x_pos(a0)
 	move.w	y_pos(a1),y_pos(a0)
@@ -60665,7 +60132,7 @@ Obj55_Laser_CreateWave:
 	move.l	#Obj55_MapUnc_33756,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_OOZBoss,0,0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#2,priority(a1)
+	move.w	#$100,priority(a1)
 	move.w	#5,Obj55_Wave_delay(a1)
 	move.b	#7,Obj55_Wave_count(a1)
 	move.w	x_vel(a0),x_vel(a1)
@@ -60791,7 +60258,7 @@ Obj09_Init:
 	move.l	#Obj09_MapUnc_34212,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialSonic,1,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.w	#$6E,ss_z_pos(a0)
 	clr.b	(SS_Swap_Positions_Flag).w
 	move.w	#$400,ss_init_flip_timer(a0)
@@ -60809,7 +60276,7 @@ Obj09_Init:
 	move.l	#Obj63_MapUnc_34492,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialFlatShadow,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	a0,ss_parent(a1)
 	bra.w	LoadSSSonicDynPLC
 ; ===========================================================================
@@ -61271,12 +60738,12 @@ loc_33E76:
 	move.w	d0,ss_z_pos(a0)
 	cmpi.w	#$77,d0
 	bhs.s	loc_33E88
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	rts
 ; ===========================================================================
 
 loc_33E88:
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 
 return_33E8E:
 	rts
@@ -62057,11 +61524,11 @@ Obj10_Init:
 	move.l	#Obj10_MapUnc_34B3E,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialTails,2,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#2,priority(a0)
+	move.w	#$100,priority(a0)
 	move.w	#$80,ss_z_pos(a0)
 	tst.w	(Player_mode).w
 	beq.s	loc_34864
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.w	#$6E,ss_z_pos(a0)
 
 loc_34864:
@@ -62079,7 +61546,7 @@ loc_34864:
 	move.l	#Obj63_MapUnc_34492,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialFlatShadow,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.l	a0,ss_parent(a1)
 	movea.l	#SpecialStageTails_Tails,a1
 	move.b	#ObjID_SSTailsTails,id(a1) ; load obj88
@@ -62088,8 +61555,8 @@ loc_34864:
 	move.l	#Obj88_MapUnc_34DA8,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialTails_Tails,2,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	priority(a0),priority(a1)
-	subi_.b	#1,priority(a1)
+	move.w	priority(a0),priority(a1)
+	subi.w	#$80,priority(a1)
 	move.l	a0,ss_parent(a1)
 	movea.l	a1,a0
 	move.b	#1,(TailsTails_LastLoadedDPLC).w
@@ -62237,9 +61704,9 @@ Obj88:
 	move.b	render_flags(a1),render_flags(a0)
 	move.b	status(a1),status(a0)
 	move.b	anim(a1),anim(a0)
-	move.b	priority(a1),d0
-	subq.b	#1,d0
-	move.b	d0,priority(a0)
+	move.w	priority(a1),d0
+	subi.w	#$80,d0
+	move.w	d0,priority(a0)
 	cmpi.b	#3,anim(a0)
 	bhs.s	return_34A9E
 	lea	(Ani_obj88).l,a1
@@ -62361,7 +61828,7 @@ Obj61_Init:
 	move.l	#Obj61_MapUnc_36508,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialBomb,1,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#2,collision_flags(a0)
 	tst.b	angle(a0)
 	bmi.s	loc_34F06
@@ -62416,7 +61883,7 @@ loc_34F6A:
 loc_34F90:
 	cmpi.w	#4,objoff_30(a0)
 	bhs.s	return_34F9E
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 
 return_34F9E:
 	rts
@@ -62446,7 +61913,7 @@ Obj60_Init:
 	move.l	#Obj5A_Obj5B_Obj60_MapUnc_3632A,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialRings,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	move.b	#1,collision_flags(a0)
 	tst.b	angle(a0)
 	bmi.s	loc_34FF0
@@ -62751,7 +62218,7 @@ loc_3529C:
 	move.l	#Obj63_MapUnc_34492,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialFlatShadow,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#5,priority(a1)
+	move.w	#$280,priority(a1)
 	move.b	angle(a0),d0
 	cmpi.b	#$10,d0
 	bgt.s	loc_352E6
@@ -62980,7 +62447,7 @@ loc_3547E:
 	move.l	#Obj5A_Obj5B_Obj60_MapUnc_3632A,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialRings,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#5,priority(a1)
+	move.w	#$280,priority(a1)
 	move.b	#0,collision_flags(a1)
 	move.b	#8,anim(a1)
 	move.w	x_pos(a3),x_pos(a1)
@@ -63019,7 +62486,7 @@ Obj5B_Main:
 loc_3551C:
 	tst.w	y_vel(a0)
 	bmi.w	+
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 	move.b	#9,anim(a0)
 +
 	rts
@@ -63080,7 +62547,7 @@ Obj5A_Init:
 	move.l	#Obj5A_Obj5B_Obj60_MapUnc_3632A,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialRings,3,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#5,priority(a1)
+	move.w	#$280,priority(a1)
 	move.b	d0,objoff_2A(a1)
 	move.w	#0,objoff_30(a1)
 	move.b	#-1,mapping_frame(a1)
@@ -63595,7 +63062,7 @@ Obj5A_CreateCheckpointWingedHand:
 	move.l	#Obj5A_MapUnc_35E1E,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialMessages,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 	move.w	d3,x_pos(a1)
 	move.w	d4,y_pos(a1)
 	move.w	#$46,objoff_2A(a1)
@@ -63608,7 +63075,7 @@ Obj5A_CreateCheckpointWingedHand:
 	move.l	#Obj5A_MapUnc_35E1E,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialMessages,1,0),art_tile(a1)
 	move.b	#4,render_flags(a1)
-	move.b	#0,priority(a1)
+	move.w	#0,priority(a1)
 	move.w	d3,x_pos(a1)
 	move.w	d4,y_pos(a1)
 	move.w	d4,objoff_30(a1)			; Target y position for handshake
@@ -63667,7 +63134,7 @@ Obj5A_PrintNumber:
 	move.b	#ObjID_SSMessage,id(a1) ; load obj5A
 	move.b	#4,routine(a1)			; Obj5A_TextFlyoutInit
 	move.b	#4,render_flags(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 	move.w	d1,x_pos(a1)
 	move.w	d2,y_pos(a1)
 	move.w	#$46,objoff_2A(a1)
@@ -63693,7 +63160,7 @@ Obj5A_PrintWord:
 	move.b	#ObjID_SSMessage,id(a1) ; load obj5A
 	move.b	#4,routine(a1)			; Obj5A_TextFlyoutInit
 	move.b	#4,render_flags(a1)
-	move.b	#1,priority(a1)
+	move.w	#$80,priority(a1)
 	move.w	d1,x_pos(a1)
 	move.w	d2,y_pos(a1)
 	move.w	#$46,objoff_2A(a1)
@@ -63948,7 +63415,7 @@ Obj59_Init:
 	move.l	#Obj59_MapUnc_3625A,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialEmerald,3,0),art_tile(a0)
 	move.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.w	#$36,objoff_30(a0)
 	move.b	#$40,angle(a0)
 	bsr.w	loc_3529C
@@ -64253,7 +63720,7 @@ JmpTo44_DisplaySprite:
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-; loc_365F4:
+; loc_365F4: SetUp_ObjAttributes:
 LoadSubObject:
 	moveq	#0,d0
 	move.b	subtype(a0),d0
@@ -64268,6 +63735,10 @@ LoadSubObject_Part3:
 	move.b	(a1)+,d0
 	or.b	d0,render_flags(a0)
 	move.b	(a1)+,priority(a0)
+	move.w	priority(a0),d0
+	lsr.w	#8-object_display_list_size_bits,d0
+	andi.w	#(1<<total_object_display_lists_bits-1)<<object_display_list_size_bits,d0
+	move.w	d0,priority(a0)
 	move.b	(a1)+,width_pixels(a0)
 	move.b	(a1),collision_flags(a0)
 	addq.b	#2,routine(a0)
@@ -65604,7 +65075,7 @@ Obj95_Init:
 	move.l	#Obj95_MapUnc_372E6,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
 	ori.b	#4,render_flags(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#$B,collision_flags(a0)
 	move.b	#$C,width_pixels(a0)
 	move.w	#-$40,x_vel(a0)
@@ -65636,7 +65107,7 @@ Obj95_NextFireball:
 	move.l	mappings(a0),mappings(a1)
 	move.w	art_tile(a0),art_tile(a1)
 	ori.b	#4,render_flags(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.b	#8,width_pixels(a1)
 	move.b	#3,mapping_frame(a1)
 	move.b	#$98,collision_flags(a1)
@@ -67325,7 +66796,7 @@ loc_38296:
 	_move.b	#ObjID_ShellcrackerClaw,id(a1) ; load objA0
 	move.b	#$26,subtype(a1) ; <== ObjA0_SubObjData
 	move.b	#5,mapping_frame(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.w	a0,objoff_2C(a1)
 	move.w	d1,objoff_2E(a1)
 	move.w	x_pos(a0),x_pos(a1)
@@ -67552,7 +67023,7 @@ loc_38546:
 	move.b	#$2A,subtype(a1) ; <== ObjA2_SubObjData
 	move.b	render_flags(a0),render_flags(a1)
 	move.b	#5,mapping_frame(a1)
-	move.b	#4,priority(a1)
+	move.w	#$200,priority(a1)
 	move.w	#$78,objoff_2A(a1)
 	move.w	a0,objoff_2C(a1)
 	move.w	a1,(a2)+
@@ -69438,7 +68909,7 @@ loc_39BEA:
 	bsr.w	LoadSubObject
 	move.b	#8,width_pixels(a0)
 	move.b	#$B,mapping_frame(a0)
-	move.b	#3,priority(a0)
+	move.w	#$180,priority(a0)
 	rts
 ; ===========================================================================
 
@@ -71927,8 +71398,8 @@ byte_3C1E4:
 loc_3C1F4:
 	move.w	x_pos(a0),d2
 	move.w	y_pos(a0),d3
-	move.b	priority(a0),d4
-	subq.b	#1,d4
+	move.w	priority(a0),d4
+	subi.w	#$80,d4
 	moveq	#3,d1
 	movea.l	a0,a1
 	bra.s	loc_3C20E
@@ -71952,7 +71423,7 @@ loc_3C20E:
 	move.w	(a4)+,d0
 	add.w	d3,d0
 	move.w	d0,y_pos(a1)
-	move.b	d4,priority(a1)
+	move.w	d4,priority(a1)
 	move.b	#$10,width_pixels(a1)
 	move.b	#1,mapping_frame(a1)
 	move.w	#-$400,x_vel(a1)
@@ -72716,7 +72187,7 @@ ObjC5_LaserIndex: offsetTable
 ObjC5_LaserInit:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$D,mapping_frame(a0)
-	move.b	#4,priority(a0)
+	move.w	#$200,priority(a0)
 	move.b	#0,collision_flags(a0)
 	addi.w	#$10,y_pos(a0)
 	move.b	#$C,anim_frame(a0)
@@ -73072,6 +72543,7 @@ loc_3CFC0:
 	tst.b	render_flags(a0)
 	bpl.s	+
 	addq.b	#2,routine_secondary(a0) ; => ObjC6_State2_State5
+	move.w	#$300,priority(a0)	; Set Eggman's priority to fix an issue with the Death Egg Robot
 	move.w	#$80,x_vel(a0)
 	move.w	#-$200,y_vel(a0)
 	move.b	#2,mapping_frame(a0)
@@ -73450,7 +72922,7 @@ off_3D51A:	offsetTable
 loc_3D52A:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#3,mapping_frame(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	lea	(ChildObjC7_Shoulder).l,a2
 	bsr.w	LoadChildObject
 	lea	(ChildObjC7_FrontForearm).l,a2
@@ -74271,7 +73743,7 @@ off_3DCB4:	offsetTable
 loc_3DCB8:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$B,mapping_frame(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	rts
 ; ===========================================================================
 
@@ -74299,7 +73771,7 @@ off_3DCE4:	offsetTable
 loc_3DCEE:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#6,mapping_frame(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	rts
 ; ===========================================================================
 
@@ -74333,7 +73805,7 @@ off_3DD38:	offsetTable
 loc_3DD3C:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$A,mapping_frame(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	rts
 ; ===========================================================================
 
@@ -74357,7 +73829,7 @@ loc_3DD64:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$10,mapping_frame(a0)
 	ori.w	#high_priority,art_tile(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.w	#$A0,objoff_2A(a0)
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	x_pos(a1),x_pos(a0)
@@ -74451,7 +73923,7 @@ off_3DE7E:	offsetTable
 loc_3DE82:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$14,mapping_frame(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	ori.w	#high_priority,art_tile(a0)
 	move.w	#4,objoff_2A(a0)
 	jmp	(DisplaySprite).l
@@ -74486,7 +73958,7 @@ loc_3DED8:
 	addq.b	#2,routine_secondary(a0)
 	move.b	#$E,mapping_frame(a0)
 	move.b	#$89,collision_flags(a0)
-	move.b	#5,priority(a0)
+	move.w	#$280,priority(a0)
 	move.b	#$C,width_pixels(a0)
 	lea	byte_3DF00(pc),a1
 	bsr.w	loc_3E282
@@ -74527,7 +73999,7 @@ loc_3DF4C:
 	move.b	#6,routine_secondary(a0)
 	move.l	#Obj58_MapUnc_2D50A,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_FieryExplosion,0,0),art_tile(a0)
-	move.b	#1,priority(a0)
+	move.w	#$80,priority(a0)
 	move.b	#7,anim_frame_duration(a0)
 	move.b	#0,mapping_frame(a0)
 	move.w	#SndID_BossExplosion,d0
@@ -75642,7 +75114,7 @@ Obj8A_Init:
 	move.w	(Ending_demo_number).w,d0
 	move.b	d0,mapping_frame(a0)
 	move.b	#0,render_flags(a0)
-	move.b	#0,priority(a0)
+	move.w	#0,priority(a0)
 	cmpi.b	#GameModeID_TitleScreen,(Game_Mode).w	; title screen??
 	bne.s	Obj8A_Display	; if not, branch
 	move.w	#make_art_tile($0300,0,0),art_tile(a0)
@@ -75720,6 +75192,10 @@ loc_3F228:
 	move.b	(a2)+,routine(a1)
 	move.b	(a2)+,width_pixels(a1)
 	move.b	(a2)+,priority(a1)
+	move.w	priority(a1),d0
+	lsr.w	#8-object_display_list_size_bits,d0
+	andi.w	#(1<<total_object_display_lists_bits-1)<<object_display_list_size_bits,d0
+	move.w	d0,priority(a1)
 	move.b	(a2)+,mapping_frame(a1)
 
 loc_3F272:
