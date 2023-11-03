@@ -1600,9 +1600,9 @@ Saved_y_pos:			ds.w	1
 Saved_Ring_count:		ds.w	1
 Saved_Timer:			ds.l	1
 Saved_art_tile:			ds.w	1
-Saved_art_tile_Sidekick:			ds.w	1
+Saved_art_tile_Sidekick:	ds.w	1
 Saved_Solid_bits:		ds.w	1
-Saved_Solid_bits_Sidekick:			ds.w	1
+Saved_Solid_bits_Sidekick:	ds.w	1
 Saved_Camera_X_pos:		ds.w	1
 Saved_Camera_Y_pos:		ds.w	1
 Saved_Camera_BG_X_pos:		ds.w	1
