@@ -1491,8 +1491,8 @@ MTZCylinder_Angle_Tails:	ds.b	1
 BigRingGraphics:		ds.w	1	; S1 holdover
 				ds.b	7	; $FFFFF7C0-$FFFFF7C6 ; seems unused
 WindTunnel_flag:		ds.b	1
-				ds.b	1	; $FFFFF7C8 ; seems unused
 WindTunnel_holding_flag:	ds.b	1
+				ds.b	1	; $FFFFF7C8 ; seems unused
 				ds.b	2	; $FFFFF7CA-$FFFFF7CB ; seems unused
 Control_Locked:			ds.b	1
 f_bigring:			ds.b	1	; Leftover from Sonic 1
@@ -1694,14 +1694,12 @@ Total_Bonus_Countdown:		ds.w	1
 
 Level_Music:			ds.w	1
 Bonus_Countdown_3:		ds.w	1
-Game_Over_2P:			ds.w	1
 
 SS2p_RingBuffer:		ds.w	6
 Got_Emerald:			ds.b	1
 Emerald_count:			ds.b	1
 Got_Emeralds_array:		ds.b	8	; Technically this is only 7 bytes long, but an 8th byte is cleared
 Next_Extra_life_score:		ds.l	1
-Next_Extra_life_score_2P:	ds.l	1
 Level_Has_Signpost:		ds.w	1	; 1 = signpost, 0 = boss or nothing
 Signpost_prev_frame:		ds.b	1
 ; Values in these variables are passed to the sound driver during V-INT.
@@ -1737,7 +1735,7 @@ TwizHuffRet:			ds.b	$48				; $48 bytes
 TwizHuffCopy =			TwizHuffRet+TwizHuffRetMax*$04		; $18 bytes
 TwizVRAM =			TwizHuffCopy+TwizHuffCopyMax*$02	; $4 bytes
 TwizSize =			TwizVRAM+$04
-				ds.b	$3A	; Free
+				ds.b	$40	; Free
 CrossResetRAM_End:
 
 RAM_End
