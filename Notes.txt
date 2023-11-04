@@ -5,7 +5,7 @@ https://tcrf.net/Proto:Sonic_the_Hedgehog_2_(Genesis)/Simon_Wai_Prototype/Oil_Oc
 https://tcrf.net/Proto:Sonic_the_Hedgehog_2_(Genesis)
 Optimize "SlotMachine" Routine
 LevelSelect_Order
-
+LevelSize
 Boss_MoveObject
 SSObjectMoveAndFall
 New Routine:
