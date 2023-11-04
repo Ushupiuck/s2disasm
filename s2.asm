@@ -17,10 +17,6 @@
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ASSEMBLY OPTIONS:
 ;
-gameRevision = 2
-;	| If 0, a REV00 ROM is built
-;	| If 1, a REV01 ROM is built, which contains some fixes
-;	| If 2, a (theoretical) REV02 ROM is built, which contains even more fixes
 AdvancedErrorHandler = 1
 ;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
 ;
@@ -2738,7 +2734,6 @@ Pal_FadeFromBlack:
 ; sub_246A: Pal_FadeFrom:
 Pal_FadeToBlack:
 	move.w	#$3F,(Palette_fade_range).w
-
 	move.w	#$15,d4
 
 .nextframe:
@@ -3896,6 +3891,8 @@ MusicList2: zoneOrderedTable 1,1
 ; ---------------------------------------------------------------------------
 ; loc_3EC4:
 Level:
+	illegal
+;	nop
 	bset	#GameModeFlag_TitleCard,(Game_Mode).w ; add $80 to screen mode (for pre level sequence)
 	tst.w	(Demo_mode_flag).w	; test the old flag for the credits demos (now unused)
 	bmi.s	+
@@ -13556,7 +13553,6 @@ HTZ_Screen_Shake:
 
 	rts
 ; ===========================================================================
-; unused...
 ; loc_CBA0:
 SwScrl_HPZ:
 	; Set the flags to dynamically load the background as it moves.
@@ -14141,31 +14137,25 @@ SwScrl_CPZ:
 	ext.l	d5
 	asl.l	#6,d5
 	bsr.w	SetHorizVertiScrollFlagsBG
-
 	; Ditto.
 	move.w	(Camera_X_pos_diff).w,d4
 	ext.l	d4
 	asl.l	#7,d4
 	moveq	#scroll_flag_advanced_bg2_left,d6
 	bsr.w	SetHorizScrollFlagsBG2
-
 	; Update 'Camera_BG2_Y_pos'.
 	move.w	(Camera_BG_Y_pos).w,d0
 	move.w	d0,(Camera_BG2_Y_pos).w
-
 	; Update the background's vertical scrolling.
 	move.w	d0,(Vscroll_Factor_BG).w
-
 	; Merge BG1's and BG2's scroll flags into BG3...
 	move.b	(Scroll_flags_BG).w,d0
 	or.b	(Scroll_flags_BG2).w,d0
 	move.b	d0,(Scroll_flags_BG3).w
-
 	; ...then clear BG1's and BG2's scroll flags.
 	; This zone basically uses its own dynamic background loader.
 	clr.b	(Scroll_flags_BG).w
 	clr.b	(Scroll_flags_BG2).w
-
 	; Every 8 frames, subtract 1 from 'TempArray_LayerDef'.
 	; This animates the 'special line block'.
 	move.b	(Vint_runcount+3).w,d1
@@ -14181,15 +14171,12 @@ SwScrl_CPZ:
 	lea	(a0,d0.w),a0	; 'a0' goes completely unused after this...
 	move.w	d0,d4
 	; 'd4' now holds the index of the current line block.
-
 	lea	(Horiz_Scroll_Buf).w,a1
 	move.w	#224/16-1,d1
-
 	; Set up the foreground part of the horizontal scroll value.
 	move.w	(Camera_X_pos).w,d0
 	neg.w	d0
 	swap	d0
-
 	; Get the offset into the starting block.
 	andi.w	#$F,d2
 	; Back this up, because we'll need it later.
@@ -14208,7 +14195,6 @@ SwScrl_CPZ:
 
 	; Process the final line block.
 .doLineBlocks:
-
 	; Behaviour depends on which line block we're processing.
 	move.w	(Camera_BG_X_pos).w,d0
 	cmpi.b	#18,d4
@@ -14217,7 +14203,6 @@ SwScrl_CPZ:
 	move.w	(Camera_BG2_X_pos).w,d0
 +
 	neg.w	d0
-
 	add.w	d2,d2
 	jmp	.doPartialLineBlock(pc,d2.w)
 ; ===========================================================================
@@ -42938,7 +42923,7 @@ loc_24E96:
 	andi.b	#p1_standing,d1
 	beq.s	loc_24EE8
 	cmpi.b	#AniIDSonAni_Roll,objoff_32(a0)
-	bne.s	JmpTo12_MarkObjGone
+	bne.w	JmpTo12_MarkObjGone
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	objoff_34(a0),d1
 	bsr.s	loc_24EB8
