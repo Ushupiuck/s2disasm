@@ -17,7 +17,7 @@
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ASSEMBLY OPTIONS:
 ;
-AdvancedErrorHandler = 1
+AdvancedErrorHandler = 0
 ;	| If 1, the Advanced Error handler will be included, rather than Sonic 1's
 ;
 padToPowerOfTwo = 0
@@ -209,7 +209,6 @@ ROMEndLoc:
 	dc.b "                                        "	; Notes (unused, anything can be put in this space, but it has to be 52 bytes.)
 	dc.b "JUE             " ; Country code (region)
 EndOfHeader:
-
 ; ===========================================================================
 ; Crash/Freeze the 68000. Note that the Z80 continues to run, so the music keeps playing.
 ; loc_200:
@@ -3335,7 +3334,7 @@ CalcAngle_Zero:
 ; ===========================================================================
 ; byte_36B4:
 Angle_Data:	BINCLUDE	"misc/angles.bin"
-
+	even
 ; ===========================================================================
 
 ; loc_37B8:
@@ -3355,7 +3354,6 @@ SegaScreen:
 ;	move.w	#$8C81,(a6)		; H res 40 cells, no interlace, S/H disabled
 ;	move.w	#$9003,(a6)		; Scroll table size: 128x32 ($2000 bytes)
 	clr.b	(Water_fullscreen_flag).w
-	clr.w	(Two_player_mode).w
 	disable_ints
 	move.w	(VDP_Reg1_val).w,d0
 	andi.b	#$BF,d0
@@ -3396,12 +3394,6 @@ SegaScreen_Contin:
 	bsr.w	PalLoad_Now
 	move.w	#-$A,(PalCycle_Frame).w
 	move.w	#0,(PalCycle_Timer).w
-;	move.w	#0,(SegaScr_VInt_Subrout).w
-;	move.w	#0,(SegaScr_PalDone_Flag).w
-;	lea	(SegaScreenObject).w,a1
-;	_move.b	#ObjID_SonicOnSegaScr,id(a1) ; load objB0 (sega screen?) at $FFFFB040
-	move.b	#$4C,subtype(a1) ; <== ObjB0_SubObjData
-	move.w	#4*60,(Demo_Time_left).w	; 4 seconds
 	move.w	(VDP_Reg1_val).w,d0
 	ori.b	#$40,d0
 	move.w	d0,(VDP_control_port).l
@@ -3683,8 +3675,6 @@ TitleScreen_Loop:
 	bne.s	TitleScreen_CheckIfChose2P	; branch if not a 1-player game
 
 	moveq	#0,d0
-	move.w	d0,(Two_player_mode_copy).w
-	move.w	d0,(Two_player_mode).w
     if emerald_hill_zone_act_1=0
 	move.w	d0,(Current_ZoneAndAct).w ; emerald_hill_zone_act_1
     else
@@ -3709,7 +3699,6 @@ TitleScreen_CheckIfChose2P:
 	subq.b	#1,d0
 	bne.s	TitleScreen_ChoseOptions
 	move.b	#GameModeID_OptionsMenu,(Game_Mode).w ; => LevelSelectMenu2P (DISABLED)
-;	move.b	#0,(Current_Zone_2P).w
 	rts
 ; ---------------------------------------------------------------------------
 ; loc_3D20:
@@ -3891,7 +3880,7 @@ MusicList2: zoneOrderedTable 1,1
 ; ---------------------------------------------------------------------------
 ; loc_3EC4:
 Level:
-	illegal
+;	illegal
 ;	nop
 	bset	#GameModeFlag_TitleCard,(Game_Mode).w ; add $80 to screen mode (for pre level sequence)
 	tst.w	(Demo_mode_flag).w	; test the old flag for the credits demos (now unused)
@@ -5952,8 +5941,6 @@ SpecialStage:
 	st.b	(Perfect_rings_flag).w
 +
 	bsr.w	Pal_FadeToWhite
-	tst.w	(Two_player_mode_copy).w
-	bne.w	loc_540C
 	disable_ints
 	lea	(VDP_control_port).l,a6
 	move.w	#$8200|(VRAM_Menu_Plane_A_Name_Table/$400),(a6)		; PNT A base: $C000
@@ -6013,15 +6000,7 @@ SpecialStage:
 	move.w	#SndID_SpecStageEntry,d0
 	bsr.w	PlaySound
 	bsr.w	Pal_FadeToWhite
-	tst.w	(Two_player_mode_copy).w
-	bne.s	loc_540C
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
-	rts
-; ===========================================================================
-
-loc_540C:
-;	move.w	#VsRSID_SS,(Results_Screen_2P).w
-	move.b	#GameModeID_2PResults,(Game_Mode).w ; => TwoPlayerResults
 	rts
 ; ===========================================================================
 
@@ -9942,8 +9921,6 @@ OptionScreen_Select:
 	bne.s	OptionScreen_Select_Not1P
 	; Start a single player game
 	moveq	#0,d0
-	move.w	d0,(Two_player_mode).w
-	move.w	d0,(Two_player_mode_copy).w
     if emerald_hill_zone_act_1=0
 	move.w	d0,(Current_ZoneAndAct).w ; emerald_hill_zone_act_1
     else
@@ -9956,13 +9933,6 @@ OptionScreen_Select:
 OptionScreen_Select_Not1P:
 	subq.b	#1,d0
 	bne.s	OptionScreen_Select_Other
-	; Start a 2P VS game
-;	moveq	#1,d0
-;	move.w	d0,(Two_player_mode).w
-;	move.w	d0,(Two_player_mode_copy).w
-;	move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
-;	move.b	#0,(Current_Zone_2P).w
-;	move.w	#0,(Player_mode).w
 	move.b	#SndID_Error,d0
 	jmp	(PlaySound).l
 	bra.s	OptionScreen_Main
@@ -10045,7 +10015,7 @@ OptionScreen_Controls:
 ; word_917A:
 OptionScreen_Choices:
 	dc.l (3-1)<<24|(Player_option&$FFFFFF)
-	dc.l (2-1)<<24|(Two_player_items&$FFFFFF)
+	dc.l (2-1)<<24|(Placeholder_option&$FFFFFF)
 	dc.l ($80-1)<<24|(Sound_test_sound&$FFFFFF)
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -10751,11 +10721,6 @@ TextOptScr_0:			menutxt	"      00       "	; byte_9870:
 ; byte_9880:
 Pal_LevelIcons:	BINCLUDE "art/palettes/Level Select Icons.bin"
 	even
-
-; 2-player level select screen mappings (Enigma compressed)
-; byte_9A60:
-MapEng_LevSel2P:;	BINCLUDE "mappings/misc/Level Select 2P.eni"
-;	even
 
 ; options screen mappings (Enigma compressed)
 ; byte_9AB2:
@@ -13735,8 +13700,8 @@ SwScrl_OOZ:
 	andi.w	#$1F,d1
 	lea	SwScrl_RippleData(pc),a2
 	lea	(a2,d1.w),a2
-
 	moveq	#33-1,d1
+
 -	move.b	(a2)+,d0
 	ext.w	d0
 	move.l	d0,-(a1)
@@ -25328,7 +25293,7 @@ ObjPtr_WFZWheel:	dc.l ObjBA	; Wheel from WFZ
 ObjPtr_WFZShipFire:	dc.l ObjBC	; Fire coming out of Robotnik's ship in WFZ
 ObjPtr_SmallMetalPform:	dc.l ObjBD	; Ascending/descending metal platforms from WFZ
 ObjPtr_LateralCannon:	dc.l ObjBE	; Lateral cannon (temporary platform that pops in/out) from WFZ
-ObjPtr_WFZStick:	dc.l ObjBF	; Rotaty-stick badnik from WFZ
+			dc.l ObjNull
 ObjPtr_SpeedLauncher:	dc.l ObjC0	; Speed launcher from WFZ
 ObjPtr_BreakablePlating:dc.l ObjC1	; Breakable plating from WFZ / what Sonic hangs onto on the back of Robotnik's getaway ship
 ObjPtr_Rivet:		dc.l ObjC2	; Rivet thing you bust to get into ship at the end of WFZ
@@ -28126,7 +28091,6 @@ Obj0D:
 	jsr	Obj0D_Index(pc,d1.w)
 	lea	(Ani_obj0D).l,a1
 	bsr.w	AnimateSprite
-;	bsr.w	PLCLoad_Signpost	; TODO ; Temporarily disabled.
 	bra.w	MarkObjGone
 ; ===========================================================================
 ; off_191D8: Obj_0D_subtbl: Obj0D_States:
@@ -28320,30 +28284,6 @@ TimeBonuses:
 	dc.w  200,  200,  200, 200, 100, 100, 100, 100
 	dc.w   50,   50,   50,  50,   0
 TimeBonuses_End:
-; ===========================================================================
-
-PLCLoad_Signpost:	; TODO
-	add.w	d0,d0
-	adda.w	(a2,d0.w),a2
-	move.w	(a2)+,d5
-	subq.w	#1,d5
-	bmi.s	+
-	move.w	#tiles_to_bytes(ArtTile_ArtUnc_Signpost),d4
-	moveq	#0,d1
-	move.w	(a2)+,d1
-	move.w	d1,d3
-	lsr.w	#8,d3
-	andi.w	#$F0,d3
-	addi.w	#$10,d3
-	andi.w	#$FFF,d1
-	lsl.l	#5,d1
-	addi.l	#ArtUnc_Signpost,d1
-	move.w	d4,d2
-	add.w	d3,d4
-	add.w	d3,d4
-	jsr	(QueueDMATransfer).l
-	dbf	d5,PLCLoad_Signpost
-+	rts
 ; ===========================================================================
 ; animation script
 ; off_1958E:
@@ -35051,7 +34991,7 @@ Obj38_Shield:
 	ori.w	#high_priority,art_tile(a0)
 ; loc_1D964:
 Obj38_Display:
-	lea	(Ani_obj38).l,a1
+	lea	(Ani_Shield).l,a1
 	jsr	(AnimateSprite).l
 	jmp	(DisplaySprite).l
 ; ===========================================================================
@@ -35267,9 +35207,9 @@ byte_1DBBD:	dc.b   7,  6,  5,  4,  3,  2,  1,  2,  3,  4,  5,  6,$FF
 
 ; animation script
 ; byte_1DBD6
-Ani_obj38:	offsetTable
+Ani_Shield:	offsetTable
 		offsetTableEntry.w +	; 0
-+		dc.b   0,  5,  0,  5,  1,  5,  2,  5,  3,  5,  4,$FF
++		dc.b 1,	1, 0, 2, 0, 3, 0, afEnd
 	even
 
 ; -------------------------------------------------------------------------------
@@ -38441,7 +38381,7 @@ Obj04_Index:	offsetTable
 Obj04_Init:
 	addq.b	#2,routine(a0) ; => Obj04_Action
 	move.l	#Obj04_MapUnc_20A0E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_WaterSurface,0,1),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtNem_WaterSurface,1,1),art_tile(a0)
 	move.b	#4,render_flags(a0)
 	move.b	#$80,width_pixels(a0)
 	move.w	x_pos(a0),objoff_30(a0)
@@ -63572,7 +63512,7 @@ SubObjData_Index: offsetTable
 	offsetTableEntry.w ObjBD_SubObjData	; $7E
 	offsetTableEntry.w ObjBD_SubObjData	; $80
 	offsetTableEntry.w ObjBE_SubObjData	; $82
-	offsetTableEntry.w ObjBE_SubObjData2	; $84
+	offsetTableEntry.w Invalid_SubObjData	; $84
 	offsetTableEntry.w ObjC0_SubObjData	; $86
 	offsetTableEntry.w ObjC1_SubObjData	; $88
 	offsetTableEntry.w ObjC2_SubObjData	; $8A
@@ -70799,45 +70739,6 @@ byte_3BE40:	dc.b   5,  3,  2,  1,  0,$FC
 ; sprite mappings
 ; ----------------------------------------------------------------------------
 ObjBE_MapUnc_3BE46:	include "mappings/sprite/objBE.asm"
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; Object BF - Rotaty-stick badnik from WFZ
-; ----------------------------------------------------------------------------
-; Sprite_3BEAA:
-ObjBF:
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	ObjBF_Index(pc,d0.w),d1
-	jmp	ObjBF_Index(pc,d1.w)
-; ===========================================================================
-; off_3BEB8:
-ObjBF_Index:	offsetTable
-		offsetTableEntry.w ObjBF_Init		; 0
-		offsetTableEntry.w ObjBF_Animate	; 2
-; ===========================================================================
-; BranchTo9_LoadSubObject
-ObjBF_Init:
-	bra.w	LoadSubObject
-; ===========================================================================
-; loc_3BEC0:
-ObjBF_Animate:
-	lea	(Ani_objBF).l,a1
-	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
-; ===========================================================================
-; off_3BECE:
-ObjBE_SubObjData2:
-	subObjData ObjBF_MapUnc_3BEE0,make_art_tile(ArtTile_ArtNem_WfzUnusedBadnik,3,1),4,4,4,4
-; animation script
-; off_3BED8:
-Ani_objBF:	offsetTable
-		offsetTableEntry.w +	; 0
-+		dc.b   1,  0,  1,  2,$FF
-		even
-; ----------------------------------------------------------------------------
-; sprite mappings
-; ----------------------------------------------------------------------------
-ObjBF_MapUnc_3BEE0:	include "mappings/sprite/objBF.asm"
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object C0 - Speed launcher from WFZ
@@ -78223,7 +78124,6 @@ DbgObjList_WFZ: dbglistheader
 	dbglistobj ObjID_SmallMetalPform, ObjBD_MapUnc_3BD3E, $7E,   0, make_art_tile(ArtTile_ArtNem_WfzBeltPlatform,3,1)
 	dbglistobj ObjID_SmallMetalPform, ObjBD_MapUnc_3BD3E, $80,   0, make_art_tile(ArtTile_ArtNem_WfzBeltPlatform,3,1)
 	dbglistobj ObjID_LateralCannon,	ObjBE_MapUnc_3BE46, $82,   0, make_art_tile(ArtTile_ArtNem_WfzGunPlatform,3,1)
-	dbglistobj ObjID_WFZStick,	ObjBF_MapUnc_3BEE0, $84,   0, make_art_tile(ArtTile_ArtNem_WfzUnusedBadnik,3,1)
 	dbglistobj ObjID_SpeedLauncher,	ObjC0_MapUnc_3C098,   8,   0, make_art_tile(ArtTile_ArtNem_WfzLaunchCatapult,1,0)
 	dbglistobj ObjID_BreakablePlating, ObjC1_MapUnc_3C280, $88,   0, make_art_tile(ArtTile_ArtNem_BreakPanels,3,1)
 	dbglistobj ObjID_Rivet,		ObjC2_MapUnc_3C3C2, $8A,   0, make_art_tile(ArtTile_ArtNem_WfzSwitch,1,1)
@@ -78819,7 +78719,6 @@ PlrList_Wfz2: plrlistheader
 	plreq ArtTile_ArtNem_WfzThrust, ArtNem_WfzThrust
 	plreq ArtTile_ArtNem_WfzBeltPlatform, ArtNem_WfzBeltPlatform
 	plreq ArtTile_ArtNem_WfzGunPlatform, ArtNem_WfzGunPlatform
-	plreq ArtTile_ArtNem_WfzUnusedBadnik, ArtNem_WfzUnusedBadnik
 	plreq ArtTile_ArtNem_WfzLaunchCatapult, ArtNem_WfzLaunchCatapult
 	plreq ArtTile_ArtNem_WfzSwitch, ArtNem_WfzSwitch
 	plreq ArtTile_ArtNem_WfzFloatingPlatform, ArtNem_WfzFloatingPlatform
@@ -79243,7 +79142,6 @@ PlrList_SpecialStage: plrlistheader
 	plreq ArtTile_ArtNem_SpecialExplosion, ArtNem_SpecialExplosion
 	plreq ArtTile_ArtNem_SpecialRings, ArtNem_SpecialRings
 	plreq ArtTile_ArtNem_SpecialStart, ArtNem_SpecialStart
-	plreq ArtTile_ArtNem_SpecialPlayerVSPlayer, ArtNem_SpecialPlayerVSPlayer
 	plreq ArtTile_ArtNem_SpecialBack, ArtNem_SpecialBack
 	plreq ArtTile_ArtNem_SpecialStars, ArtNem_SpecialStars
 	plreq ArtTile_ArtNem_SpecialTailsText, ArtNem_SpecialTailsText
@@ -79614,8 +79512,6 @@ ArtNem_Checkpoint:		BINCLUDE	"art/nemesis/Star pole.nem"
 	even
 ArtNem_Signpost:		BINCLUDE	"art/nemesis/Signpost.nem" ; For one-player mode.
 	even
-ArtUnc_Signpost:		BINCLUDE	"art/uncompressed/Signpost.bin" ; For two-player mode.
-	even
 ArtNem_LeverSpring:		BINCLUDE	"art/nemesis/Lever spring.nem"
 	even
 ArtNem_HorizSpike:		BINCLUDE	"art/nemesis/Long horizontal spike.nem"
@@ -79648,8 +79544,6 @@ ArtNem_MiniTails:		BINCLUDE	"art/nemesis/Tails continue.nem"
 ;---------------------------------------------------------------------------------------
 ArtNem_FontStuff:		BINCLUDE	"art/nemesis/Standard font.nem"
 	even
-ArtNem_1P2PWins:		BINCLUDE	"art/nemesis/1P and 2P wins text from 2P mode.nem"
-	even
 MapEng_MenuBack:		BINCLUDE	"mappings/misc/Sonic and Miles animated background.eni"
 	even
 ArtUnc_MenuBack:		BINCLUDE	"art/uncompressed/Sonic and Miles animated background.bin"
@@ -79668,7 +79562,6 @@ ArtNem_SpecialStageResults:	BINCLUDE	"art/nemesis/Special stage results screen a
 	even
 ArtNem_Perfect:			BINCLUDE	"art/nemesis/Perfect text.nem"
 	even
-
 ;---------------------------------------------------------------------------------------
 ; Small Animal Assets
 ;---------------------------------------------------------------------------------------
@@ -79696,7 +79589,6 @@ ArtNem_Bear:			BINCLUDE	"art/nemesis/Bear.nem"     ; Becky
 	even
 ArtNem_Rabbit:			BINCLUDE	"art/nemesis/Rabbit.nem"   ; Pocky
 	even
-
 ;---------------------------------------------------------------------------------------
 ; WFZ Assets
 ;---------------------------------------------------------------------------------------
@@ -79704,7 +79596,6 @@ ArtNem_WfzSwitch:		BINCLUDE	"art/nemesis/WFZ boss chamber switch.nem" ; Rivet th
 	even
 ArtNem_BreakPanels:		BINCLUDE	"art/nemesis/Breakaway panels from WFZ.nem"
 	even
-
 ;---------------------------------------------------------------------------------------
 ; OOZ Assets
 ;---------------------------------------------------------------------------------------
@@ -79736,7 +79627,6 @@ ArtNem_OOZFanHoriz:		BINCLUDE	"art/nemesis/Fan from OOZ.nem"
 	even
 ArtNem_OOZBurn:			BINCLUDE	"art/nemesis/Green flame from OOZ burners.nem"
 	even
-
 ;---------------------------------------------------------------------------------------
 ; CNZ Assets
 ;---------------------------------------------------------------------------------------
@@ -79764,11 +79654,10 @@ ArtNem_CNZMiniBumper:		BINCLUDE	"art/nemesis/Drop target from CNZ.nem" ; Weird b
 	even
 ArtNem_CNZFlipper:		BINCLUDE	"art/nemesis/Flippers.nem"
 	even
-
 ;---------------------------------------------------------------------------------------
 ; CPZ Assets
 ;---------------------------------------------------------------------------------------
-ArtNem_WaterSurface:		BINCLUDE	"art/nemesis/Top of water in HPZ and CNZ.nem"
+ArtNem_WaterSurface:		BINCLUDE	"art/nemesis/Water surface.nem"
 	even
 ArtNem_CPZBooster:		BINCLUDE	"art/nemesis/Speed booster from CPZ.nem"
 	even
@@ -79788,11 +79677,10 @@ ArtNem_CPZStairBlock:		BINCLUDE	"art/nemesis/Moving block from CPZ.nem"
 	even
 ArtNem_CPZTubeSpring:		BINCLUDE	"art/nemesis/CPZ spintube exit cover.nem"
 	even
-
 ;---------------------------------------------------------------------------------------
 ; ARZ Assets
 ;---------------------------------------------------------------------------------------
-ArtNem_WaterSurface2:		BINCLUDE	"art/nemesis/Top of water in ARZ.nem"
+ArtNem_WaterSurface2:		BINCLUDE	"art/nemesis/Water surface 2.nem"
 	even
 ArtNem_Leaves:			BINCLUDE	"art/nemesis/Leaves in ARZ.nem"
 	even
@@ -79800,9 +79688,8 @@ ArtNem_ArrowAndShooter:		BINCLUDE	"art/nemesis/Arrow shooter and arrow from ARZ.
 	even
 ArtNem_ARZBarrierThing:		BINCLUDE	"art/nemesis/One way barrier from ARZ.nem" ; Unused
 	even
-
 ;---------------------------------------------------------------------------------------
-; EHZ Badnik Assets (Part 1) (Why is this split?)
+; EHZ Badnik Assets
 ;---------------------------------------------------------------------------------------
 ArtNem_Buzzer:			BINCLUDE	"art/nemesis/Buzzer enemy.nem"
 	even
@@ -79810,7 +79697,6 @@ ArtNem_Masher:			BINCLUDE	"art/nemesis/EHZ Pirahna badnik.nem"
 	even
 ArtNem_Coconuts:		BINCLUDE	"art/nemesis/Coconuts badnik from EHZ.nem"
 	even
-
 ;---------------------------------------------------------------------------------------
 ; OOZ Badnik Assets
 ;---------------------------------------------------------------------------------------
@@ -79879,10 +79765,6 @@ ArtNem_Turtloid:		BINCLUDE	"art/nemesis/Turtle badnik from SCZ.nem"
 ArtNem_Balkrie:			BINCLUDE	"art/nemesis/Balkrie (jet badnik) from SCZ.nem" ; This SCZ badnik is here for some reason.
 	even
 ;---------------------------------------------------------------------------------------
-; EHZ Badnik Assets (Part 3) (WTF???)
-;---------------------------------------------------------------------------------------
-
-;---------------------------------------------------------------------------------------
 ; MCZ Badnik Assets
 ;---------------------------------------------------------------------------------------
 ArtNem_Crawlton:		BINCLUDE	"art/nemesis/Snake badnik from MCZ.nem"
@@ -79919,9 +79801,7 @@ ArtNem_WfzScratch:		BINCLUDE	"art/nemesis/Scratch from WFZ.nem" ; Chicken badnik
 ; It seems that these were haphazardly thrown together instead of neatly-split like the
 ; other zones' assets.
 ;---------------------------------------------------------------------------------------
-ArtNem_SilverSonic:		BINCLUDE	"art/nemesis/Silver Sonic.nem"
-	even
-ArtNem_Tornado:			BINCLUDE	"art/nemesis/The Tornado.nem" ; Sonic's plane.
+ArtNem_Tornado:			BINCLUDE	"art/nemesis/The Tornado.nem"
 	even
 ArtNem_WfzWallTurret:		BINCLUDE	"art/nemesis/Wall turret from WFZ.nem"
 	even
@@ -79943,8 +79823,6 @@ ArtNem_WfzLaunchCatapult:	BINCLUDE	"art/nemesis/Catapult that shoots Sonic to th
 	even
 ArtNem_WfzBeltPlatform:		BINCLUDE	"art/nemesis/Platform on belt in WFZ.nem"
 	even
-ArtNem_WfzUnusedBadnik:		BINCLUDE	"art/nemesis/Unused badnik from WFZ.nem" ; This is not grouped with the zone's badniks, suggesting that it's not a badnik at all.
-	even
 ArtNem_WfzVrtclPrpllr:		BINCLUDE	"art/nemesis/Vertical spinning blades in WFZ.nem"
 	even
 ArtNem_WfzHrzntlPrpllr:		BINCLUDE	"art/nemesis/Horizontal spinning blades in WFZ.nem"
@@ -79955,17 +79833,21 @@ ArtNem_WfzThrust:		BINCLUDE	"art/nemesis/Thrust from Robotnik's getaway ship in 
 	even
 ArtNem_WFZBoss:			BINCLUDE	"art/nemesis/WFZ boss.nem"
 	even
-ArtNem_RobotnikUpper:		BINCLUDE	"art/nemesis/Robotnik's head.nem"
+ArtNem_TornadoThruster:		BINCLUDE	"art/nemesis/Rocket thruster for Tornado.nem"
 	even
-ArtNem_RobotnikRunning:		BINCLUDE	"art/nemesis/Robotnik.nem"
+ArtNem_RobotnikUpper:		BINCLUDE	"art/nemesis/Robotnik's head.nem"
 	even
 ArtNem_RobotnikLower:		BINCLUDE	"art/nemesis/Robotnik's lower half.nem"
 	even
+ArtNem_RobotnikRunning:		BINCLUDE	"art/nemesis/Robotnik.nem"
+	even
 ArtNem_DEZWindow:		BINCLUDE	"art/nemesis/Window in back that Robotnik looks through in DEZ.nem"
+	even
+ArtNem_SilverSonic:		BINCLUDE	"art/nemesis/Silver Sonic.nem"
 	even
 ArtNem_DEZBoss:			BINCLUDE	"art/nemesis/Eggrobo.nem"
 	even
-ArtNem_TornadoThruster:		BINCLUDE	"art/nemesis/Rocket thruster for Tornado.nem"
+ArtNem_HollowPiston:		BINCLUDE	"art/nemesis/Hollow piston.nem"
 	even
 ;---------------------------------------------------------------------------------------
 ; Ending Assets
@@ -79996,7 +79878,6 @@ ArtNem_EndingTails:		BINCLUDE	"art/nemesis/Final image of Tails.nem"
 	even
 ArtNem_EndingTitle:		BINCLUDE	"art/nemesis/Sonic the Hedgehog 2 image at end of credits.nem"
 	even
-
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; LEVEL ART AND BLOCK MAPPINGS (16x16 and 128x128)
@@ -80143,7 +80024,6 @@ ArtKos_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.kosp" ; WFZ pattern suppliment to SC
 	even
 BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.twiz"
 	even
-
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ;-----------------------------------------------------------------------------------
 ; Special Stage Assets
@@ -80250,8 +80130,6 @@ ArtNem_SpecialHUD:		BINCLUDE	"art/nemesis/Sonic and Miles number text from speci
 ArtNem_SpecialStart:		BINCLUDE	"art/nemesis/Start text from special stage.nem" ; Also includes checkered flag
 	even
 ArtNem_SpecialStars:		BINCLUDE	"art/nemesis/Stars in special stage.nem"
-	even
-ArtNem_SpecialPlayerVSPlayer:	BINCLUDE	"art/nemesis/Special stage Player VS Player text.nem"
 	even
 ArtNem_SpecialRings:		BINCLUDE	"art/nemesis/Special stage ring art.nem"
 	even

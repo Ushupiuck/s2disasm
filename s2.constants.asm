@@ -719,7 +719,7 @@ ObjID_WFZWheel =		id(ObjPtr_WFZWheel)		; BA
 ObjID_WFZShipFire =		id(ObjPtr_WFZShipFire)		; BC
 ObjID_SmallMetalPform =		id(ObjPtr_SmallMetalPform)	; BD
 ObjID_LateralCannon =		id(ObjPtr_LateralCannon)	; BE
-ObjID_WFZStick =		id(ObjPtr_WFZStick)		; BF
+
 ObjID_SpeedLauncher =		id(ObjPtr_SpeedLauncher)	; C0
 ObjID_BreakablePlating =	id(ObjPtr_BreakablePlating)	; C1
 ObjID_Rivet =			id(ObjPtr_Rivet)		; C2
@@ -1651,7 +1651,6 @@ Update_HUD_rings_2P:		ds.b	1
 Update_HUD_timer_2P:		ds.b	1
 Update_HUD_score_2P:		ds.b	1	; mostly unused
 Ring_count_2P:			ds.w	1
-				ds.b	$50
 
 SS_Total_Won:			ds.b	2	; 2 bytes (player 1 then player 2)
 Perfect_rings_left:		ds.w	1
@@ -1678,18 +1677,13 @@ SlotMachine_Slot3Rout:		ds.b	1
 Player_mode:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 Player_option:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 
-Two_player_items:		ds.w	1
+Placeholder_option:		ds.w	1	; TODO: Misnomer now
 
 LevSel_HoldTimer:		ds.w	1
 Level_select_zone:		ds.w	1
 Sound_test_sound:		ds.w	1
 Title_screen_option:		ds.b	1
-				ds.b	1	; $FFFFFF87 ; unused
-Current_Zone_2P:		ds.b	1
-Current_Act_2P:			ds.b	1
-Two_player_mode_copy:		ds.w	1
-Options_menu_box:		ds.b	1
-				ds.b	1	; $FFFFFF8D ; unused
+Options_menu_box:		ds.b	1	; $FFFFFF87 ; unused
 Total_Bonus_Countdown:		ds.w	1
 
 Level_Music:			ds.w	1
@@ -1735,7 +1729,7 @@ TwizHuffRet:			ds.b	$48				; $48 bytes
 TwizHuffCopy =			TwizHuffRet+TwizHuffRetMax*$04		; $18 bytes
 TwizVRAM =			TwizHuffCopy+TwizHuffCopyMax*$02	; $4 bytes
 TwizSize =			TwizVRAM+$04
-				ds.b	$40	; Free
+				ds.b	$96
 CrossResetRAM_End:
 
 RAM_End
@@ -2073,10 +2067,7 @@ ArtTile_ArtNem_MenuBox                = $0070
 ArtTile_ArtNem_LevelSelectPics        = $0090
 
 ; 2p results screen.
-ArtTile_ArtNem_1P2PWins               = $0070
 ArtTile_ArtNem_SpecialPlayerVSPlayer  = $03DF
-ArtTile_ArtNem_2p_Signpost            = $05E8
-ArtTile_TwoPlayerResults              = $0600
 
 ; Special stage stuff.
 ArtTile_ArtNem_SpecialEmerald         = $0174
@@ -2210,7 +2201,6 @@ ArtTile_ArtNem_WfzHook                = $03FA
 ArtTile_ArtNem_WfzHook_Fudge          = ArtTile_ArtNem_WfzHook + 4 ; Bad mappings...
 ArtTile_ArtNem_WfzBeltPlatform        = $040E
 ArtTile_ArtNem_WfzGunPlatform         = $041A
-ArtTile_ArtNem_WfzUnusedBadnik        = $0450
 ArtTile_ArtNem_WfzLaunchCatapult      = $045C
 ArtTile_ArtNem_WfzSwitch              = $0461
 ArtTile_ArtNem_WfzThrust              = $0465

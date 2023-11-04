@@ -1,51 +1,35 @@
-Map_obj38:	mappingsTable
-	mappingsTableEntry.w	Map_obj38_000C
-	mappingsTableEntry.w	Map_obj38_002E
-	mappingsTableEntry.w	Map_obj38_0050
-	mappingsTableEntry.w	Map_obj38_0072
-	mappingsTableEntry.w	Map_obj38_0094
-	mappingsTableEntry.w	Map_obj38_00B6
+; --------------------------------------------------------------------------------
+; Sprite mappings - output from ClownMapEd - MapMacros format
+; --------------------------------------------------------------------------------
 
-Map_obj38_000C:	spriteHeader
-	spritePiece	-$10, -$10, 2, 2, 0, 0, 0, 0, 0
-	spritePiece	0, -$10, 2, 2, 0, 1, 0, 0, 0
-	spritePiece	-$10, 0, 2, 2, 0, 0, 1, 0, 0
-	spritePiece	0, 0, 2, 2, 0, 1, 1, 0, 0
-Map_obj38_000C_End
+.offsets:	mappingsTable
+	mappingsTableEntry.w	.frame0
+	mappingsTableEntry.w	.frame1
+	mappingsTableEntry.w	.frame2
+	mappingsTableEntry.w	.frame3
 
-Map_obj38_002E:	spriteHeader
-	spritePiece	-$10, -$10, 2, 2, 4, 0, 0, 0, 0
-	spritePiece	0, -$10, 2, 2, 4, 1, 0, 0, 0
-	spritePiece	-$10, 0, 2, 2, 4, 0, 1, 0, 0
-	spritePiece	0, 0, 2, 2, 4, 1, 1, 0, 0
-Map_obj38_002E_End
+.frame0:	spriteHeader
+.frame0_End
 
-Map_obj38_0050:	spriteHeader
-	spritePiece	-$10, -$10, 2, 2, 8, 0, 0, 0, 0
-	spritePiece	0, -$10, 2, 2, 8, 1, 0, 0, 0
-	spritePiece	-$10, 0, 2, 2, 8, 0, 1, 0, 0
-	spritePiece	0, 0, 2, 2, 8, 1, 1, 0, 0
-Map_obj38_0050_End
+.frame1:	spriteHeader
+	spritePiece -24, -24, 3, 3, 0, 0, 0, 0, 0
+	spritePiece 0, -24, 3, 3, 9, 0, 0, 0, 0
+	spritePiece -24, 0, 3, 3, 0, 0, 1, 0, 0
+	spritePiece 0, 0, 3, 3, 9, 0, 1, 0, 0
+.frame1_End
 
-Map_obj38_0072:	spriteHeader
-	spritePiece	-$10, -$10, 2, 2, $C, 0, 0, 0, 0
-	spritePiece	0, -$10, 2, 2, $C, 1, 0, 0, 0
-	spritePiece	-$10, 0, 2, 2, $C, 0, 1, 0, 0
-	spritePiece	0, 0, 2, 2, $C, 1, 1, 0, 0
-Map_obj38_0072_End
+.frame2:	spriteHeader
+	spritePiece -23, -24, 3, 3, 18, 1, 0, 0, 0
+	spritePiece 0, -24, 3, 3, 18, 0, 0, 0, 0
+	spritePiece -23, 0, 3, 3, 18, 1, 1, 0, 0
+	spritePiece 0, 0, 3, 3, 18, 0, 1, 0, 0
+.frame2_End
 
-Map_obj38_0094:	spriteHeader
-	spritePiece	-$10, -$10, 2, 2, $10, 0, 0, 0, 0
-	spritePiece	0, -$10, 2, 2, $10, 1, 0, 0, 0
-	spritePiece	-$10, 0, 2, 2, $10, 0, 1, 0, 0
-	spritePiece	0, 0, 2, 2, $10, 1, 1, 0, 0
-Map_obj38_0094_End
-
-Map_obj38_00B6:	spriteHeader
-	spritePiece	-$18, -$20, 3, 4, $14, 0, 0, 0, 0
-	spritePiece	0, -$20, 3, 4, $14, 1, 0, 0, 0
-	spritePiece	-$18, 0, 3, 4, $14, 0, 1, 0, 0
-	spritePiece	0, 0, 3, 4, $14, 1, 1, 0, 0
-Map_obj38_00B6_End
+.frame3:	spriteHeader
+	spritePiece -24, -24, 3, 3, 9, 1, 0, 0, 0
+	spritePiece 0, -24, 3, 3, 0, 1, 0, 0, 0
+	spritePiece -24, 0, 3, 3, 9, 1, 1, 0, 0
+	spritePiece 0, 0, 3, 3, 0, 1, 1, 0, 0
+.frame3_End
 
 	even
