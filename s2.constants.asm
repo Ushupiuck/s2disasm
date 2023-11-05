@@ -947,6 +947,7 @@ AniIDSonAni_Balance4		= id(SonAni_Balance4_ptr)	; 31 ; $1F
 AniIDSupSonAni_Transform	= id(SupSonAni_Transform_ptr)	; 32 ; $20
 AniIDSonAni_Lying		= id(SonAni_Lying_ptr)		; 33 ; $21
 AniIDSonAni_LieDown		= id(SonAni_LieDown_ptr)	; 34 ; $22
+AniIDSonAni_Peelout		= id(SonAni_Peelout_ptr)	; 35 ; $23
 
 
 offset :=	TailsAniData

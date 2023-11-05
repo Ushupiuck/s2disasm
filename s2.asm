@@ -4388,7 +4388,7 @@ NonWaterEffects:
 +
 	cmpi.b	#wing_fortress_zone,(Current_Zone).w	; is the level WFZ?
 	bne.s	+			; if not, branch
-	bsr.w	WindTunnel		; call wind and block break routine
+	bra.w	WindTunnel		; call wind and block break routine
 +
 	rts
 ; End of function WaterEffects
@@ -4686,7 +4686,7 @@ loc_4712:
 	andi.b	#$1F,d0
 	bne.s	+	; rts
 	move.w	#SndID_OilSlide,d0
-	jsr	(PlaySound).l
+	jmp	(PlaySound).l
 +
 	rts
 ; ===========================================================================
@@ -31344,25 +31344,25 @@ Obj01_Gone:
 
 ; loc_1B350:
 Sonic_Animate:
-	lea	(SonicAniData).l,a1
-	tst.b	(Super_Sonic_flag).w
-	beq.s	+
-	lea	(SuperSonicAniData).l,a1
+	lea	(SonicAniData).l,a1		; Get animation script
+	tst.b	(Super_Sonic_flag).w		; Are we Super?
+	beq.s	+				; Skip if not
+	lea	(SuperSonicAniData).l,a1	; Get Super animation script
 +
-	moveq	#0,d0
+	moveq	#0,d0				; Get current animation
 	move.b	anim(a0),d0
-	cmp.b	prev_anim(a0),d0	; has animation changed?
-	beq.s	SAnim_Do		; if not, branch
-	move.b	d0,prev_anim(a0)	; set previous animation
-	move.b	#0,anim_frame(a0)	; reset animation frame
+	cmp.b	prev_anim(a0),d0		; has animation changed?
+	beq.s	SAnim_Do			; if not, branch
+	move.b	d0,prev_anim(a0)		; set previous animation
+	move.b	#0,anim_frame(a0	)	; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
 	bclr	#5,status(a0)
 ; loc_1B384:
 SAnim_Do:
 	add.w	d0,d0
-	adda.w	(a1,d0.w),a1	; calculate address of appropriate animation script
+	adda.w	(a1,d0.w),a1			; calculate address of appropriate animation script
 	move.b	(a1),d0
-	bmi.s	SAnim_WalkRun	; if animation is walk/run/roll/jump, branch
+	bmi.s	SAnim_WalkRun			; if animation is walk/run/roll/jump, branch
 	move.b	status(a0),d1
 	andi.b	#1,d1
 	andi.b	#$FC,render_flags(a0)
@@ -31370,78 +31370,79 @@ SAnim_Do:
 	subq.b	#1,anim_frame_duration(a0)	; subtract 1 from frame duration
 	bpl.s	SAnim_Delay			; if time remains, branch
 	move.b	d0,anim_frame_duration(a0)	; load frame duration
+
+; -------------------------------------------------------------------------
 ; loc_1B3AA:
 SAnim_Do2:
-	moveq	#0,d1
-	move.b	anim_frame(a0),d1	; load current frame number
-	move.b	1(a1,d1.w),d0		; read sprite number from script
-	cmpi.b	#$F0,d0
-	bhs.s	SAnim_End_FF		; if animation is complete, branch
+	moveq	#0,d1				; Get animation frame
+	move.b	anim_frame(a0),d1		; load current frame number
+	move.b	1(a1,d1.w),d0			; read sprite number from script
+	beq.s	SAnim_Next			; If it's a frame ID, branch
+	bpl.s	SAnim_Next
+	cmpi.b	#$FD,d0				; Is it a flag?
+	bge.s	SAnim_End_FF			; If so, branch
 ; loc_1B3BA:
 SAnim_Next:
-	move.b	d0,mapping_frame(a0)	; load sprite number
-	addq.b	#1,anim_frame(a0)	; go to next frame
+	move.b	d0,mapping_frame(a0)		; load sprite number
+	addq.b	#1,anim_frame(a0)		; go to next frame
 ; return_1B3C2:
 SAnim_Delay:
 	rts
 ; ===========================================================================
-; loc_1B3C4:
 SAnim_End_FF:
-	addq.b	#1,d0		; is the end flag = $FF?
-	bne.s	SAnim_End_FE	; if not, branch
-	move.b	#0,anim_frame(a0)	; restart the animation
-	move.b	1(a1),d0	; read sprite number
+	addq.b	#1,d0				; is the end flag = $FF?
+	bne.s	SAnim_End_FE			; if not, branch
+	move.b	#0,anim_frame(a0)		; restart the animation
+	move.b	1(a1),d0			; read sprite number
 	bra.s	SAnim_Next
 ; ===========================================================================
-; loc_1B3D4:
 SAnim_End_FE:
-	addq.b	#1,d0		; is the end flag = $FE?
-	bne.s	SAnim_End_FD	; if not, branch
-	move.b	2(a1,d1.w),d0	; read the next byte in the script
-	sub.b	d0,anim_frame(a0)	; jump back d0 bytes in the script
+	addq.b	#1,d0				; is the end flag = $FE?
+	bne.s	SAnim_End_FD			; if not, branch
+	move.b	2(a1,d1.w),d0			; read the next byte in the script
+	sub.b	d0,anim_frame(a0)		; jump back d0 bytes in the script
 	sub.b	d0,d1
-	move.b	1(a1,d1.w),d0	; read sprite number
+	move.b	1(a1,d1.w),d0			; read sprite number
 	bra.s	SAnim_Next
 ; ===========================================================================
-; loc_1B3E8:
 SAnim_End_FD:
-	addq.b	#1,d0			; is the end flag = $FD?
-	bne.s	SAnim_End		; if not, branch
-	move.b	2(a1,d1.w),anim(a0)	; read next byte, run that animation
-; return_1B3F2:
+	addq.b	#1,d0				; is the end flag = $FD?
+	bne.s	SAnim_End			; if not, branch
+	move.b	2(a1,d1.w),anim(a0)		; read next byte, run that animation
+
 SAnim_End:
 	rts
 ; ===========================================================================
-; loc_1B3F4:
+
 SAnim_WalkRun:
-	addq.b	#1,d0		; is the start flag = $FF?
-	bne.w	SAnim_Roll	; if not, branch
-	moveq	#0,d0		; is animation walking/running?
-	move.b	flip_angle(a0),d0	; if not, branch
+	addq.b	#1,d0				; is the start flag = $FF?
+	bne.w	SAnim_Roll			; if not, branch
+	moveq	#0,d0				; is animation walking/running?
+	move.b	flip_angle(a0),d0		; if not, branch
 	bne.w	SAnim_Tumble
 	moveq	#0,d1
-	move.b	angle(a0),d0	; get Sonic's angle
+	move.b	angle(a0),d0			; get Sonic's angle
 	bmi.s	+
 	beq.s	+
 	subq.b	#1,d0
 +
 	move.b	status(a0),d2
-	andi.b	#1,d2		; is Sonic mirrored horizontally?
-	bne.s	+		; if yes, branch
-	not.b	d0		; reverse angle
+	andi.b	#1,d2				; is Sonic mirrored horizontally?
+	bne.s	+				; if yes, branch
+	not.b	d0				; reverse angle
 +
-	addi.b	#$10,d0		; add $10 to angle
-	bpl.s	+		; if angle is $0-$7F, branch
+	addi.b	#$10,d0				; add $10 to angle
+	bpl.s	+				; if angle is $0-$7F, branch
 	moveq	#3,d1
 +
 	andi.b	#$FC,render_flags(a0)
 	eor.b	d1,d2
 	or.b	d2,render_flags(a0)
-	btst	#5,status(a0)
-	bne.w	SAnim_Push
-	lsr.b	#4,d0		; divide angle by 16
-	andi.b	#6,d0		; angle must be 0, 2, 4 or 6
-	mvabs.w	inertia(a0),d2	; get Sonic's "speed" for animation purposes
+	btst	#5,status(a0)			; Are we pushing on something?
+	bne.w	SAnim_Push			; If so, branch
+	mvabs.w	inertia(a0),d2			; get Sonic's "speed" for animation purposes
+	lsr.b	#4,d0				; divide angle by 16
+	andi.b	#6,d0				; angle must be 0, 2, 4 or 6
     if status_sec_isSliding = 7
 	tst.b	status_secondary(a0)
 	bpl.w	+
@@ -31453,10 +31454,13 @@ SAnim_WalkRun:
 +
 	tst.b	(Super_Sonic_flag).w
 	bne.s	SAnim_Super
-	lea	(SonAni_Run).l,a1	; use running animation
-	cmpi.w	#$600,d2		; is Sonic at running speed?
-	bhs.s	+			; use running animation
-	lea	(SonAni_Walk).l,a1	; if yes, branch
+;	lea	(SonAni_Peelout).l,a1		; Get peelout sprites
+;	cmpi.w	#$A00,d2			; Are we running at peelout speed?
+;	bcc.s	+				; If so, branch
+	lea	(SonAni_Run).l,a1		; use running animation
+	cmpi.w	#$600,d2			; is Sonic at running speed?
+	bhs.s	+				; use running animation
+	lea	(SonAni_Walk).l,a1		; if yes, branch
 	add.b	d0,d0
 +
 	add.b	d0,d0
@@ -31487,10 +31491,10 @@ return_1B4AC:
 ; ===========================================================================
 ; loc_1B4AE:
 SAnim_Super:
-	lea	(SupSonAni_Run).l,a1	; use fast animation
-	cmpi.w	#$800,d2		; is Sonic moving fast?
-	bhs.s	SAnim_SuperRun		; if yes, branch
-	lea	(SupSonAni_Walk).l,a1	; use slower animation
+	lea	(SupSonAni_Run).l,a1		; use fast animation
+	cmpi.w	#$800,d2			; is Sonic moving fast?
+	bhs.s	SAnim_SuperRun			; if yes, branch
+	lea	(SupSonAni_Walk).l,a1		; use slower animation
 	add.b	d0,d0
 	add.b	d0,d0
 	bra.s	SAnim_SuperWalk
@@ -31574,8 +31578,8 @@ loc_1B572:
 SAnim_Roll:
 	subq.b	#1,anim_frame_duration(a0)	; subtract 1 from frame duration
 	bpl.w	SAnim_Delay			; if time remains, branch
-	addq.b	#1,d0		; is the start flag = $FE?
-	bne.s	SAnim_Push	; if not, branch
+	addq.b	#1,d0				; is the start flag = $FE?
+	bne.s	SAnim_Push			; if not, branch
 	mvabs.w	inertia(a0),d2
 	lea	(SonAni_Roll2).l,a1
 	cmpi.w	#$600,d2
@@ -31661,6 +31665,7 @@ SonAni_Balance4_ptr:		offsetTableEntry.w SonAni_Balance4	; 31 ; $1F
 SupSonAni_Transform_ptr:	offsetTableEntry.w SupSonAni_Transform	; 32 ; $20
 SonAni_Lying_ptr:		offsetTableEntry.w SonAni_Lying		; 33 ; $21
 SonAni_LieDown_ptr:		offsetTableEntry.w SonAni_LieDown	; 34 ; $22
+SonAni_Peelout_ptr:		offsetTableEntry.w SonAni_Peelout	; 35 ; $23
 
 SonAni_Walk:	dc.b $FF, $F,$10,$11,$12,$13,$14, $D, $E,$FF
 SonAni_Run:	dc.b $FF,$2D,$2E,$2F,$30,$FF,$FF,$FF,$FF,$FF
@@ -31707,6 +31712,7 @@ SonAni_Balance3:dc.b $13,$CF,$D0,$FF
 SonAni_Balance4:dc.b   3,$C8,$C9,$CA,$CB,$FE,  4
 SonAni_Lying:	dc.b   9,  8,  9,$FF
 SonAni_LieDown:	dc.b   3,  7,$FD,  0
+SonAni_Peelout:	dc.b $FF,$E2,$E3,$E4,$E5,$FF,$FF,$FF
 	even
 
 ; ---------------------------------------------------------------------------
