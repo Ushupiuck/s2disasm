@@ -1365,7 +1365,6 @@ Sonic_Look_delay_counter:	ds.w	1	; 2 bytes
 Tails_Look_delay_counter:	ds.w	1	; 2 bytes
 Super_Sonic_frame_count:	ds.w	1
 Camera_ARZ_BG_X_pos:		ds.l	1
-				ds.b	$A	; $FFFFF676-$FFFFF67F ; seems unused
 MiscLevelVariables_End
 
 Plc_Buffer:			ds.b	6*16	; Pattern load queue (each entry is 6 bytes)
@@ -1384,8 +1383,6 @@ Plc_Buffer_End:
 
 
 Misc_Variables:
-				ds.b	$14	; unused
-
 ; extra variables for the second player (CPU) in 1-player mode
 Tails_control_counter:		ds.w	1	; how long until the CPU takes control
 Tails_respawn_counter:		ds.w	1
@@ -1521,24 +1518,24 @@ Underwater_target_palette_line2:	ds.b palette_line_size	; While Underwater_palet
 Underwater_target_palette_line3:	ds.b palette_line_size	; Underwater_target_palette will contain the palette the screen will ultimately fade in to.
 Underwater_target_palette_line4:	ds.b palette_line_size
 
-Underwater_palette:		ds.b palette_line_size	; main palette for underwater parts of the screen
-Underwater_palette_line2:	ds.b palette_line_size
-Underwater_palette_line3:	ds.b palette_line_size
-Underwater_palette_line4:	ds.b palette_line_size
-Normal_palette:			ds.b	palette_line_size	; main palette for non-underwater parts of the screen
-Normal_palette_line2:		ds.b	palette_line_size
-Normal_palette_line3:		ds.b	palette_line_size
-Normal_palette_line4:		ds.b	palette_line_size
+Underwater_palette:			ds.b	palette_line_size	; main palette for underwater parts of the screen
+Underwater_palette_line2:		ds.b	palette_line_size
+Underwater_palette_line3:		ds.b	palette_line_size
+Underwater_palette_line4:		ds.b	palette_line_size
+Normal_palette:				ds.b	palette_line_size	; main palette for non-underwater parts of the screen
+Normal_palette_line2:			ds.b	palette_line_size
+Normal_palette_line3:			ds.b	palette_line_size
+Normal_palette_line4:			ds.b	palette_line_size
 Normal_palette_End:
 
-Target_palette:			ds.b	palette_line_size	; This is used by the screen-fading subroutines.
-Target_palette_line2:		ds.b	palette_line_size	; While Normal_palette contains the blacked-out palette caused by the fading,
-Target_palette_line3:		ds.b	palette_line_size	; Target_palette will contain the palette the screen will ultimately fade in to.
-Target_palette_line4:		ds.b	palette_line_size
+Target_palette:				ds.b	palette_line_size	; This is used by the screen-fading subroutines.
+Target_palette_line2:			ds.b	palette_line_size	; While Normal_palette contains the blacked-out palette caused by the fading,
+Target_palette_line3:			ds.b	palette_line_size	; Target_palette will contain the palette the screen will ultimately fade in to.
+Target_palette_line4:			ds.b	palette_line_size
 Target_palette_End:
 
 Object_Respawn_Table:
-Obj_respawn_index:		ds.b	2		; respawn table indices of the next objects when moving left or right for the first player
+Obj_respawn_index:		ds.b	2	; respawn table indices of the next objects when moving left or right for the first player
 Obj_respawn_index_End:
 Obj_respawn_data:		ds.b	$BE	; For stock S2, $80 is enough
 Obj_respawn_data_End:
@@ -1639,15 +1636,7 @@ Tails_top_speed:		ds.w	1	; Tails_max_vel
 Tails_acceleration:		ds.w	1
 Tails_deceleration:		ds.w	1
 Tails_Speeds_End:
-
-Life_count_2P:			ds.b	1
-Extra_life_flags_2P:		ds.b	1
-Update_HUD_lives_2P:		ds.b	1
-Update_HUD_rings_2P:		ds.b	1
-Update_HUD_timer_2P:		ds.b	1
-Update_HUD_score_2P:		ds.b	1	; mostly unused
 Ring_count_2P:			ds.w	1
-
 SS_Total_Won:			ds.b	2	; 2 bytes (player 1 then player 2)
 Perfect_rings_left:		ds.w	1
 Perfect_rings_flag:		ds.w	1
@@ -1672,8 +1661,7 @@ SlotMachine_Slot3Rout:		ds.b	1
 
 Player_mode:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 Player_option:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
-
-Placeholder_option:		ds.w	1	; TODO: Misnomer now
+Placeholder_option:		ds.w	1	; TODO
 
 LevSel_HoldTimer:		ds.w	1
 Level_select_zone:		ds.w	1
@@ -1725,7 +1713,7 @@ TwizHuffRet:			ds.b	$48				; $48 bytes
 TwizHuffCopy =			TwizHuffRet+TwizHuffRetMax*$04		; $18 bytes
 TwizVRAM =			TwizHuffCopy+TwizHuffCopyMax*$02	; $4 bytes
 TwizSize =			TwizVRAM+$04
-				ds.b	$96
+				ds.b	$BA
 CrossResetRAM_End:
 
 RAM_End

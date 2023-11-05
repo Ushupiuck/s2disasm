@@ -4917,96 +4917,6 @@ EndingDemoScriptPointers:
 	dc.l	     0	; 10
 	dc.l	     0	; 11
 
-
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_49BC:
-LoadCollisionIndexes:
-;	moveq	#0,d0
-;	move.b	(Current_Zone).w,d0
-;	lsl.w	#2,d0
-;	move.l	#Primary_Collision,(Collision_addr).w
-;	move.w	d0,-(sp)
-;	movea.l	Off_ColP(pc,d0.w),a0
-;	lea	(Primary_Collision).w,a1
-;	bsr.w	KosPlusDec
-;	move.w	(sp)+,d0
-;	movea.l	Off_ColS(pc,d0.w),a0
-;	lea	(Secondary_Collision).w,a1
-;	bra.w	KosPlusDec
-		moveq	#0,d0
-		move.w	(Current_ZoneAndAct).w,d0
-		ror.b	#1,d0
-		lsr.w	#5,d0
-;		lsl.w	#2,d0
-		lea	(SolidIndexes).l,a1
-		adda.l	d0,a1
-		move.l	(a1),d0
-		move.l	d0,(Primary_collision_addr).w
-		addq.l	#1,d0
-		move.l	d0,(Secondary_collision_addr).w
-		move.l	(Primary_collision_addr).w,(Collision_addr).w
-		rts
-; End of function LoadCollisionIndexes
-
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Pointers to primary collision indexes
-; Contains an array of pointers to the primary collision index data for each
-; level. 1 pointer for each level, pointing the primary collision index.
-; ---------------------------------------------------------------------------
-SolidIndexes:
-	dc.l Col1_EHZ		; EHZ1  0
-	dc.l Col2_EHZ		; EHZ2  0
-	dc.l Col1_001Z		; Zone1 1
-	dc.l Col2_001Z		; Zone2 1
-	dc.l Col1_WZ		; WZ1   2
-	dc.l Col2_WZ		; WZ2   2
-	dc.l Col1_003Z		; Zone1 3
-	dc.l Col2_003Z		; Zone2 3
-	dc.l Col1_MTZ		; MTZ1  4
-	dc.l Col2_MTZ		; MTZ2  4
-	dc.l Col1_MTZ		; MTZ1  5
-	dc.l Col2_MTZ		; MTZ2  5
-	dc.l Col1_SCZ		; WFZ1  6 ; TODO: Merge with SCZ
-	dc.l Col2_SCZ		; WFZ2  6 ; TODO: Merge with SCZ
-	dc.l Col1_EHZ		; HTZ1  7 ; TODO: Split levels
-	dc.l Col2_EHZ		; HTZ2  7 ; TODO: Split levels
-	dc.l Col1_HPZ		; HPZ1  8
-	dc.l Col2_HPZ		; HPZ2  8
-	dc.l Col1_009Z		; Zone1 9
-	dc.l Col2_009Z		; Zone2 9
-	dc.l Col1_OOZ		; OOZ1 $A
-	dc.l Col2_OOZ		; OOZ2 $A
-	dc.l Col1_MCZ		; MCZ1 $B
-	dc.l Col2_MCZ		; MCZ2 $B
-	dc.l Col1_CNZ		; CNZ1 $C
-	dc.l Col2_CNZ		; CNZ2 $C
-	dc.l Col1_CPZ		; CPZ1 $D ; TODO: Split levels
-	dc.l Col2_CPZ		; CPZ2 $D ; TODO: Split levels
-	dc.l Col1_CPZ		; DEZ1 $E ; TODO: Split levels
-	dc.l Col2_CPZ		; DEZ2 $E ; TODO: Split levels
-	dc.l Col1_ARZ		; ARZ1 $F
-	dc.l Col2_ARZ		; ARZ2 $F
-	dc.l Col1_SCZ		; SCZ1 $10 ; TODO: Merge with SCZ & free level slot
-	dc.l Col2_SCZ		; SCZ2 $10 ; TODO: Merge with SCZ & free level slot
-;	dc.l Col1_EHZ		; ???  $11
-;	dc.l Col2_EHZ		; ???  $11
-;	dc.l Col1_EHZ		; ???  $12
-;	dc.l Col2_EHZ		; ???  $12
-;	dc.l Col1_EHZ		; ???  $13
-;	dc.l Col2_EHZ		; ???  $13
-;	dc.l Col1_EHZ		; ???  $14
-;	dc.l Col2_EHZ		; ???  $14
-;	dc.l Col1_EHZ		; ???  $15
-;	dc.l Col2_EHZ		; ???  $15
-;	dc.l Col1_EHZ		; ???  $16
-;	dc.l Col2_EHZ		; ???  $16
-;	dc.l Col1_EHZ		; ???  $17
-;	dc.l Col2_EHZ		; ???  $17
-
 ; ---------------------------------------------------------------------------
 ; Oscillating number subroutine
 ; ---------------------------------------------------------------------------
@@ -5111,7 +5021,6 @@ Osc_Data2:
 	dc.w	 2, $40
 Osc_Data2_End:
 	even
-
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to change global object animation variables (like rings)
@@ -5509,7 +5418,92 @@ Demo_ARZ:
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
+; sub_49BC:
+LoadCollisionIndexes:
+;	moveq	#0,d0
+;	move.b	(Current_Zone).w,d0
+;	lsl.w	#2,d0
+;	move.l	#Primary_Collision,(Collision_addr).w
+;	move.w	d0,-(sp)
+;	movea.l	Off_ColP(pc,d0.w),a0
+;	lea	(Primary_Collision).w,a1
+;	bsr.w	KosPlusDec
+;	move.w	(sp)+,d0
+;	movea.l	Off_ColS(pc,d0.w),a0
+;	lea	(Secondary_Collision).w,a1
+;	bra.w	KosPlusDec
+		moveq	#0,d0
+		move.w	(Current_ZoneAndAct).w,d0
+		ror.b	#1,d0
+		lsr.w	#5,d0
+;		lsl.w	#2,d0
+		lea	(SolidIndexes).l,a1
+		adda.l	d0,a1
+		move.l	(a1),d0
+		move.l	d0,(Primary_collision_addr).w
+		addq.l	#1,d0
+		move.l	d0,(Secondary_collision_addr).w
+		move.l	(Primary_collision_addr).w,(Collision_addr).w
+		rts
+; End of function LoadCollisionIndexes
 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Pointers to primary collision indexes
+; Contains an array of pointers to the primary collision index data for each
+; level. 1 pointer for each level, pointing the primary collision index.
+; ---------------------------------------------------------------------------
+SolidIndexes:
+	dc.l Col1_EHZ		; EHZ1  0
+	dc.l Col2_EHZ		; EHZ2  0
+	dc.l Col1_001Z		; Zone1 1
+	dc.l Col2_001Z		; Zone2 1
+	dc.l Col1_WZ		; WZ1   2
+	dc.l Col2_WZ		; WZ2   2
+	dc.l Col1_003Z		; Zone1 3
+	dc.l Col2_003Z		; Zone2 3
+	dc.l Col1_MTZ		; MTZ1  4
+	dc.l Col2_MTZ		; MTZ2  4
+	dc.l Col1_MTZ		; MTZ1  5
+	dc.l Col2_MTZ		; MTZ2  5
+	dc.l Col1_SCZ		; WFZ1  6 ; TODO: Merge with SCZ
+	dc.l Col2_SCZ		; WFZ2  6 ; TODO: Merge with SCZ
+	dc.l Col1_HTZ		; HTZ1  7
+	dc.l Col2_HTZ		; HTZ2  7
+	dc.l Col1_HPZ		; HPZ1  8
+	dc.l Col2_HPZ		; HPZ2  8
+	dc.l Col1_009Z		; Zone1 9
+	dc.l Col2_009Z		; Zone2 9
+	dc.l Col1_OOZ		; OOZ1 $A
+	dc.l Col2_OOZ		; OOZ2 $A
+	dc.l Col1_MCZ		; MCZ1 $B
+	dc.l Col2_MCZ		; MCZ2 $B
+	dc.l Col1_CNZ		; CNZ1 $C
+	dc.l Col2_CNZ		; CNZ2 $C
+	dc.l Col1_CPZ		; CPZ1 $D ; TODO: Split levels
+	dc.l Col2_CPZ		; CPZ2 $D ; TODO: Split levels
+	dc.l Col1_CPZ		; DEZ1 $E ; TODO: Split levels
+	dc.l Col2_CPZ		; DEZ2 $E ; TODO: Split levels
+	dc.l Col1_ARZ		; ARZ1 $F
+	dc.l Col2_ARZ		; ARZ2 $F
+	dc.l Col1_SCZ		; SCZ1 $10 ; TODO: Merge with SCZ & free level slot
+	dc.l Col2_SCZ		; SCZ2 $10 ; TODO: Merge with SCZ & free level slot
+;	dc.l Col1_EHZ		; ???  $11
+;	dc.l Col2_EHZ		; ???  $11
+;	dc.l Col1_EHZ		; ???  $12
+;	dc.l Col2_EHZ		; ???  $12
+;	dc.l Col1_EHZ		; ???  $13
+;	dc.l Col2_EHZ		; ???  $13
+;	dc.l Col1_EHZ		; ???  $14
+;	dc.l Col2_EHZ		; ???  $14
+;	dc.l Col1_EHZ		; ???  $15
+;	dc.l Col2_EHZ		; ???  $15
+;	dc.l Col1_EHZ		; ???  $16
+;	dc.l Col2_EHZ		; ???  $16
+;	dc.l Col1_EHZ		; ???  $17
+;	dc.l Col2_EHZ		; ???  $17
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 ;sub_4E98:
 LoadZoneTiles:
@@ -5528,13 +5522,7 @@ LoadZoneTiles:
 	lea	(Chunk_Table).l,a1
 	bsr.w	KosPlusDec
 	move.w	a1,d3
-	cmpi.b	#hill_top_zone,(Current_Zone).w
-	bne.s	+
-	lea	(ArtKos_HTZ).l,a0
-	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKos_NumTiles_HTZ_Main)).l,a1
-	bsr.w	KosPlusDec	; patch for HTZ
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_HTZ),d3
-+
+
 	cmpi.b	#wing_fortress_zone,(Current_Zone).w
 	bne.s	+
 	lea	(ArtKos_WFZ).l,a0
@@ -5542,10 +5530,10 @@ LoadZoneTiles:
 	bsr.w	KosPlusDec	; patch for WFZ
 	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_WFZ),d3
 +
-;	cmpi.b	#death_egg_zone,(Current_Zone).w
-;	bne.s	+
-;	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
-;+
+	cmpi.b	#death_egg_zone,(Current_Zone).w
+	bne.s	+
+	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
++
 	move.w	d3,d7
 	andi.w	#$FFF,d3
 	lsr.w	#1,d3
@@ -5591,12 +5579,7 @@ LoadZoneBlockMaps:
 	movea.l	d0,a0
 	lea	(Block_Table).w,a1
 	jsr	(KosPlusDec).l	; load block maps
-	cmpi.b	#hill_top_zone,(Current_Zone).w
-	bne.s	+
-	lea	(Block_Table+$980).w,a1
-	lea	(BM16_HTZ).l,a0
-	jsr	(KosPlusDec).l	; patch for Hill Top Zone block map
-+
+
 	move.l	(a2)+,d0
 	andi.l	#$FFFFFF,d0	; pointer to chunk mappings
 	movea.l	d0,a0
@@ -20821,8 +20804,6 @@ Obj37_Init:
 ; ===========================================================================
 +
 	move.w	#0,(Ring_count_2P).w
-	move.b	#$80,(Update_HUD_rings_2P).w
-	move.b	#0,(Extra_life_flags_2P).w
 ; Obj_37_sub_2:
 Obj37_Main:
 	move.b	(Ring_spill_anim_frame).w,mapping_frame(a0)
@@ -25647,7 +25628,6 @@ BuildSprites_LevelLoop:
 ; loc_16630:
 BuildSprites_ObjLoop:
 	movea.w	(a4,d6.w),a0 ; a0=object
-
 	; These are sanity checks, to detect invalid objects which should not
 	; have been queued for display. S3K gets rids of them compeletely,
 	; since they should not be needed and they just slow this code down.
@@ -26039,54 +26019,7 @@ CellOffsets_XFlip2:
 	dc.b $18,$18,$18,$18	; 12
 	dc.b $20,$20,$20,$20	; 16
 ; ===========================================================================
-; Unused leftover code from Sonic 1: checks whether an object is off-screen
-
-; loc_16F16:
-ChkObjectVisible:
-	move.w	x_pos(a0),d0	; a0=object
-	sub.w	(Camera_X_pos).w,d0
-	bmi.s	.offscreen
-	cmpi.w	#320,d0
-	bge.s	.offscreen
-	move.w	y_pos(a0),d1
-	sub.w	(Camera_Y_pos).w,d1
-	bmi.s	.offscreen
-	cmpi.w	#224,d1
-	bge.s	.offscreen
-	moveq	#0,d0
-	rts
-
-.offscreen:
-	moveq	#1,d0
-	rts
-; ===========================================================================
-; Unused leftover code from Sonic 1: checks whether an object is off-screen
-; with more precision than the above code, taking the object's width into account
-
-; loc_16F3E:
-ChkPartiallyVisible:
-	moveq	#0,d1
-	move.b	width_pixels(a0),d1	; a0=object
-	move.w	x_pos(a0),d0
-	sub.w	(Camera_X_pos).w,d0
-	add.w	d1,d0
-	bmi.s	.offscreen
-	add.w	d1,d1
-	sub.w	d1,d0
-	cmpi.w	#320,d0
-	bge.s	.offscreen
-	move.w	y_pos(a0),d1
-	sub.w	(Camera_Y_pos).w,d1
-	bmi.s	.offscreen
-	cmpi.w	#224,d1
-	bge.s	.offscreen
-	moveq	#0,d0
-	rts
-
-.offscreen:
-	moveq	#1,d0
-	rts
-; ===========================================================================
+	include	"_inc/sub ChkObjectVisible.asm"
 ; ----------------------------------------------------------------------------
 ; Pseudo-object that manages where rings are placed onscreen
 ; as you move through the level, and otherwise updates them.
@@ -27146,6 +27079,9 @@ ObjectsManager_GoingForward:
 .noRespawn1:
 	bsr.w	ChkLoadObj	; load object (and get address of next object)
 	beq.s	.nextObject1	; continue loading objects, if the SST isn't full
+	tst.b	4(a0)		; was this object a remember state?
+	bpl.s	.done1		; if not, branch
+	subq.b	#1,(a2)		; move right counter back
 ; loc_17C2A:
 .done1:
 	move.l	a0,(Obj_load_addr_right).w	; remember next object from the right
@@ -27188,7 +27124,7 @@ ObjectsManager_SameXRange:
 ChkLoadObj:
 	tst.b	2(a0)	; does the object get a respawn table entry?
 	bpl.s	+	; if not, branch
-	bset	#7,2(a2,d2.w)	; mark object as loaded
+	btst	#7,2(a2,d2.w)	; mark object as loaded
 	beq.s	+		; branch if it wasn't already loaded
 	addq.w	#6,a0	; next object
 	moveq	#0,d0	; let the objects manager know that it can keep going
@@ -27201,6 +27137,7 @@ ChkLoadObj:
 	move.w	(a0)+,x_pos(a1)
 	move.w	(a0)+,d0	; there are three things stored in this word
 	bpl.s	+		; branch, if the object doesn't get a respawn table entry
+	bset	#7,2(a2,d2.w)	; set as removed
 	move.b	d2,respawn_index(a1)
 +
 	move.w	d0,d1		; copy for later
@@ -35211,7 +35148,6 @@ Ani_Shield:	offsetTable
 		offsetTableEntry.w +	; 0
 +		dc.b 1,	1, 0, 2, 0, 3, 0, afEnd
 	even
-
 ; -------------------------------------------------------------------------------
 ; sprite mappings
 ; -------------------------------------------------------------------------------
@@ -64778,7 +64714,7 @@ Obj95_Init:
 
 ; loc_37152:
 Obj95_NextFireball:
-	jsrto	AllocateObjectAfterCurrent, JmpTo25_AllocateObjectAfterCurrent
+	jsr	(AllocateObjectAfterCurrent).l
 	bne.s	loc_371AE
 	addq.b	#1,(a3)
     if object_size<>$40
@@ -65882,9 +65818,9 @@ Obj9D_ClimbData:
 Obj9D_Climbing:
 	subq.b	#1,Obj9D_timer(a0)
 	beq.s	Obj9D_StopClimbing	; branch, if done moving
-	jsrto	ObjectMove, JmpTo26_ObjectMove	; else, keep moving
+	jsr	(ObjectMove).l	; else, keep moving
 	lea	(Ani_obj09).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_37CC6:
@@ -66054,7 +65990,7 @@ loc_37E98:
 loc_37EB6:
 	subq.b	#1,objoff_3A(a0)
 	beq.s	+
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	jmp	(MarkObjGone).l
 ; ---------------------------------------------------------------------------
 +
@@ -66205,7 +66141,7 @@ loc_3805E:
 	blo.s	loc_380AE
 
 loc_38068:
-	jsrto	ObjectMove, JmpTo26_ObjectMove
+	jsr	(ObjectMove).l
 	jsr	(ObjCheckFloorDist).l
 	cmpi.w	#-8,d1
 	blt.s	loc_38096
@@ -66215,7 +66151,7 @@ loc_38068:
 	subq.w	#1,objoff_2A(a0)
 	bmi.s	loc_3809A
 	lea	(Ani_obj9F).l,a1
-	jsrto	AnimateSprite, JmpTo25_AnimateSprite
+	jsr	(AnimateSprite).l
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -66544,7 +66480,7 @@ ObjA1_Index:	offsetTable
 		offsetTableEntry.w ObjA1_Main	; 2
 		offsetTableEntry.w loc_38466	; 4
 		offsetTableEntry.w loc_38482	; 6
-		offsetTableEntry.w JmpTo39_MarkObjGone	; 8
+		offsetTableEntry.w ObjA1_MarkObjGone	; 8
 ; ===========================================================================
 ; loc_383CC:
 ObjA1_Init:
@@ -66631,7 +66567,7 @@ loc_3848C:
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
-JmpTo39_MarkObjGone
+ObjA1_MarkObjGone:
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -67512,21 +67448,19 @@ loc_38F88:
 	addq.b	#3,d0
 	move.b	d0,mapping_frame(a0)
 	move.b	collision_property(a0),d0
-	beq.s	BranchTo2_JmpTo45_DisplaySprite
+	beq.s	+
 	clr.b	collision_property(a0)
 	cmpi.b	#4,routine_secondary(a1)
-	bne.s	BranchTo2_JmpTo45_DisplaySprite
+	bne.s	+
 	andi.b	#3,d0
-	beq.s	BranchTo2_JmpTo45_DisplaySprite
+	beq.s	+
 	clr.b	collision_flags(a0)
 	addq.b	#2,routine(a0)
 	add.w	d0,d0
 	st.b	objoff_30(a1)
 	move.w	word_38FE0-6(pc,d0.w),objoff_32(a1)
 	move.w	word_38FE0(pc,d0.w),objoff_34(a1)
-
-BranchTo2_JmpTo45_DisplaySprite
-	jmp	(DisplaySprite).l
++	jmp	(DisplaySprite).l
 ; ===========================================================================
 		dc.w MainCharacter	; -2
 		dc.w Sidekick	; -1
@@ -68891,8 +68825,7 @@ ObjB2_Init:
 	bhs.s	+
 	move.b	#4,mapping_frame(a0)
 	move.b	#1,anim(a0)
-+ ; BranchTo5_JmpTo45_DisplaySprite
-	jmp	(DisplaySprite).l
++	jmp	(DisplaySprite).l
 ; ===========================================================================
 ; loc_3A7DE:
 ObjB2_Main_SCZ:
@@ -69158,8 +69091,7 @@ ObjB2_Jump_to_plane:
 	move.l	#$501F0025,(a1)+
 	lea	(Level_Layout+$CD6).w,a1
 	move.l	#$25001F50,(a1)+
-+ ; BranchTo6_JmpTo45_DisplaySprite:
-	jmp	(DisplaySprite).l
++	jmp	(DisplaySprite).l
 ; ===========================================================================
 ; loc_3AAFE:
 ObjB2_Landed_on_plane:
@@ -70444,11 +70376,11 @@ ObjBA_Index:	offsetTable
 		offsetTableEntry.w ObjBA_Init	; 0
 		offsetTableEntry.w ObjBA_Main	; 2
 ; ===========================================================================
-; BranchTo7_LoadSubObject
+
 ObjBA_Init:
 	bra.w	LoadSubObject
 ; ===========================================================================
-; BranchTo14_JmpTo39_MarkObjGone
+
 ObjBA_Main:
 	jmp	(MarkObjGone).l
 ; ===========================================================================
@@ -70965,7 +70897,7 @@ ObjC1_Main:
 +
 	move.b	(Ctrl_1_Press_Logical).w,d0
 	andi.w	#button_B_mask|button_C_mask|button_A_mask,d0
-	beq.s	BranchTo16_JmpTo39_MarkObjGone
+	beq.s	+
 
 loc_3C12E:
 	clr.b	collision_flags(a0)
@@ -70977,15 +70909,15 @@ loc_3C12E:
 
 loc_3C140:
 	tst.b	collision_property(a0)
-	beq.s	BranchTo16_JmpTo39_MarkObjGone
+	beq.s	+
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	x_pos(a0),d0
 	subi.w	#$14,d0
 	cmp.w	x_pos(a1),d0
-	bhs.s	BranchTo16_JmpTo39_MarkObjGone
+	bhs.s	+
 	clr.b	collision_property(a0)
 	cmpi.b	#4,routine(a1)
-	bhs.s	BranchTo16_JmpTo39_MarkObjGone
+	bhs.s	+
 	clr.w	x_vel(a1)
 	clr.w	y_vel(a1)
 	move.w	x_pos(a0),d0
@@ -70996,9 +70928,7 @@ loc_3C140:
 	move.b	#1,(MainCharacter+obj_control).w
 	move.b	#1,(WindTunnel_holding_flag).w
 	move.b	#1,objoff_32(a0)
-
-BranchTo16_JmpTo39_MarkObjGone
-	jmp	(MarkObjGone).l
++	jmp	(MarkObjGone).l
 ; ===========================================================================
 
 loc_3C19A:
@@ -71631,7 +71561,7 @@ ObjC5_PlatformReleaserLoadWait:
 	btst	#5,status(a1)
 	bne.s	ObjC5_PlatformReleaserDestroyP
 	subq.w	#1,objoff_2A(a0)
-	bne.s	BranchTo8_JmpTo45_DisplaySprite
+	bne.w	JmpTo45_DisplaySprite
 	move.w	#$80,objoff_2A(a0)	; Time between loading platforms
 	moveq	#0,d0
 	move.b	objoff_2E(a0),d0
@@ -71643,13 +71573,11 @@ ObjC5_PlatformReleaserLoadWait:
 ObjC5_PlatformReleaserLoadP:	; P=Platforms
 	move.b	d0,objoff_2E(a0)
 	tst.b	objoff_30(a0,d0.w)
-	bne.s	BranchTo8_JmpTo45_DisplaySprite
+	bne.w	JmpTo45_DisplaySprite
 	st.b	objoff_30(a0,d0.w)
 	lea	(ChildObject_ObjC5Platform).l,a2
 	bsr.w	LoadChildObject
 	move.b	objoff_2E(a0),objoff_2E(a1)
-
-BranchTo8_JmpTo45_DisplaySprite
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 
@@ -72391,7 +72319,7 @@ loc_3D2D4:
 	bclr	#3,status(a0)
 	bne.w	loc_3D386
 	move.b	collision_property(a0),d0
-	beq.s	BranchTo18_JmpTo39_MarkObjGone
+	beq.w	JmpTo39_MarkObjGone
 	bclr	#0,collision_property(a0)
 	beq.s	+++
 	cmpi.b	#AniIDSonAni_Roll,anim(a1)
@@ -72426,8 +72354,6 @@ loc_3D2D4:
 	bsr.s	loc_3D3A4
 +
 	clr.b	collision_property(a0)
-
-BranchTo18_JmpTo39_MarkObjGone
 	jmp	(MarkObjGone).l
 ; ===========================================================================
 
@@ -74692,54 +74618,10 @@ Scale_2x_RightPixels2:
 	move.b	d4,3(a5)				; ...and on the row below
 	rts
 ; ===========================================================================
-
-    if ~~removeJmpTos
-JmpTo5_DisplaySprite3 ; JmpTo
-	jmp	(DisplaySprite3).l
-JmpTo45_DisplaySprite ; JmpTo
-	jmp	(DisplaySprite).l
 JmpTo39_MarkObjGone ; JmpTo
 	jmp	(MarkObjGone).l
-JmpTo6_DeleteObject2 ; JmpTo
-	jmp	(DeleteObject2).l
-JmpTo12_PlaySound ; JmpTo
-	jmp	(PlaySound).l
-JmpTo25_AllocateObjectAfterCurrent ; JmpTo
-	jmp	(AllocateObjectAfterCurrent).l
-JmpTo25_AnimateSprite ; JmpTo
-	jmp	(AnimateSprite).l
-JmpTo6_RandomNumber ; JmpTo
-	jmp	(RandomNumber).l
-JmpTo2_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
-JmpTo_Pal_FadeToWhite_UpdateColour ; JmpTo
-	jmp	(Pal_FadeToWhite.UpdateColour).l
-JmpTo_LoadTailsDynPLC_Part2 ; JmpTo
-	jmp	(LoadTailsDynPLC_Part2).l
-JmpTo_LoadSonicDynPLC_Part2 ; JmpTo
-	jmp	(LoadSonicDynPLC_Part2).l
-JmpTo8_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
-JmpTo5_PlayMusic ; JmpTo
-	jmp	(PlayMusic).l
-JmpTo_Boss_LoadExplosion ; JmpTo
-	jmp	(Boss_LoadExplosion).l
-JmpTo9_PlatformObject ; JmpTo
-	jmp	(PlatformObject).l
-JmpTo27_SolidObject ; JmpTo
-	jmp	(SolidObject).l
-JmpTo8_ObjectMoveAndFall ; JmpTo
-	jmp	(ObjectMoveAndFall).l
-; loc_3EAC0:
-JmpTo26_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-
-	align 4
-    endif
-
-
-
-
+JmpTo45_DisplaySprite ; JmpTo
+	jmp	(DisplaySprite).l
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 8A - Sonic Team Presents/Credits (leftover from S1) (seemingly unused)
@@ -78388,7 +78270,7 @@ LevelArtPointers:
 	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ; MTZ1,2 ; METROPOLIS ZONE ACTS 1 & 2
 	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ; MTZ3   ; METROPOLIS ZONE ACT 3
 	levartptrs PLCID_Wfz1,        PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ ; WFZ    ; WING FORTRESS ZONE
-	levartptrs PLCID_Htz1,        PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; HTZ    ; HILL TOP ZONE
+	levartptrs PLCID_Htz1,        PLCID_Htz2,      PalID_HTZ,  ArtKos_HTZ, BM16_HTZ, BM128_HTZ ; HTZ    ; HILL TOP ZONE
 	levartptrs PLCID_Hpz1,        PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ ; HPZ    ; HIDDEN PALACE ZONE (UNUSED)
 	levartptrs PLCID_009z1,       PLCID_009z2,     PalID_EHZ4, ArtKos_009Z,BM16_009Z,BM128_009Z; Zone 9 ; LEVEL 9 (UNUSED)
 	levartptrs PLCID_Ooz1,        PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ, BM16_OOZ, BM128_OOZ ; OOZ    ; OIL OCEAN ZONE
@@ -79233,8 +79115,8 @@ Col1_WFZ:	BINCLUDE	"collision/WFZ1 interleaved collision index.unc"	; TODO: Unif
 Col2_WFZ:	BINCLUDE	"collision/WFZ2 interleaved collision index.unc"	; TODO: Unify with SCZ
 	even
 ;---------------------------------------------------------------------------------------
-Col1_HTZ:	BINCLUDE	"collision/HTZ1 interleaved collision index.unc"	; TODO: Split
-Col2_HTZ:	BINCLUDE	"collision/HTZ2 interleaved collision index.unc"	; TODO: Split
+Col1_HTZ:	BINCLUDE	"collision/HTZ1 interleaved collision index.unc"
+Col2_HTZ:	BINCLUDE	"collision/HTZ2 interleaved collision index.unc"
 	even
 ;---------------------------------------------------------------------------------------
 Col1_HPZ:	BINCLUDE	"collision/HPZ1 interleaved collision index.unc"
@@ -79929,101 +79811,104 @@ ArtNem_EndingTitle:		BINCLUDE	"art/nemesis/Sonic the Hedgehog 2 image at end of 
 
 ; All of these are compressed in the Kosinski format.
 
+ArtKos_EHZ:	BINCLUDE	"art/kosinski/EHZ.kosp"
+		even
 BM16_EHZ:	BINCLUDE	"mappings/16x16/EHZ.kosp"
-	even
-ArtKos_EHZ:	BINCLUDE	"art/kosinski/EHZ_HTZ.kosp"
-	even
-BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.kosp"
-	even
-ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.kosp" ; HTZ pattern suppliment to EHZ level patterns
-	even
-BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.twiz"
-	even
+		even
+BM128_EHZ:	BINCLUDE	"mappings/128x128/HTZ.twiz"
+		even
 
-BM16_001Z:	BINCLUDE	"mappings/16x16/001.kosp"
-	even
 ArtKos_001Z:	BINCLUDE	"art/kosinski/001.kosp"
-	even
+		even
+BM16_001Z:	BINCLUDE	"mappings/16x16/001.kosp"
+		even
 BM128_001Z:	BINCLUDE	"mappings/128x128/001.twiz"
-	even
+		even
 
-BM16_WZ:	BINCLUDE	"mappings/16x16/WZ.kosp"
-	even
 ArtKos_WZ:	BINCLUDE	"art/kosinski/WZ.kosp"
-	even
+		even
+BM16_WZ:	BINCLUDE	"mappings/16x16/WZ.kosp"
+		even
 BM128_WZ:	BINCLUDE	"mappings/128x128/WZ.twiz"
-	even
+		even
 
-BM16_003Z:	BINCLUDE	"mappings/16x16/003.kosp"
-	even
 ArtKos_003Z:	BINCLUDE	"art/kosinski/003.kosp"
-	even
+		even
+BM16_003Z:	BINCLUDE	"mappings/16x16/003.kosp"
+		even
 BM128_003Z:	BINCLUDE	"mappings/128x128/003.twiz"
-	even
+		even
 
-BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.kosp"
-	even
 ArtKos_MTZ:	BINCLUDE	"art/kosinski/MTZ.kosp"
-	even
+		even
+BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.kosp"
+		even
 BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.twiz"
-	even
+		even
 
-BM16_HPZ:	BINCLUDE	"mappings/16x16/HPZ.kosp"
-	even
+ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ.kosp"
+		even
+BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.kosp"
+		even
+BM128_HTZ:	BINCLUDE	"mappings/128x128/HTZ.twiz"
+		even
+
 ArtKos_HPZ:	BINCLUDE	"art/kosinski/HPZ.kosp"
-	even
+		even
+BM16_HPZ:	BINCLUDE	"mappings/16x16/HPZ.kosp"
+		even
 BM128_HPZ:	BINCLUDE	"mappings/128x128/HPZ.twiz"
-	even
+		even
 
-BM16_009Z:	BINCLUDE	"mappings/16x16/009.kosp"
-	even
 ArtKos_009Z:	BINCLUDE	"art/kosinski/009.kosp"
-	even
+		even
+BM16_009Z:	BINCLUDE	"mappings/16x16/009.kosp"
+		even
 BM128_009Z:	BINCLUDE	"mappings/128x128/009.twiz"
-	even
+		even
 
-BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.kosp"
-	even
 ArtKos_OOZ:	BINCLUDE	"art/kosinski/OOZ.kosp"
-	even
+		even
+BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.kosp"
+		even
 BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.twiz"
-	even
+		even
 
-BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.kosp"
-	even
 ArtKos_MCZ:	BINCLUDE	"art/kosinski/MCZ.kosp"
-	even
+		even
+BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.kosp"
+		even
 BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.twiz"
-	even
+		even
 
-BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.kosp"
-	even
 ArtKos_CNZ:	BINCLUDE	"art/kosinski/CNZ.kosp"
-	even
+		even
+BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.kosp"
+		even
 BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.twiz"
 
-BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.kosp"
-	even
 ArtKos_CPZ:	BINCLUDE	"art/kosinski/CPZ_DEZ.kosp"
-	even
+		even
+BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.kosp"
+		even
 BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.twiz"
-	even
+		even
 
-BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.kosp"
-	even
 ArtKos_ARZ:	BINCLUDE	"art/kosinski/ARZ.kosp"
-	even
+		even
+BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.kosp"
+		even
 BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.twiz"
-	even
+		even
 
-BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.kosp"
-	even
 ArtKos_SCZ:	BINCLUDE	"art/kosinski/WFZ_SCZ.kosp"
-	even
+		even
 ArtKos_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.kosp" ; WFZ pattern suppliment to SCZ tiles
-	even
+		even
+BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.kosp"
+		even
 BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.twiz"
-	even
+		even
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ;-----------------------------------------------------------------------------------
 ; Special Stage Assets
