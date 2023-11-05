@@ -1012,17 +1012,13 @@ RAM_Start:
 
 Chunk_Table:			ds.b	$8000	; was "Metablock_Table"
 Chunk_Table_End:
-
+TwizBuffer:			ds.b	$1000	; Twizzler decompression buffer
 Level_Layout:			ds.b	$1000
 Level_Layout_End:
-
-Block_Table:			ds.w	$C00
-Block_Table_End:
-
 TempArray_LayerDef:		ds.b	$200	; used by some layer deformation routines
 Decomp_Buffer:			ds.b	$200
-Object_Display_Lists:		ds.b	object_display_list_size*total_object_display_lists
-Object_Display_Lists_End:
+Block_Table:			ds.w	$C00
+Block_Table_End:
 
 Object_RAM:			; The various objects in the game are loaded in this area.
 				; Each game mode uses different objects, so some slots are reused.
@@ -1104,9 +1100,9 @@ Tails_InvincibilityStars:
 				ds.b	object_size
 LevelOnly_Object_RAM_End:
 
-
 SS_Shared_RAM_End:
-TwizBuffer:			ds.b	$1000	; Twizzler decompression buffer
+Object_Display_Lists:		ds.b	object_display_list_size*total_object_display_lists
+Object_Display_Lists_End:
 
 VDP_Command_Buffer:		ds.w	7*$12	; stores 18 ($12) VDP commands to issue the next time ProcessDMAQueue is called
 VDP_Command_Buffer_Slot:	ds.l	1	; stores the address of the next open slot for a queued VDP command
