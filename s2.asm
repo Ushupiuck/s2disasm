@@ -31440,9 +31440,9 @@ SAnim_WalkRun:
 	or.b	d2,render_flags(a0)
 	btst	#5,status(a0)			; Are we pushing on something?
 	bne.w	SAnim_Push			; If so, branch
-	mvabs.w	inertia(a0),d2			; get Sonic's "speed" for animation purposes
 	lsr.b	#4,d0				; divide angle by 16
 	andi.b	#6,d0				; angle must be 0, 2, 4 or 6
+	mvabs.w	inertia(a0),d2			; get Sonic's "speed" for animation purposes
     if status_sec_isSliding = 7
 	tst.b	status_secondary(a0)
 	bpl.w	+
@@ -31454,10 +31454,10 @@ SAnim_WalkRun:
 +
 	tst.b	(Super_Sonic_flag).w
 	bne.s	SAnim_Super
-;	lea	(SonAni_Peelout).l,a1		; Get peelout sprites
+	lea	(SonAni_Peelout).l,a1		; Get peelout sprites
 ;	cmpi.w	#$A00,d2			; Are we running at peelout speed?
 ;	bcc.s	+				; If so, branch
-	lea	(SonAni_Run).l,a1		; use running animation
+;	lea	(SonAni_Run).l,a1		; use running animation
 	cmpi.w	#$600,d2			; is Sonic at running speed?
 	bhs.s	+				; use running animation
 	lea	(SonAni_Walk).l,a1		; if yes, branch
@@ -79326,14 +79326,14 @@ ArtUnc_Waterfall3:	BINCLUDE	"art/uncompressed/ARZ waterfall patterns - 3.bin"
 ;---------------------------------------------------------------------------------------
 ; Player Assets
 ;---------------------------------------------------------------------------------------
-	align $20
+	align $20000
 ArtUnc_Sonic:			BINCLUDE	"art/uncompressed/Sonic's art.bin"
-	align $20
-ArtUnc_Tails:			BINCLUDE	"art/uncompressed/Tails's art.bin"
-	even
 MapUnc_Sonic:			BINCLUDE	"mappings/sprite/Sonic mappings.bin"
 	even
 MapRUnc_Sonic:			BINCLUDE	"mappings/spriteDPLC/Sonic DPLC's.bin"
+	even
+;	align $20
+ArtUnc_Tails:			BINCLUDE	"art/uncompressed/Tails's art.bin"
 	even
 ArtNem_Shield:			BINCLUDE	"art/nemesis/Shield.nem"
 	even
