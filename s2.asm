@@ -3367,10 +3367,6 @@ SegaScreen:
 	lea	(ArtNem_SEGA).l,a0
 	bsr.w	NemDec
 
-;	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Trails),VRAM,WRITE),(VDP_control_port).l
-;	lea	(ArtNem_IntroTrails).l,a0
-;	bsr.w	NemDec
-
 	lea	(Chunk_Table).l,a1
 	lea	(MapEng_SEGA).l,a0
 	move.w	#make_art_tile(ArtTile_VRAM_Start,0,0),d0
@@ -22596,9 +22592,7 @@ Obj34_Init:
 	move.w	#$26,(TitleCard_Bottom+titlecard_location).w
 	clr.w	(Vscroll_Factor_FG).w
 	move.w	#-224,(Vscroll_Factor_P2_FG).w
-
 	clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf+HorizontalScrollBuffer.len
-
 	rts
 ; ===========================================================================
 ; This macro declares data for an object. The data includes:
@@ -24057,14 +24051,8 @@ DrawLevelTitleCard:
 	bne.w	loc_15670
 	moveq	#$3F,d5
 	move.l	#make_block_tile_pair(ArtTile_ArtNem_TitleCard+$5A,0,0,0,1),d6
-	tst.w	(Two_player_mode).w
-	beq.s	loc_155A8
-	moveq	#$1F,d5
-	move.l	#make_block_tile_pair_2p(ArtTile_ArtNem_TitleCard+$5A,0,0,0,1),d6
-
-loc_155A8:
 	lea	(TitleCard_Background+titlecard_vram_dest).w,a0
-	moveq	#1,d7	; Once for P1, once for P2 (if in 2p mode)
+	moveq	#1,d7
 
 loc_155AE:
 	move.w	(a0)+,d0
@@ -24086,14 +24074,8 @@ loc_155C6:
 	subq.w	#1,d1
 	moveq	#7,d5
 	move.l	#make_block_tile_pair(ArtTile_ArtNem_TitleCard+$5C,0,0,1,1),d6
-	tst.w	(Two_player_mode).w
-	beq.s	loc_155EA
-	moveq	#3,d5
-	move.l	#make_block_tile_pair_2p(ArtTile_ArtNem_TitleCard+$5C,0,0,1,1),d6
-
-loc_155EA:
 	lea	(TitleCard_Bottom+titlecard_vram_dest).w,a0
-	moveq	#1,d7	; Once for P1, once for P2 (if in 2p mode)
+	moveq	#1,d7
 
 loc_155F0:
 	move.w	(a0)+,d0
@@ -24118,14 +24100,8 @@ loc_15614:
 	subq.w	#1,d1
 	moveq	#$D,d5
 	move.l	#make_block_tile_pair(ArtTile_ArtNem_TitleCard+$58,0,0,0,1),d6 ; VRAM location of graphic to fill on left side
-	tst.w	(Two_player_mode).w
-	beq.s	loc_15634
-	moveq	#6,d5
-	move.l	#make_block_tile_pair_2p(ArtTile_ArtNem_TitleCard+$58,0,0,0,1),d6 ; VRAM location of graphic to fill on left side (2p)
-
-loc_15634:
 	lea	(TitleCard_Left+titlecard_vram_dest).w,a0 ; obj34 red title card left side part
-	moveq	#1,d7	; Once for P1, once for P2 (if in 2p mode)
+	moveq	#1,d7
 	move.w	#$8F80,VDP_control_port-VDP_data_port(a6)	; VRAM pointer increment: $0080
 
 loc_15640:
@@ -24156,13 +24132,6 @@ loc_15670:
 	moveq	#3,d4
 	move.l	#make_block_tile_pair(ArtTile_ArtNem_TitleCard+$5A,0,0,0,1),d5
 	move.l	#make_block_tile_pair(ArtTile_ArtNem_TitleCard+$5C,0,0,1,1),d6
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	moveq	#4,d3
-	moveq	#1,d4
-	move.l	#make_block_tile_pair_2p(ArtTile_ArtNem_TitleCard+$5A,0,0,0,1),d5
-	move.l	#make_block_tile_pair_2p(ArtTile_ArtNem_TitleCard+$5C,0,0,1,1),d6
-+
 	lea	(TitleCard_Left+titlecard_vram_dest).w,a0
 	moveq	#1,d7	; Once for P1, once for P2 (if in 2p mode)
 	move.w	#$8F80,VDP_control_port-VDP_data_port(a6)	; VRAM pointer increment: $0080
@@ -24193,13 +24162,8 @@ loc_156CE:
 	move.w	#$8F02,VDP_control_port-VDP_data_port(a6)	; VRAM pointer increment: $0002
 	moveq	#7,d5
 	move.l	#make_block_tile_pair(ArtTile_ArtNem_TitleCard+$5A,0,0,0,1),d6
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	moveq	#3,d5
-	move.l	#make_block_tile_pair_2p(ArtTile_ArtNem_TitleCard+$5A,0,0,0,1),d6
-+
 	lea	(TitleCard_Bottom+titlecard_vram_dest).w,a0
-	moveq	#1,d7	; Once for P1, once for P2 (if in 2p mode)
+	moveq	#1,d7
 
 loc_156F4:
 	move.w	(a0)+,d0
@@ -29625,6 +29589,7 @@ Obj01_MdNormal_Checks:
 	cmpi.b	#$AC,anim_frame(a0)
 	blo.s	return_1A2DE
 	move.b	#AniIDSonAni_GetUp,anim(a0)
+return_1A2DE:
 	rts
 ; ---------------------------------------------------------------------------
 ; loc_1A2B8:
@@ -29637,10 +29602,7 @@ Obj01_MdNormal:
 	bsr.w	Sonic_LevelBound
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
-	bra.w	Sonic_SlopeRepel
-
-return_1A2DE:
-	rts
+	bra.w	Player_SlopeRepel
 ; End of subroutine Obj01_MdNormal
 ; ===========================================================================
 ; Start of subroutine Obj01_MdAir
@@ -29673,7 +29635,7 @@ Obj01_MdRoll:
 	bsr.w	Sonic_LevelBound
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
-	bra.w	Sonic_SlopeRepel
+	bra.w	Player_SlopeRepel
 ;	rts
 ; End of subroutine Obj01_MdRoll
 ; ===========================================================================
@@ -30870,7 +30832,7 @@ Player_RollRepel:
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 ; loc_1AE08:
-Sonic_SlopeRepel:
+Player_SlopeRepel:
 	nop
 	tst.b	stick_to_convex(a0)
 	bne.s	return_1AE42
@@ -30894,7 +30856,7 @@ return_1AE42:
 loc_1AE44:
 	subq.w	#1,move_lock(a0)
 	rts
-; End of function Sonic_SlopeRepel
+; End of function Player_SlopeRepel
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to return Sonic's angle to 0 as he jumps
@@ -31379,7 +31341,7 @@ Sonic_Animate:
 	cmp.b	prev_anim(a0),d0		; has animation changed?
 	beq.s	SAnim_Do			; if not, branch
 	move.b	d0,prev_anim(a0)		; set previous animation
-	move.b	#0,anim_frame(a0	)	; reset animation frame
+	move.b	#0,anim_frame(a0)		; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
 	bclr	#5,status(a0)
 ; loc_1B384:
@@ -31443,6 +31405,8 @@ SAnim_WalkRun:
 	addq.b	#1,d0				; is the start flag = $FF?
 	bne.w	SAnim_Roll			; if not, branch
 	moveq	#0,d0				; is animation walking/running?
+;	tst.b	flip_type(a0)
+;	bmi.w	loc_127C0
 	move.b	flip_angle(a0),d0		; if not, branch
 	bne.w	SAnim_Tumble
 	moveq	#0,d1
@@ -31831,17 +31795,8 @@ SPLC_ReadEntry:
 return_1B89A:
 	rts
 ; ===========================================================================
-
-JmpTo_KillCharacter ; JmpTo
+JmpTo_KillCharacter:
 	jmp	(KillCharacter).l
-
-    if ~~removeJmpTos
-	align 4
-    endif
-
-
-
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 02 - Tails
@@ -32049,7 +32004,6 @@ TailsCPU_States: offsetTable
 	offsetTableEntry.w TailsCPU_Flying	; 4
 	offsetTableEntry.w TailsCPU_Normal	; 6
 	offsetTableEntry.w TailsCPU_Panic	; 8
-
 ; ===========================================================================
 ; initial AI State
 ; ---------------------------------------------------------------------------
@@ -32211,7 +32165,7 @@ loc_1BC68:
 	move.b	spindash_flag(a0),d0
 	beq.s	return_1BCDE
 	move.b	d0,spindash_flag(a1)
-	bsr.w	loc_212C4
+	bra.w	loc_212C4
 
 return_1BCDE:
 	rts
@@ -32386,16 +32340,14 @@ TailsCPU_CheckDespawn:
 	movea.l	d0,a3	; a3=object
 	move.b	(Tails_interact_ID).w,d0
 	cmp.b	id(a3),d0
-	bne.s	BranchTo_TailsCPU_Despawn
+	bne.s	TailsCPU_Despawn
 
 ; loc_1BE8C:
 TailsCPU_TickRespawnTimer:
 	addq.w	#1,(Tails_respawn_counter).w
 	cmpi.w	#$12C,(Tails_respawn_counter).w
 	blo.s	TailsCPU_UpdateObjInteract
-
-BranchTo_TailsCPU_Despawn ; BranchTo
-	bra.w	TailsCPU_Despawn
+	bra.s	TailsCPU_Despawn
 ; ===========================================================================
 ; loc_1BE9C:
 TailsCPU_ResetRespawnTimer:
@@ -32569,8 +32521,8 @@ Obj02_MdNormal:
 	bsr.w	Tails_LevelBound
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
-	bsr.w	Tails_SlopeRepel
-	rts
+	bra.w	Player_SlopeRepel
+;	rts
 ; End of subroutine Obj02_MdNormal
 ; ===========================================================================
 ; Start of subroutine Obj02_MdAir
@@ -32603,8 +32555,8 @@ Obj02_MdRoll:
 	bsr.w	Tails_LevelBound
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
-	bsr.w	Tails_SlopeRepel
-	rts
+	bra.w	Player_SlopeRepel
+;	rts
 ; End of subroutine Obj02_MdRoll
 ; ===========================================================================
 ; Start of subroutine Obj02_MdJump
@@ -33507,40 +33459,6 @@ loc_1C83C:
 	rts
 ; End of subroutine Tails_UpdateSpindash
 
-
-; ---------------------------------------------------------------------------
-; Subroutine to push Tails down a slope
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; loc_1C8B8:
-Tails_SlopeRepel:
-	nop
-	tst.b	stick_to_convex(a0)
-	bne.s	return_1C8F2
-	tst.w	move_lock(a0)
-	bne.s	loc_1C8F4
-	move.b	angle(a0),d0
-	addi.b	#$20,d0
-	andi.b	#$C0,d0
-	beq.s	return_1C8F2
-	mvabs.w	inertia(a0),d0
-	cmpi.w	#$280,d0
-	bhs.s	return_1C8F2
-	clr.w	inertia(a0)
-	bset	#1,status(a0)
-	move.w	#$1E,move_lock(a0)
-
-return_1C8F2:
-	rts
-; ===========================================================================
-
-loc_1C8F4:
-	subq.w	#1,move_lock(a0)
-	rts
-; End of function Tails_SlopeRepel
-
 ; ---------------------------------------------------------------------------
 ; Subroutine for Tails to interact with the floor and walls when he's in the air
 ; ---------------------------------------------------------------------------
@@ -33823,7 +33741,7 @@ Tails_HurtStop:
 .skip:
 	addi.w	#224,d0
 	cmp.w	y_pos(a0),d0
-	blt.w	JmpTo2_KillCharacter
+	blt.w	JmpTo_KillCharacter
 	bsr.w	Tails_DoLevelCollision
 	btst	#1,status(a0)
 	bne.s	return_1CC4E
@@ -33843,7 +33761,7 @@ return_1CC4E:
 
 ; ---------------------------------------------------------------------------
 ; Tails when he dies
-; .
+; ...Poor Tails
 ; ---------------------------------------------------------------------------
 
 ; loc_1CC50:
@@ -34056,7 +33974,6 @@ TAnim_Tumble_Left:
 	move.b	d0,mapping_frame(a0)
 	move.b	#0,anim_frame_duration(a0)
 	rts
-
 ; ===========================================================================
 ; loc_1CF6E:
 TAnim_Roll:
@@ -34099,7 +34016,6 @@ TAnim_Push:
 	andi.b	#$FC,render_flags(a0)
 	or.b	d1,render_flags(a0)
 	bra.w	TAnim_Do2
-
 ; ===========================================================================
 ; loc_1CFE4:
 TAnim_GetTailFrame:
@@ -34404,16 +34320,6 @@ Obj05Ani_Skidding:	dc.b   2,$87,$88,$89,$8A,$FF
 Obj05Ani_Pushing:	dc.b   9,$87,$88,$89,$8A,$FF
 Obj05Ani_Hanging:	dc.b   9,$81,$82,$83,$84,$FF
 	even
-
-; ===========================================================================
-
-JmpTo2_KillCharacter ; JmpTo
-	jmp	(KillCharacter).l
-; ===========================================================================
-	align 4
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -79355,33 +79261,25 @@ ArtUnc_Waterfall3:	BINCLUDE	"art/uncompressed/ARZ waterfall patterns - 3.bin"
 ;---------------------------------------------------------------------------------------
 ; Player Assets
 ;---------------------------------------------------------------------------------------
-	align $20000
+	align $20
 ArtUnc_Sonic:			BINCLUDE	"art/uncompressed/Sonic's art.bin"
-MapUnc_Sonic:			BINCLUDE	"mappings/sprite/Sonic mappings.bin"
-	even
-MapRUnc_Sonic:			BINCLUDE	"mappings/spriteDPLC/Sonic DPLC's.bin"
-	even
-;	align $20
 ArtUnc_Tails:			BINCLUDE	"art/uncompressed/Tails's art.bin"
+ArtUnc_SplashAndDust:		BINCLUDE	"art/uncompressed/Splash and skid dust.bin"
+MapUnc_Sonic:			BINCLUDE	"mappings/sprite/Sonic mappings.bin"
+MapUnc_Tails:			BINCLUDE	"mappings/sprite/Tails mappings.bin"
+MapRUnc_Sonic:			BINCLUDE	"mappings/spriteDPLC/Sonic DPLC's.bin"
+MapRUnc_Tails:			BINCLUDE	"mappings/spriteDPLC/Tails DPLC's.bin"
 	even
 ArtNem_Shield:			BINCLUDE	"art/nemesis/Shield.nem"
 	even
 ArtNem_Invincible_stars:	BINCLUDE	"art/nemesis/Invincibility stars.nem"
 	even
-ArtUnc_SplashAndDust:		BINCLUDE	"art/uncompressed/Splash and skid dust.bin"
-	even
 ArtNem_SuperSonic_stars:	BINCLUDE	"art/nemesis/Super Sonic stars.nem"
 	even
-MapUnc_Tails:			include		"mappings/sprite/Tails.asm"
-
-MapRUnc_Tails:			include		"mappings/spriteDPLC/Tails.asm"
-
 ;---------------------------------------------------------------------------------------
 ; Sega Screen Assets
 ;---------------------------------------------------------------------------------------
 ArtNem_SEGA:			BINCLUDE	"art/nemesis/SEGA.nem"
-	even
-ArtNem_IntroTrails:		BINCLUDE	"art/nemesis/Shaded blocks from intro.nem"
 	even
 MapEng_SEGA:			BINCLUDE	"mappings/misc/SEGA mappings.eni"
 	even

@@ -1,7 +1,7 @@
 {
     "Flex": 2,
     "name": "Sonic 2",
-    "node": "dad6e825-1660-4429-93f6-dd09b880aa01",
+    "node": "251660d4-2993-46dd-89b8-80aa01d0b5b5",
     "objects": [
         {
             "name": "Common",
@@ -67,13 +67,13 @@
                         "offset": 0
                     },
                     "mappings": {
-                        "path": "mappings/sprite/Tails.asm",
+                        "path": "mappings/sprite/Tails mappings.bin",
                         "format": "Sonic 2",
                         "customDefinition": ""
                     },
                     "dplcs": {
                         "enabled": true,
-                        "path": "mappings/spriteDPLC/Tails.asm",
+                        "path": "mappings/spriteDPLC/Tails DPLC's.bin",
                         "format": "Sonic 2/3&K",
                         "customDefinition": ""
                     },
