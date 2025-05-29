@@ -577,20 +577,16 @@ V_Int:
 	movem.l	d0-a6,-(sp)
 	tst.b	(Vint_routine).w
 	beq.w	Vint_Lag_Main
-
 -	move.w	(VDP_control_port).l,d0
 	andi.w	#8,d0
 	beq.s	-
-
 	move.l	#vdpComm($0000,VSRAM,WRITE),(VDP_control_port).l
 	move.l	(Vscroll_Factor).w,(VDP_data_port).l ; send screen y-axis pos. to VSRAM
 	btst	#6,(Graphics_Flags).w ; is Megadrive PAL?
 	beq.s	+		; if not, branch
-
 	move.w	#$700,d0
 -	dbf	d0,- ; wait here in a loop doing nothing for a while...
-+
-	move.b	(Vint_routine).w,d0
++	move.b	(Vint_routine).w,d0
 	move.b	#VintID_Lag,(Vint_routine).w
 	move.w	#1,(Hint_flag).w	; Allow H Interrupt code to run
 	andi.w	#$3E,d0
@@ -1339,9 +1335,19 @@ PlayMusic:
 	rts
 +
 	move.b	d0,(Sound_Queue.Music1).w
-	rts
+-	rts
 ; End of function PlayMusic
 
+; =============== S U B R O U T I N E =======================================
+
+
+PlaySound_Continuous:
+		move.b	(Vint_runcount+3).w,d1
+		andi.b	#$F,d1
+		bne.s	-
+;		jmp	; Fall through to playSound
+
+; End of function Play_SFX_Continuous
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; Despite the name, this can actually be used for playing music.
@@ -19423,6 +19429,7 @@ Obj1A_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj1A_MapUnc_10C6C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
+
 	ori.b	#4,render_flags(a0)
 	move.w	#$200,priority(a0)
 	move.b	#7,collapsing_platform_delay_counter(a0)
@@ -19432,10 +19439,11 @@ Obj1A_Init:
 	bne.s	+
 	move.l	#Obj1A_MapUnc_1101C,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_HPZPlatform,2,0),art_tile(a0)
+
 	move.b	#$30,width_pixels(a0)
 	move.l	#Obj1A_HPZ_SlopeData,collapsing_platform_slope_pointer(a0)
 	move.l	#Obj1A_HPZ_DelayData,collapsing_platform_delay_pointer(a0)
-	bra.s	Obj1A_Main
+	bra.s	Obj1A_Main ; Ledge_Touch in Sonic 1
 ; ===========================================================================
 +
 	cmpi.b	#oil_ocean_zone,(Current_Zone).w
@@ -19650,8 +19658,8 @@ Obj1A_CreateFragments:
 -	bsr.w	AllocateObject
 	bne.s	+++
 	addq.w	#8,a3
-+
-	move.b	#4,routine(a1)
+
++	move.b	#4,routine(a1)
 	_move.b	d4,id(a1) ; load obj1F
 	move.l	a3,mappings(a1)
 	move.b	d5,render_flags(a1)
@@ -19666,8 +19674,8 @@ Obj1A_CreateFragments:
 	bhs.s	+
 	bsr.w	DisplaySprite2
 +	dbf	d1,-
-+
-	bsr.w	DisplaySprite
+
++	bsr.w	DisplaySprite
 	move.w	#SndID_Smash,d0
 	jmp	(PlaySound).l
 ; ===========================================================================
@@ -42237,13 +42245,13 @@ loc_2433C:
 	btst	#0,status(a0)
 	beq.s	loc_24378
 	btst	#0,status(a1)
-	bne.s	return_2433A
+	bne.s	+
 	tst.w	d0
 	bne.w	loc_2435E
 	tst.w	inertia(a1)
-	beq.s	return_2433A
+	beq.s	+
 	bpl.s	loc_243C8
-	rts
++	rts
 ; ===========================================================================
 
 loc_2435E:
@@ -42259,12 +42267,12 @@ loc_2435E:
 
 loc_24378:
 	btst	#0,status(a1)
-	beq.s	return_243CE
+	beq.s	+
 	tst.w	d0
 	bne.w	loc_2438E
 	tst.w	inertia(a1)
 	bmi.s	loc_243C8
-	rts
++	rts
 ; ===========================================================================
 
 loc_2438E:
@@ -42291,6 +42299,18 @@ loc_243C0:
 
 loc_243C8:
 	move.b	#1,objoff_36(a0)
+	move.w	obj45_original_x_pos(a0),d1
+	btst	#0,status(a1)
+	beq.s	+
+	subi.w	#$12,d1 ; max compression threshold
+	bra.s	++
++
+	addi.w	#$12,d1 ; ...for left and right.
++
+	cmp.w	x_pos(a0),d1
+	beq.s	return_243CE ; stop playing the sound if fully compressed
+	move.w	#SndID_MissileDissolve,d0
+	jmp	(PlaySound_Continuous).l
 
 return_243CE:
 	rts
