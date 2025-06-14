@@ -5582,7 +5582,6 @@ LoadZoneBlockMaps:
 	movea.l	d0,a0
 	lea	(Block_Table).w,a1
 	jsr	(KosPlusDec).l	; load block maps
-
 	move.l	(a2)+,d0
 	andi.l	#$FFFFFF,d0	; pointer to chunk mappings
 	movea.l	d0,a0
