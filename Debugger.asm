@@ -229,12 +229,12 @@ RaiseError	macro	string, consoleprogram, opts
 		else
 			dc.b	_eh_enter_console|.__align_flag						; ''
 		endif
-		!align	2													; ... to tell Error handler to skip this byte, so it'll jump to ...
+		!align	2										; ... to tell Error handler to skip this byte, so it'll jump to ...
 		if DEBUGGER__EXTENSIONS__ENABLE
-			jsr		consoleprogram										; ... an aligned "jsr" instruction that calls console program itself
+			jsr		consoleprogram							; ... an aligned "jsr" instruction that calls console program itself
 			jmp		__global__ErrorHandler_PagesController
 		else
-			jmp		consoleprogram										; ... an aligned "jmp" instruction that calls console program itself
+			jmp		consoleprogram							; ... an aligned "jmp" instruction that calls console program itself
 		endif
 	else
 		if DEBUGGER__EXTENSIONS__ENABLE
@@ -242,13 +242,13 @@ RaiseError	macro	string, consoleprogram, opts
 			if "opts"<>""
 				dc.b	opts+_eh_return|.__align_flag					; add flag "_eh_align_offset" if the next byte is at odd offset ...
 			else
-				dc.b	_eh_return|.__align_flag							; add flag "_eh_align_offset" if the next byte is at odd offset ...
+				dc.b	_eh_return|.__align_flag					; add flag "_eh_align_offset" if the next byte is at odd offset ...
 			endif
-			!align	2													; ... to tell Error handler to skip this byte, so it'll jump to ...
+			!align	2									; ... to tell Error handler to skip this byte, so it'll jump to ...
 			jmp		__global__ErrorHandler_PagesController
 		else
 			dc.b	opts+0						; otherwise, just specify \opts for error handler, +0 will generate dc.b 0 ...
-			!align	2							; ... in case \opts argument is empty or skipped
+			!align	2						; ... in case \opts argument is empty or skipped
 		endif
 	endif
 	!align	2
@@ -443,7 +443,7 @@ __ErrorMessage  macro string, opts
 		if DEBUGGER__EXTENSIONS__ENABLE
 		.__align_flag: set (((*)&1)!1)*_eh_align_offset
 			dc.b	(opts)+_eh_return|.__align_flag	; add flag "_eh_align_offset" if the next byte is at odd offset ...
-			!align	2												; ... to tell Error handler to skip this byte, so it'll jump to ...
+			!align	2						; ... to tell Error handler to skip this byte, so it'll jump to ...
 			jmp		__global__ErrorHandler_PagesController	; ... extensions controller
 		else
 			dc.b	(opts)+0
@@ -493,7 +493,7 @@ __FSTRING_PushArgument macro OPERAND,DEST
 		move.ATTRIBUTE	d6,DEST
 	case "d7"
 		move.ATTRIBUTE	d7,DEST
-	
+
 	case "a0"
 		move.ATTRIBUTE	a0,DEST
 	case "a1"
@@ -542,7 +542,7 @@ __FSTRING_PushArgument macro OPERAND,DEST
 __FSTRING_GenerateArgumentsCode macro string
 
 	.__pos:	set 	strstr(string,"%<")		; token position
-	.__sp:	set		0						; stack displacement
+	.__sp:	set		0			; stack displacement
 	.__str:	set		string
 
 	; Parse string itself
@@ -617,7 +617,7 @@ __FSTRING_GenerateDecodedString macro string
 		endif
 
 		; Retrive expression in brakets following % char
-    	.__endpos:	set		strstr(substr(string,.__pos+1,0),">")+.__pos+1 
+    	.__endpos:	set		strstr(substr(string,.__pos+1,0),">")+.__pos+1
 		if (.__endpos<=.__pos) ; Fix bizzare AS bug as stsstr() fails to check the last character of string
 			.__endpos:	set		strlen(string)-1
 		endif
