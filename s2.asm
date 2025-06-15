@@ -202,7 +202,7 @@ Checksum:
 ROMEndLoc:
 	dc.l EndOfRom-1		; End address of ROM
 	dc.l RAM_Start&$FFFFFF		; Start address of RAM
-	dc.l (RAM_End-1)&$FFFFFF		; End address of RAM
+	dc.l (RAM_End-1)&$FFFFFF	; End address of RAM
 	dc.b "    "		; Backup RAM ID
 	dc.l $20202020		; Backup RAM start address
 	dc.l $20202020		; Backup RAM end address
@@ -221,19 +221,23 @@ ErrorTrap:
 ; ===========================================================================
 ; loc_206:
 EntryPoint:
-		lea	(System_Stack).w,sp
-		tst.l	(HW_Port_1_Control-1).l	; test ports A and B control
-		bne.s	PortA_Ok	; If so, branch.
-		tst.w	(HW_Expansion_Control-1).l	; test port C control
+	; Everything from here to just past CheckSumCheck is the standard
+	; "MEGA DRIVE hard initial program", distributed by Sega as a file
+	; called 'ICD_BLK4.PRG'.
+	; http://techdocs.exodusemulator.com/Console/SegaMegaDrive/Software.html#original-development-tools
+	tst.l	(HW_Port_1_Control-1).l		; test ports A and B control
+	bne.s	PortA_Ok			; If so, branch.
+	tst.w	(HW_Expansion_Control-1).l	; test port C control
+; loc_214:
 PortA_Ok:
-		bne.s	PortC_OK ; Skip the VDP and Z80 setup code if port A, B or C is ok...?
-		lea	SetupValues(pc),a5	; Load setup values array address.
-		movem.w	(a5)+,d5-d7
-		movem.l	(a5)+,a0-a4
-		move.b	HW_Version-Z80_Bus_Request(a1),d0	; Get hardware version
-		andi.b	#$F,d0	; Compare
-		beq.s	SkipSecurity	; If the console has no TMSS, skip the security stuff.
-		move.l	#'SEGA',Security_Addr-Z80_Bus_Request(a1) ; Satisfy the TMSS
+	bne.s	PortC_OK ; Skip the VDP and Z80 setup code if this is a soft-reset.
+	lea	SetupValues(pc),a5	; Load setup values array address.
+	movem.w	(a5)+,d5-d7
+	movem.l	(a5)+,a0-a4
+	move.b	HW_Version-Z80_Bus_Request(a1),d0	; Get hardware version
+	andi.b	#$F,d0					; Compare
+	beq.s	SkipSecurity				; If the console has no TMSS, skip the security stuff.
+	move.l	#'SEGA',Security_Addr-Z80_Bus_Request(a1) ; Satisfy the TMSS
 ; loc_234:
 SkipSecurity:
 		move.w	(a4),d0	; check if VDP works
@@ -243,20 +247,21 @@ SkipSecurity:
 		moveq	#VDPInitValues_End-VDPInitValues-1,d1 ; run the following loop $18 times
 ; loc_23E:
 VDPInitLoop:
-		move.b	(a5)+,d5	; add $8000 to value
-		move.w	d5,(a4)	; move value to VDP register
-		add.w	d7,d5	; next register
-		dbf	d1,VDPInitLoop
+	move.b	(a5)+,d5	; add $8000 to value
+	move.w	d5,(a4)		; move value to VDP register
+	add.w	d7,d5		; next register
+	dbf	d1,VDPInitLoop
 
-		move.l	(a5)+,(a4)	; set VRAM write mode
-		move.w	d0,(a3)	; clear the screen
-		move.w	d7,(a1)	; stop the Z80
-		move.w	d7,(a2)	; reset the Z80
+	move.l	(a5)+,(a4)	; set VRAM write mode
+	move.w	d0,(a3)		; clear the screen
+	move.w	d7,(a1)		; stop the Z80
+	move.w	d7,(a2)		; reset the Z80
 ; loc_250:
 WaitForZ80:
-		btst	d0,(a1)	; has the Z80 stopped?
-		bne.s	WaitForZ80	; if not, branch
-		moveq	#Z80StartupCodeEnd-Z80StartupCodeBegin-1,d2
+	btst	d0,(a1)		; has the Z80 stopped?
+	bne.s	WaitForZ80	; if not, branch
+
+	moveq	#Z80StartupCodeEnd-Z80StartupCodeBegin-1,d2
 ; loc_256:
 Z80InitLoop:
 		move.b	(a5)+,(a0)+
@@ -274,10 +279,11 @@ ClrRAMLoop:
 		moveq	#bytesToLcnt($80),d3	; set repeat times
 ; loc_26E:
 ClrCRAMLoop:
-		move.l	d0,(a3)	; clear 2 palettes
-		dbf	d3,ClrCRAMLoop	; repeat until the entire CRAM is clear
-		move.l	(a5)+,(a4)	; set VDP to VSRAM write
-		moveq	#bytesToLcnt($50),d4	; set repeat times
+	move.l	d0,(a3)		; clear 2 palettes
+	dbf	d3,ClrCRAMLoop	; repeat until the entire CRAM is clear
+	move.l	(a5)+,(a4)	; set VDP to VSRAM write
+
+	moveq	#bytesToLcnt($50),d4	; set repeat times
 ; loc_278: ClrVDPStuff:
 ClrVSRAMLoop:
 		move.l	d0,(a3)	; clear 4 bytes of VSRAM.
@@ -674,7 +680,7 @@ Vint_SEGA:
 	dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
 ;	jsr	(SegaScr_VInt).l
 	tst.w	(Demo_Time_left).w	; is there time left on the demo?
-	beq.w	+	; if not, return
+	beq.w	+			; if not, return
 	subq.w	#1,(Demo_Time_left).w	; subtract 1 from time left in demo
 +
 	rts
@@ -690,7 +696,7 @@ Vint_PCM:
 	startZ80
 +
 	tst.w	(Demo_Time_left).w	; is there time left on the demo?
-	beq.w	+	; if not, return
+	beq.w	+			; if not, return
 	subq.w	#1,(Demo_Time_left).w	; subtract 1 from time left in demo
 +
 	rts
@@ -700,7 +706,7 @@ Vint_Title:
 	bsr.w	Do_ControllerPal
 	bsr.w	ProcessDPLC
 	tst.w	(Demo_Time_left).w	; is there time left on the demo?
-	beq.w	+	; if not, return
+	beq.w	+			; if not, return
 	subq.w	#1,(Demo_Time_left).w	; subtract 1 from time left in demo
 +
 	rts
@@ -725,7 +731,7 @@ Vint_Level:
 	lea	(VDP_data_port).l,a6
 	move.l	#vdpComm($0000,CRAM,WRITE),(VDP_control_port).l
 	move.w	#$EEE,d0 ; White.
-	move.w	#32-1,d1
+	move.w	#16*2-1,d1
 
 -	move.w	d0,(a6)
 	dbf	d1,-	; fill entire first and second palette lines with white
@@ -776,7 +782,7 @@ Do_Updates:
 	jsr	(HudUpdate).l
 	bsr.w	ProcessDPLC2
 	tst.w	(Demo_Time_left).w	; is there time left on the demo?
-	beq.w	+		; if not, branch
+	beq.w	+			; if not, branch
 	subq.w	#1,(Demo_Time_left).w	; subtract 1 from time left in demo
 +
 	rts
@@ -910,12 +916,12 @@ loc_AC2:
 SSRun_Animation_Timers:
 	move.w	(SS_Cur_Speed_Factor).w,d0		; Get current speed factor
 	cmp.w	(SS_New_Speed_Factor).w,d0		; Has the speed factor changed?
-	beq.s	+								; Branch if yes
+	beq.s	+					; Branch if yes
 	move.l	(SS_New_Speed_Factor).w,(SS_Cur_Speed_Factor).w	; Save new speed factor
-	move.b	#0,(SSTrack_duration_timer).w	; Reset timer
+	move.b	#0,(SSTrack_duration_timer).w		; Reset timer
 +
-	subi_.b	#1,(SSTrack_duration_timer).w	; Run track timer
-	bgt.s	+								; Branch if not expired yet
+	subi_.b	#1,(SSTrack_duration_timer).w		; Run track timer
+	bgt.s	+					; Branch if not expired yet
 	lea	(SSAnim_Base_Duration).l,a0
 	move.w	(SS_Cur_Speed_Factor).w,d0		; The current speed factor is an index
 	lsr.w	#1,d0
@@ -926,8 +932,8 @@ SSRun_Animation_Timers:
 	rts
 ; ---------------------------------------------------------------------------
 +
-	move.b	(SS_player_anim_frame_timer).w,d1	; Get current player animatino length
-	addq.b	#1,d1		; Increase it
+	move.b	(SS_player_anim_frame_timer).w,d1	; Get current player animation length
+	addq.b	#1,d1					; Increase it
 	rts
 ; End of function SSRun_Animation_Timers
 
@@ -1082,12 +1088,12 @@ H_Int:
 	move.w	#0,(Hint_flag).w
 	movem.l	a0-a1,-(sp)
 	lea	(VDP_data_port).l,a1
-	lea	(Underwater_palette).w,a0 	; load palette from RAM
-	move.l	#vdpComm($0000,CRAM,WRITE),4(a1)	; set VDP to write to CRAM address $00
+	lea	(Underwater_palette).w,a0 ; load palette from RAM
+	move.l	#vdpComm($0000,CRAM,WRITE),VDP_control_port-VDP_data_port(a1)	; set VDP to write to CRAM address $00
     rept 32
 	move.l	(a0)+,(a1)	; move palette to CRAM (all 64 colors at once)
     endm
-	move.w	#$8ADF,4(a1)	; Write %1101 %1111 to register 10 (interrupt every 224th line)
+	move.w	#$8A00|223,VDP_control_port-VDP_data_port(a1)	; Write %1101 %1111 to register 10 (interrupt every 224th line)
 	movem.l	(sp)+,a0-a1
 	tst.b	(Do_Updates_in_H_int).w
 	bne.s	loc_1072
@@ -1226,7 +1232,7 @@ VDP_Loop:
 
 	move.w	(VDPSetupArray+2).l,d0
 	move.w	d0,(VDP_Reg1_val).w
-	move.w	#$8A00+223,(Hint_counter_reserve).w	; H-INT every 224th scanline
+	move.w	#$8A00|223,(Hint_counter_reserve).w	; H-INT every 224th scanline
 	moveq	#0,d0
 
 	move.l	#vdpComm($0000,VSRAM,WRITE),(VDP_control_port).l
@@ -3816,13 +3822,7 @@ CopyrightText_End:
 
     charset ; Revert character set
 
-    if ~~removeJmpTos
-; sub_3E98:
-JmpTo_SwScrl_Title ; JmpTo
-	jmp	(SwScrl_Title).l
-
-	align 4
-    endif
+	jmpTos JmpTo_SwScrl_Title
 
 
 
@@ -12381,13 +12381,13 @@ LevelSizeLoad:
 	lsr.w	#4,d0
 	lea	LevelSize(pc,d0.w),a0
 	move.l	(a0)+,d0
-	move.l	d0,(Camera_Min_X_pos).w
-	move.l	d0,(Camera_Min_X_pos_target).w
-	move.l	d0,(Tails_Min_X_pos).w
+	move.l	d0,(Camera_Min_X_pos).w		; Also sets Camera_Max_X_pos.
+	move.l	d0,(Camera_Min_X_pos_target).w	; Also sets Camera_Max_X_pos_target.
+	move.l	d0,(Tails_Min_X_pos).w		; Also sets Tails_Max_X_pos.
 	move.l	(a0)+,d0
-	move.l	d0,(Camera_Min_Y_pos).w
-	move.l	d0,(Camera_Min_Y_pos_target).w
-	move.l	d0,(Tails_Min_Y_pos).w
+	move.l	d0,(Camera_Min_Y_pos).w		; Also sets Camera_Max_Y_pos.
+	move.l	d0,(Camera_Min_Y_pos_target).w	; Also sets Camera_Max_Y_pos_target.
+	move.l	d0,(Tails_Min_Y_pos).w		; Also sets Tails_Max_Y_pos.
 	move.w	#$1010,(Horiz_block_crossed_flag).w
 	move.w	#(224/2)-16,(Camera_Y_pos_bias).w
 	move.w	#(224/2)-16,(Camera_Y_pos_bias_P2).w
@@ -38808,8 +38808,7 @@ loc_212C4:
 	move.b	#AniIDSonAni_Roll,anim(a1)
 	addq.w	#5,y_pos(a1)
 	move.w	#SndID_Roll,d0
-	jsr	(PlaySound).l
-	rts
+	jmp	(PlaySound).l
 
 ; ===========================================================================
 ; loc_212F6:
@@ -40117,7 +40116,7 @@ Obj1B_Main:
 	bhs.w	+
 	bsr.w	Obj1B_GiveBoost
 +
-	jmpto	MarkObjGone, JmpTo6_MarkObjGone
+	jmpto	JmpTo6_MarkObjGone
 
 ; ===========================================================================
 ; sub_22388:
@@ -40553,7 +40552,7 @@ loc_2281C:
 	bra.w	loc_22902
 ; ===========================================================================
 ; update the position of Sonic/Tails in the CPZ tube
-; loc_22832:
+; loc_22832: ; object move and fall with different registers
 Obj1E_MoveCharacter_2:
 	move.l	x_pos(a1),d2
 	move.l	y_pos(a1),d3
@@ -43693,7 +43692,7 @@ loc_25BF6:
 ; ===========================================================================
 
 loc_25C1C:
-	jsrto	AllocateObjectAfterCurrent, JmpTo10_AllocateObjectAfterCurrent
+	jsrto	JmpTo10_AllocateObjectAfterCurrent
 	bne.s	loc_25C64
 	addq.w	#8,a3
 
@@ -44200,7 +44199,7 @@ loc_26688:
 	lea	(MainCharacter).w,a1 ; a1=character
 	moveq	#p1_standing_bit,d6
 	movem.l	d1-d4,-(sp)
-	jsrto	SolidObject_Always_SingleCharacter, JmpTo2_SolidObject_Always_SingleCharacter
+	jsrto	JmpTo2_SolidObject_Always_SingleCharacter
 	btst	#p1_standing_bit,status(a0)
 	beq.s	+
 	bsr.w	loc_2678E
@@ -44208,7 +44207,7 @@ loc_26688:
 	movem.l	(sp)+,d1-d4
 	lea	(Sidekick).w,a1 ; a1=character
 	moveq	#p2_standing_bit,d6
-	jsrto	SolidObject_Always_SingleCharacter, JmpTo2_SolidObject_Always_SingleCharacter
+	jsrto	JmpTo2_SolidObject_Always_SingleCharacter
 	btst	#p2_standing_bit,status(a0)
 	beq.s	+
 	bsr.w	loc_2678E
@@ -44263,11 +44262,11 @@ loc_2673C:
 	move.w	d0,y_pos(a0)
 
 BranchTo_JmpTo18_MarkObjGone ; BranchTo
-	jmpto	MarkObjGone, JmpTo18_MarkObjGone
+	jmpto	JmpTo18_MarkObjGone
 ; ===========================================================================
 
 loc_2674C:
-	jsrto	AllocateObject, JmpTo7_AllocateObject
+	jsrto	JmpTo7_AllocateObject
 	bne.s	+
 	_move.b	id(a0),id(a1) ; load obj42
 	addq.b	#4,routine(a1)
@@ -44445,7 +44444,7 @@ Obj64_Main:
 	move.b	objoff_2E(a0),d2
 	move.w	d2,d3
 	addq.w	#1,d3
-	jsrto	SolidObject, JmpTo9_SolidObject
+	jsrto	JmpTo9_SolidObject
 +
 	move.w	objoff_34(a0),d0
 	andi.w	#$FF80,d0
@@ -44601,7 +44600,7 @@ loc_26B6E:
 	bne.s	+
 	move.w	objoff_3C(a0),objoff_3A(a0)
 +
-	jsrto	AllocateObjectAfterCurrent, JmpTo11_AllocateObjectAfterCurrent
+	jsrto	JmpTo11_AllocateObjectAfterCurrent
 	bne.s	loc_26C04
 	_move.b	id(a0),id(a1) ; load obj65
 	addq.b	#4,routine(a1)
@@ -44646,7 +44645,7 @@ loc_26C1C:
 	move.b	y_radius(a0),d2
 	move.w	d2,d3
 	addq.w	#1,d3
-	jsrto	SolidObject, JmpTo10_SolidObject
+	jsrto	JmpTo10_SolidObject
 	move.w	objoff_34(a0),d0
 	andi.w	#$FF80,d0
 	sub.w	(Camera_X_pos_coarse).w,d0
@@ -44907,7 +44906,7 @@ loc_26EA4:
 loc_26EAC:
 	andi.w	#7,d0
 	move.b	byte_26EBA(pc,d0.w),mapping_frame(a0)
-	jmpto	MarkObjGone, JmpTo19_MarkObjGone
+	jmpto	JmpTo19_MarkObjGone
 ; ===========================================================================
 byte_26EBA:
 	dc.b   0
@@ -52460,8 +52459,7 @@ JmpTo_MarkObjGone ; JmpTo
 JmpTo21_ObjectMove ; JmpTo
 	jmp	(ObjectMove).l
 
-	align 4
-    else
+    if removeJmpTos
 JmpTo49_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
 ; loc_2D38C:
@@ -53870,7 +53868,7 @@ loc_2E3E6:
 JmpTo34_DisplaySprite ; JmpTo
     endif
 
-	jmpto	DisplaySprite, JmpTo34_DisplaySprite
+	jmpto	JmpTo34_DisplaySprite
 ; ===========================================================================
 word_2E3EC:
 	dc.w   $18
@@ -54805,7 +54803,7 @@ loc_2F3A2:	; Obj56_VehicleMain_SubA_0:
 	move.w	#$10,objoff_2A(a1)	; timer
 	move.w	#$32,objoff_2A(a0)	; timer
 	addq.b	#2,objoff_2C(a0)	; tertiary routine - increase
-	jsrto	PlayLevelMusic, JmpTo2_PlayLevelMusic ; play level Music
+	jsrto	JmpTo2_PlayLevelMusic ; play level Music
 	move.b	#1,(Boss_defeated_flag).w
 +
 	rts
@@ -61434,7 +61432,7 @@ return_34F26:
 
 loc_34F28:
 	move.w	#8,d6
-	bsr.w	loc_350A0
+	bsr.w	Obj61_TestCollision
 	bcc.s	return_34F68
 	move.b	#1,collision_property(a1)
 	move.w	#SndID_SlowSmash,d0
@@ -61527,7 +61525,7 @@ loc_35010:
 
 loc_35036:
 	move.w	#$A,d6
-	bsr.w	loc_350A0
+	bsr.w	Obj61_TestCollision
 	bcc.s	return_3509E
 	cmpa.l	#MainCharacter,a1
 	bne.s	loc_3504E
@@ -61564,8 +61562,8 @@ loc_35094:
 return_3509E:
 	rts
 ; ===========================================================================
-
-loc_350A0:
+; loc_350A0:
+Obj61_TestCollision:
 	cmpi.b	#8,anim(a0)
 	bne.s	loc_350DC
 	tst.b	collision_flags(a0)
@@ -62501,7 +62499,7 @@ Obj5A_Rainbow_Positions:
 	move.w	#$80,d3
 	bsr.w	Obj5A_CreateCheckpointWingedHand
 	add.w	d6,art_tile(a1)
-	add.w	d6,2(a2)
+	add.w	d6,art_tile(a2)
 	bsr.w	Obj5A_PrintPhrase
 	jmp	(DeleteObject).l
 ; ===========================================================================
@@ -62913,7 +62911,6 @@ byte_35DD6:
 	dc.b $74	; 4
 	dc.b $3C	; 5
 	dc.b $58	; 6
-	dc.b   0	; 7
 	even
 
 ; Text phrases
