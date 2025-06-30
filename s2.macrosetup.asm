@@ -1,4 +1,3 @@
-
 	padding off	; we don't want AS padding out dc.b instructions
 	;listing off		; We don't need to generate anything for a listing file
 	listing on			; Want full listing file
@@ -10,7 +9,7 @@
 
 paddingSoFar set 0
 
-; 128 = 80h = z80, 32988 = 80DCh = z80unDoC 
+; 128 = 80h = z80, 32988 = 80DCh = z80unDoC
 notZ80 function cpu,(cpu<>128)&&(cpu<>32988)
 
 ; make org safer (impossible to overwrite previously assembled bytes) and count padding

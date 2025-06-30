@@ -1186,14 +1186,12 @@ JoypadInit:
 ; ---------------------------------------------------------------------------
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-; sub_111C:
 ReadJoypads:
 	lea	(Ctrl_1).w,a0	; address where joypad states are written
 	lea	(HW_Port_1_Data).l,a1	; first joypad port
 	bsr.s	Joypad_Read		; do the first joypad
 	addq.w	#2,a1			; do the second joypad
 
-; sub_112A:
 Joypad_Read:
 	move.b	#0,(a1)
 	nop
@@ -4321,7 +4319,7 @@ InitPlayers_TailsAlone:
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-; sub_44E4:
+
 UpdateWaterSurface:
 	tst.b	(Water_flag).w
 	beq.s	++	; rts
@@ -8364,8 +8362,7 @@ SSDecompressPlayerArt:
 ;sub_6DE4
 SS_ScrollBG:
 	bsr.w	SSPlaneB_SetHorizOffset
-	bsr.w	SSTrack_SetVscroll
-	rts
+	bra.w	SSTrack_SetVscroll
 ; End of function SS_ScrollBG
 
 ; ===========================================================================
@@ -12923,7 +12920,6 @@ SwScrl_Title:
 SwScrl_EHZ:
 	; Update the background's vertical scrolling.
 	move.w	(Camera_BG_Y_pos).w,(Vscroll_Factor_BG).w
-
 	; Update the background's (and foreground's) horizontal scrolling.
 	; This creates an elaborate parallax effect.
 	lea	(Horiz_Scroll_Buf).w,a1
@@ -12932,7 +12928,6 @@ SwScrl_EHZ:
 	move.w	d0,d2
 	swap	d0
 	move.w	#0,d0
-
 	; Do 22 lines.
 	move.w	#22-1,d1
 -	move.l	d0,(a1)+
@@ -12940,14 +12935,12 @@ SwScrl_EHZ:
 
 	move.w	d2,d0
 	asr.w	#6,d0
-
 	; Do 58 lines.
 	move.w	#58-1,d1
 -	move.l	d0,(a1)+
 	dbf	d1,-
 
 	move.w	d0,d3
-
 	; Make the 'ripple' animate every 8 frames.
 	move.b	(Vint_runcount+3).w,d1
 	andi.w	#7,d1
@@ -12958,7 +12951,6 @@ SwScrl_EHZ:
 	andi.w	#$1F,d1
 	lea	(SwScrl_RippleData).l,a2
 	lea	(a2,d1.w),a2
-
 	; Do 21 lines.
 	move.w	#21-1,d1
 -	move.b	(a2)+,d0
@@ -12968,7 +12960,6 @@ SwScrl_EHZ:
 	dbf	d1,-
 
 	move.w	#0,d0
-
 	; Do 11 lines.
 	move.w	#11-1,d1
 -	move.l	d0,(a1)+
@@ -12976,7 +12967,6 @@ SwScrl_EHZ:
 
 	move.w	d2,d0
 	asr.w	#4,d0
-
 	; Do 16 lines.
 	move.w	#16-1,d1
 -	move.l	d0,(a1)+
@@ -12987,7 +12977,6 @@ SwScrl_EHZ:
 	move.w	d0,d1
 	asr.w	#1,d1
 	add.w	d1,d0
-
 	; Do 16 lines.
 	move.w	#16-1,d1
 -	move.l	d0,(a1)+
@@ -13008,7 +12997,6 @@ SwScrl_EHZ:
 	moveq	#0,d3
 	move.w	d2,d3
 	asr.w	#3,d3
-
 	; Do 15 lines.
 	move.w	#15-1,d1
 -	move.w	d4,(a1)+
@@ -13017,7 +13005,6 @@ SwScrl_EHZ:
 	add.l	d0,d3
 	swap	d3
 	dbf	d1,-
-
 	; Do 18 lines.
 	move.w	#18/2-1,d1
 -	move.w	d4,(a1)+
@@ -13029,7 +13016,6 @@ SwScrl_EHZ:
 	add.l	d0,d3
 	swap	d3
 	dbf	d1,-
-
 	; Do 45 lines.
 	move.w	#45/3-1,d1
 -	move.w	d4,(a1)+
@@ -20854,7 +20840,6 @@ Obj37_Main:
 	neg.w	y_vel(a0)
 
 loc_121B8:
-
 	tst.b	(Ring_spill_anim_counter).w
 	beq.w	DeleteObject
 	move.w	(Camera_Max_Y_pos).w,d0
@@ -21325,7 +21310,7 @@ Obj2E_Raise:
 		btst	#1,render_flags(a0)
 		bne.s	+
 		tst.w	y_vel(a0)	; is icon still floating up?
-		bpl.w	++		; if not, branch
+		bpl.s	++		; if not, branch
 		bsr.w	ObjectMove	; update position
 		addi.w	#$18,y_vel(a0)	; reduce upward speed
 		bra.w	DisplaySprite
@@ -21334,7 +21319,7 @@ Obj2E_Raise:
 
 +
 		tst.w	y_vel(a0)
-		bmi.w	+
+		bmi.s	+
 		bsr.w	ObjectMove	; update position
 		subi.w	#$18,y_vel(a0)	; increment upward speed
 		rts
@@ -21342,7 +21327,7 @@ Obj2E_Raise:
 
 +
 		addq.b	#2,routine(a0)
-		move.b	#$1D,anim_frame_duration(a0)
+		move.b	#30-1,anim_frame_duration(a0)
 		movea.w	parent(a0),a1 ; a1=character
 		moveq	#0,d0
 		move.b	anim(a0),d0
@@ -28943,7 +28928,6 @@ PlatformObject_SingleCharacter:
 	cmp.w	d2,d0
 	blo.s	loc_19C80
 +
-
 	bclr	#3,status(a1)
 	bset	#1,status(a1)
 	bclr	d6,status(a0)
@@ -29288,19 +29272,17 @@ loc_19F4C:
 ; ----------------------------------------------------------------------------
 ; Sprite_19F50: Object_Sonic:
 Obj01:
-	; a0=character
 	tst.w	(Debug_placement_mode).w	; is debug mode being used?
 	beq.s	Obj01_Normal			; if not, branch
 	jmp	(DebugMode).l
 ; ---------------------------------------------------------------------------
-; loc_19F5C:
+
 Obj01_Normal:
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	Obj01_Index(pc,d0.w),d1
 	jmp	Obj01_Index(pc,d1.w)
 ; ===========================================================================
-; off_19F6A: Obj01_States:
 Obj01_Index:	offsetTable
 		offsetTableEntry.w Obj01_Init		;  0
 		offsetTableEntry.w Obj01_Control	;  2
@@ -31351,7 +31333,7 @@ Sonic_Animate:
 	move.b	#0,anim_frame(a0)		; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
 	bclr	#5,status(a0)
-; loc_1B384:
+
 SAnim_Do:
 	add.w	d0,d0
 	adda.w	(a1,d0.w),a1			; calculate address of appropriate animation script
@@ -31374,6 +31356,7 @@ SAnim_Do2:
 	beq.s	SAnim_Next			; If it's a frame ID, branch
 	bpl.s	SAnim_Next
 	cmpi.b	#$FD,d0				; Is it a flag?
+;	bhs.s	SAnim_End_FF		; MJ: if so, branch to flag routines
 	bge.s	SAnim_End_FF			; If so, branch
 ; loc_1B3BA:
 SAnim_Next:
@@ -52445,7 +52428,6 @@ Obj4B_MapUnc_2D2EA:	include "mappings/sprite/obj4B.asm"
 	even
 ; ===========================================================================
 
-    if ~~removeJmpTos
 ; loc_2D368:
 JmpTo49_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
@@ -52458,17 +52440,6 @@ JmpTo_MarkObjGone ; JmpTo
 ; loc_2D38C:
 JmpTo21_ObjectMove ; JmpTo
 	jmp	(ObjectMove).l
-
-    if removeJmpTos
-JmpTo49_DeleteObject ; JmpTo
-	jmp	(DeleteObject).l
-; loc_2D38C:
-JmpTo21_ObjectMove ; JmpTo
-	jmp	(ObjectMove).l
-    endif
-
-
-
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -75368,29 +75339,29 @@ Touch_Special:
 	move.b	collision_flags(a1),d1
 	andi.b	#$3F,d1
 	cmpi.b	#6,d1
-	beq.s	loc_3FA00
+	beq.s	Touch_D7
 	cmpi.b	#7,d1
 	beq.w	loc_3FA18
+	cmpi.b	#$A,d1
+	beq.s	Touch_D7
 	cmpi.b	#$B,d1
 	beq.w	React_Caterkiller
-	cmpi.b	#$A,d1
-	beq.s	loc_3FA00
 	cmpi.b	#$C,d1
 	beq.s	React_Yadrin
 	cmpi.b	#$14,d1
-	beq.s	loc_3FA00
+	beq.s	Touch_D7
 	cmpi.b	#$15,d1
-	beq.s	loc_3FA00
+	beq.s	Touch_D7
 	cmpi.b	#$16,d1
-	beq.s	loc_3FA00
+	beq.s	Touch_D7
 	cmpi.b	#$17,d1
-	beq.s	loc_3FA00
+	beq.s	Touch_D7
 	cmpi.b	#$18,d1
-	beq.s	loc_3FA00
+	beq.s	Touch_D7
 	cmpi.b	#$1A,d1
 	beq.s	loc_3FA22
 	cmpi.b	#$21,d1
-	beq.s	loc_3FA12
+	beq.s	Touch_E1
 	rts
 ; ===========================================================================
 
@@ -75418,15 +75389,15 @@ loc_3F9F4:
 	bra.w	Touch_ChkHurt
 ; ===========================================================================
 
-loc_3FA00:
-	move.w	a0,d1
-	subi.w	#MainCharacter,d1
-	beq.s	loc_3FA12
-	addq.b	#1,collision_property(a1)
+Touch_D7:
+	move.w	a0,d1			; Get RAM address of what object hit this
+	subi.w	#MainCharacter,d1	; If the main character hit it, branch
+	beq.s	Touch_E1
+	addq.b	#1,collision_property(a1)	; Otherwise, it seems everything else does double
 ; ===========================================================================
 
-loc_3FA12:
-	addq.b	#1,collision_property(a1)
+Touch_E1:
+	addq.b	#1,collision_property(a1)	; So hitting a boss with your Tails sidekick does double damage?
 	rts
 ; ===========================================================================
 
@@ -76913,15 +76884,13 @@ hud_letter_vdp_delta = vdpCommDelta(tiles_to_bytes(hud_letter_num_tiles))
 ; loc_40804:
 BuildHUD:
 	tst.w	(Ring_count).w
-	beq.s	++	; blink ring count if it's 0
+	beq.s	+	; blink ring count if it's 0
 	moveq	#0,d1
 	btst	#3,(Level_frame_counter+1).w
-	bne.s	+	; only blink on certain frames
+	bne.s	++	; only blink on certain frames
 	cmpi.b	#9,(Timer_minute).w	; should the minutes counter blink?
-	bne.s	+	; if not, branch
+	bne.s	++	; if not, branch
 	addq.w	#2,d1	; set mapping frame time counter blink
-+
-	bra.s	++
 +
 	moveq	#0,d1
 	btst	#3,(Level_frame_counter+1).w
@@ -77573,7 +77542,6 @@ DebugMode:
 	move.w	Debug_Index(pc,d0.w),d1
 	jmp	Debug_Index(pc,d1.w)
 ; ===========================================================================
-; off_41A86:
 Debug_Index:	offsetTable
 		offsetTableEntry.w Debug_Init	; 0
 		offsetTableEntry.w Debug_Main	; 2
@@ -77623,7 +77591,6 @@ Debug_Init:
 	move.b	#1,(Debug_Speed).w
 ; loc_41B0C:
 Debug_Main:
-	; S1 leftover
 	moveq	#6,d0		; force zone 6's debug object list (was the ending in S1)
 	cmpi.b	#GameModeID_SpecialStage,(Game_Mode).w	; special stage mode? (you can't enter debug mode in S2's special stage)
 	beq.s	.isntlevel	; if yes, branch
@@ -77641,9 +77608,8 @@ Debug_Main:
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-; sub_41B34:
+; sub_41B34: ;Debug_ControlMovement:
 Debug_Control:
-;Debug_ControlMovement:
 	moveq	#0,d4
 	move.w	#1,d1
 	move.b	(Ctrl_1_Press).w,d4
@@ -77664,7 +77630,6 @@ Debug_ContinueMoving:
 	addq.b	#1,(Debug_Speed).w
 	bne.s	Debug_Move
 	move.b	#-1,(Debug_Speed).w
-; loc_41B76:
 Debug_Move:
 	move.b	(Ctrl_1_Held).w,d4
 ; loc_41B7A:
@@ -77721,9 +77686,8 @@ Debug_TimerNotOver:
 .rightNotHeld:
 	move.l	d2,y_pos(a0)
 	move.l	d3,x_pos(a0)
-; loc_41BDA:
+; loc_41BDA: ;Debug_CycleObjectsBackwards:
 Debug_ControlObjects:
-;Debug_CycleObjectsBackwards:
 	btst	#button_A,(Ctrl_1_Held).w
 	beq.s	Debug_SpawnObject
 	btst	#button_C,(Ctrl_1_Press).w
@@ -80769,7 +80733,7 @@ paddingSoFar	:= paddingSoFar+1
 ;	by ConvSym utility, otherwise debugger modules won't be able
 ;	to resolve symbol names.
 ; --------------------------------------------------------------
-    endif
+	endif
 EndOfRom:
 	if MOMPASS=2
 		; "About" because it will be off by the same amount that Size_of_Snd_driver_guess is incorrect (if you changed it), and because I may have missed a small amount of internal padding somewhere

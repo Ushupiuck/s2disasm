@@ -1016,10 +1016,8 @@ Object_RAM:			; The various objects in the game are loaded in this area.
 				; The section below declares labels for the objects used in main gameplay.
 				; Objects for other game modes are declared further down.
 Reserved_Object_RAM:
-MainCharacter:			; first object (usually Sonic except in a Tails Alone game)
-				ds.b	object_size
-Sidekick:			; second object (Tails in a Sonic and Tails game)
-				ds.b	object_size
+MainCharacter:			ds.b	object_size			; first object (usually Sonic except in a Tails Alone game)
+Sidekick:			ds.b	object_size			; second object (Tails in a Sonic and Tails game)
 TitleCard:
 TitleCard_ZoneName:		; level title card: zone name
 GameOver_GameText:		; "GAME" from GAME OVER
@@ -1108,10 +1106,8 @@ HorizontalScrollBuffer endstruct
 Horiz_Scroll_Buf:		HorizontalScrollBuffer
 
 Sonic_Stat_Record_Buf:		ds.b	$100
-
 Sonic_Pos_Record_Buf:		ds.b	$100
 Sonic_Pos_Record_Buf_End:
-
 Tails_Pos_Record_Buf:		ds.b	$100
 Tails_Pos_Record_Buf_End:
 
@@ -1275,6 +1271,7 @@ Ring_consumption_table_End:
 
 Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
 				ds.b	1	; unused
+
 Ctrl_1_Logical:					; 2 bytes
 Ctrl_1_Held_Logical:		ds.b	1	; 1 byte
 Ctrl_1_Press_Logical:		ds.b	1	; 1 byte
@@ -1284,6 +1281,7 @@ Ctrl_1_Press:			ds.b	1	; 1 byte
 Ctrl_2:						; 2 bytes
 Ctrl_2_Held:			ds.b	1	; 1 byte
 Ctrl_2_Press:			ds.b	1	; 1 byte
+
 				ds.b	4	; $FFFFF608-$FFFFF60B ; seems unused
 VDP_Reg1_val:			ds.w	1	; normal value of VDP register #1 when display is disabled
 				ds.b	6	; $FFFFF60E-$FFFFF613 ; seems unused
