@@ -153,12 +153,13 @@ ss_rings_units = objoff_3E
 ss_last_angle_index = objoff_3F
 ; ---------------------------------------------------------------------------
 ; Sonic 1 equivalency table for SSTs:
+obID		=		id
 obRender 	=		render_flags
 obGfx		=		art_tile
 obMap		=		mappings
-obX			=		x_pos
+obX		=		x_pos
 obScreenY	=		x_sub
-obY			=		y_pos
+obY		=		y_pos
 obVelX		=		x_vel
 obVelY		=		y_vel
 obInertia	=		inertia
