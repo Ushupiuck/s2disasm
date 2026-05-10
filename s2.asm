@@ -36227,11 +36227,6 @@ Sonic_ResetOnFloor:
 	move.b	#AniIDSonAni_Walk,anim(a0)
 ; loc_1B0AC:
 Sonic_ResetOnFloor_Part2:
-	; some routines outside of Tails' code can call Sonic_ResetOnFloor_Part2
-	; when they mean to call Tails_ResetOnFloor_Part2, so fix that here
-	_cmpi.b	#ObjID_Sonic,id(a0)	; is this object ID Sonic (obj01)?
-	bne.w	Tails_ResetOnFloor_Part2	; if not, branch to the Tails version of this code
-
 	btst	#status.player.rolling,status(a0)
 	beq.s	Sonic_ResetOnFloor_Part3
 	bclr	#status.player.rolling,status(a0)
@@ -37841,7 +37836,7 @@ Tails_Duck:
 ; moves the screen back to its normal position after looking up or down
 ; loc_1C1D0:
 Obj02_ResetScr:
-	move.w	#0,(Tails_Look_delay_counter).w
+	clr.w	(Tails_Look_delay_counter).w
 ; loc_1C1D6:
 Obj02_ResetScr_Part2:
 	cmpi.w	#(screen_height/2)-16,(Camera_Y_pos_bias_P2).w	; is screen in its default position?
@@ -83211,7 +83206,7 @@ Hurt_Shield:
 ; loc_3F8BE:
 Hurt_Sidekick:
 	move.b	#4,routine(a0)
-	jsrto	JmpTo_Sonic_ResetOnFloor_Part2
+	jsr	(Tails_ResetOnFloor_Part2).l
 	bset	#status.player.in_air,status(a0)
 	move.w	#-$400,y_vel(a0) ; make Sonic bounce away from the object
 	move.w	#-$200,x_vel(a0)
@@ -83256,7 +83251,7 @@ KillCharacter:
 	bne.s	++
 	clr.b	status_secondary(a0)
 	move.b	#6,routine(a0)
-	jsrto	JmpTo_Sonic_ResetOnFloor_Part2
+	jsr	(Sonic_ResetOnFloor_Part2).l
 	bset	#status.player.in_air,status(a0)
 	move.w	#-$700,y_vel(a0)
 	move.w	#0,x_vel(a0)
@@ -83688,7 +83683,7 @@ loc_3FCA4:
 	rts
 ; ===========================================================================
 
-	jmpTos JmpTo_Sonic_ResetOnFloor_Part2,JmpTo_Check_CNZ_bumpers,JmpTo_Touch_Rings
+	jmpTos JmpTo_Check_CNZ_bumpers,JmpTo_Touch_Rings
 
 
 
