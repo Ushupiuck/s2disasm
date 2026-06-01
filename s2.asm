@@ -22868,6 +22868,20 @@ Obj17_MapUnc_10452:	include "mappings/sprite/obj17.asm"
 ; ----------------------------------------------------------------------------
 ; Object 18 - Stationary floating platform from ARZ, EHZ and HTZ
 ; ----------------------------------------------------------------------------
+; subtype bits: sffftttt
+; t = platform behavior (see Obj18_Behaviours)
+; f = sprite frame and width (indexes Obj18_InitData)
+; s = solidity type ; 0 = top solid, 1 = full solid
+; ----------------------------------------------------------------------------
+; s and f bits are filtered out after initialization so t bits can be used
+; as a secondary routine counter
+; ----------------------------------------------------------------------------
+obj18_y_actual			= objoff_2C ; word ; unmodified y-position
+obj18_x_origin			= objoff_32 ; word ; center point of movement
+obj18_y_origin			= objoff_34 ; word ; ''
+obj18_y_offset			= objoff_38 ; byte ; adjustment for sag
+obj18_delay			= objoff_3A ; word ; fall or rise timer
+
 ; Sprite_104AC:
 Obj18:
 	moveq	#0,d0
@@ -22878,10 +22892,10 @@ Obj18:
 ; off_104BA:
 Obj18_Index:	offsetTable
 		offsetTableEntry.w Obj18_Init			; 0
-		offsetTableEntry.w loc_1056A			; 2
-		offsetTableEntry.w BranchTo3_DeleteObject	; 4
-		offsetTableEntry.w loc_105A8			; 6
-		offsetTableEntry.w loc_105D4			; 8
+		offsetTableEntry.w Obj18_TopSolid		; 2
+		offsetTableEntry.w Obj18_Delete			; 4
+		offsetTableEntry.w Obj18_NonSolid		; 6
+		offsetTableEntry.w Obj18_FullSolid		; 8
 ; ===========================================================================
 ;word_104C4:
 Obj18_InitData:
@@ -22895,106 +22909,120 @@ Obj18_InitData:
 ; ===========================================================================
 ; loc_104CE:
 Obj18_Init:
-	addq.b	#2,routine(a0)
+	addq.b	#2,routine(a0)	; => Obj18_TopSolid
 	moveq	#0,d0
 	move.b	subtype(a0),d0
-	lsr.w	#3,d0
-	andi.w	#$E,d0
-	lea	Obj18_InitData(pc,d0.w),a2
+	lsr.w	#4-1,d0			; shift subtype bits -> 000sffft
+	andi.w	#%1110,d0		; remove s and high t bits
+	lea	Obj18_InitData(pc,d0.w),a2	; use f bits * 2 as index
 	move.b	(a2)+,width_pixels(a0)
 	move.b	(a2)+,mapping_frame(a0)
 	move.l	#Obj18_MapUnc_107F6,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
 	cmpi.b	#aquatic_ruin_zone,(Current_Zone).w
-	bne.s	+
+	bne.s	.notMapARZ
 	move.l	#Obj18_MapUnc_1084E,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
-+
+
+.notMapARZ:
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
-	move.w	y_pos(a0),objoff_2C(a0)
-	move.w	y_pos(a0),objoff_34(a0)
-	move.w	x_pos(a0),objoff_32(a0)
-	move.w	#$80,angle(a0)
+	move.w	y_pos(a0),obj18_y_actual(a0)
+	move.w	y_pos(a0),obj18_y_origin(a0)
+	move.w	x_pos(a0),obj18_x_origin(a0)
+	move.w	#$80,angle(a0)		; overwritten by most movement types
 	tst.b	subtype(a0)
-	bpl.s	++
-	addq.b	#6,routine(a0)
-	andi.b	#$F,subtype(a0)
+	bpl.s	.topSolid
+	addq.b	#6,routine(a0)	; => Obj18_FullSolid
+	andi.b	#%1111,subtype(a0)	; filter t bits for use as index
 	move.b	#$30,y_radius(a0)
 	cmpi.b	#aquatic_ruin_zone,(Current_Zone).w
-	bne.s	+
+	bne.s	.notHeightARZ
 	move.b	#$28,y_radius(a0)
-+
-	bset	#render_flags.explicit_height,render_flags(a0)
-	bra.w	loc_105D4
-; ===========================================================================
-+
-	andi.b	#$F,subtype(a0)
 
-loc_1056A:
+.notHeightARZ:
+	bset	#render_flags.explicit_height,render_flags(a0)
+	bra.w	Obj18_FullSolid
+; ---------------------------------------------------------------------------
+
+.topSolid:
+	andi.b	#%1111,subtype(a0)	; filter t bits for use as index
+	; fall through to Obj18_TopSolid
+; ===========================================================================
+; loc_1056A:
+Obj18_TopSolid:
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
-	bne.s	+
-	tst.b	objoff_38(a0)
-	beq.s	++
-	subq.b	#4,objoff_38(a0)
-	bra.s	++
-; ===========================================================================
-+
-	cmpi.b	#$40,objoff_38(a0)
-	beq.s	+
-	addq.b	#4,objoff_38(a0)
-+
+	bne.s	.sag
+	tst.b	obj18_y_offset(a0)	; has platform stopped sagging?
+	beq.s	.doMovement		; if yes, branch
+	subq.b	#4,obj18_y_offset(a0)	; else, rise
+	bra.s	.doMovement
+; ---------------------------------------------------------------------------
+
+.sag:
+	cmpi.b	#$40,obj18_y_offset(a0)	; is platform sagging enough?
+	beq.s	.doMovement		; if yes, branch
+	addq.b	#4,obj18_y_offset(a0)	; else, sag more
+
+.doMovement:
 	move.w	x_pos(a0),-(sp)
-	bsr.w	sub_10638
-	bsr.w	sub_1061E
+	bsr.w	Obj18_Move
+	bsr.w	Obj18_Nudge
 	moveq	#0,d1
 	move.b	width_pixels(a0),d1
 	moveq	#8,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo_PlatformObject
-	bra.s	loc_105B0
+	bra.s	Obj18_Despawn
+; ===========================================================================
+; loc_105A8:
+Obj18_NonSolid:
+	bsr.w	Obj18_Move
+	bsr.w	Obj18_Nudge
+	; fall through to Obj18_Despawn
 ; ===========================================================================
 
-loc_105A8:
-	bsr.w	sub_10638
-	bsr.w	sub_1061E
-
-loc_105B0:
+; loc_105B0:
+Obj18_Despawn:
 	tst.w	(Two_player_mode).w
-	beq.s	+
+	beq.s	.not2P
 	bra.w	DisplaySprite
-; ===========================================================================
-+
-	move.w	objoff_32(a0),d0
+; ---------------------------------------------------------------------------
+
+.not2P:
+	; local version of MarkObjGone
+	move.w	obj18_x_origin(a0),d0
 	andi.w	#$FF80,d0
 	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	BranchTo3_DeleteObject
+	cmpi.w	#$80+roundToNextMultiple(screen_width,$80)+$80,d0
+	bhi.s	Obj18_Delete
 	bra.w	DisplaySprite
 ; ===========================================================================
-
-BranchTo3_DeleteObject ; BranchTo
+; BranchTo3_DeleteObject:
+Obj18_Delete:
 	bra.w	DeleteObject
 ; ===========================================================================
-
-loc_105D4:
+; loc_105D4:
+Obj18_FullSolid:
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
-	bne.s	+
-	tst.b	objoff_38(a0)
-	beq.s	++
-	subq.b	#4,objoff_38(a0)
-	bra.s	++
-; ===========================================================================
-+
-	cmpi.b	#$40,objoff_38(a0)
-	beq.s	+
-	addq.b	#4,objoff_38(a0)
-+
+	bne.s	.sag
+	tst.b	obj18_y_offset(a0)	; has platform stopped sagging?
+	beq.s	.doMovement		; if yes, branch
+	subq.b	#4,obj18_y_offset(a0)	; else, rise
+	bra.s	.doMovement
+; ---------------------------------------------------------------------------
+
+.sag:
+	cmpi.b	#$40,obj18_y_offset(a0)	; is platform sagging enough?
+	beq.s	.doMovement		; if yes, branch
+	addq.b	#4,obj18_y_offset(a0)	; else, sag more
+
+.doMovement:
 	move.w	x_pos(a0),-(sp)
-	bsr.w	sub_10638
-	bsr.w	sub_1061E
+	bsr.w	Obj18_Move
+	bsr.w	Obj18_Nudge
 	moveq	#0,d1
 	move.b	width_pixels(a0),d1
 	addi.w	#$B,d1
@@ -23004,233 +23032,305 @@ loc_105D4:
 	addq.w	#1,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo_SolidObject
-	bra.s	loc_105B0
+	bra.s	Obj18_Despawn
+
+; ---------------------------------------------------------------------------
+; Subroutine to adjust the platform's y-positon to simulate it sagging under
+; the player's weight
+; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-
-sub_1061E:
-	move.b	objoff_38(a0),d0
+; sub_1061E:
+Obj18_Nudge:
+	move.b	obj18_y_offset(a0),d0
 	jsrto	JmpTo3_CalcSine
 	move.w	#$400,d1
 	muls.w	d1,d0
 	swap	d0
-	add.w	objoff_2C(a0),d0
+	add.w	obj18_y_actual(a0),d0
 	move.w	d0,y_pos(a0)
 	rts
-; End of function sub_1061E
+; End of function Obj18_Nudge
 
+
+; ---------------------------------------------------------------------------
+; Subroutine to handle the platform's different movement modes
+; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-
-sub_10638:
+; sub_10638:
+Obj18_Move:
 	moveq	#0,d0
 	move.b	subtype(a0),d0
-	andi.w	#$F,d0
+	andi.w	#%1111,d0		; filter for t bits
 	add.w	d0,d0
 	move.w	Obj18_Behaviours(pc,d0.w),d1
 	jmp	Obj18_Behaviours(pc,d1.w)
-; End of function sub_10638
+; End of function Obj18_Move
 
 ; ===========================================================================
 ; off_1064C:
 Obj18_Behaviours: offsetTable
-	offsetTableEntry.w return_10668	;  0
-	offsetTableEntry.w loc_1067A	;  1
-	offsetTableEntry.w loc_106C0	;  2
-	offsetTableEntry.w loc_106D8	;  3
-	offsetTableEntry.w loc_10702	;  4
-	offsetTableEntry.w loc_1066A	;  5
-	offsetTableEntry.w loc_106B0	;  6
-	offsetTableEntry.w loc_10778	;  7
-	offsetTableEntry.w loc_107A4	;  8
-	offsetTableEntry.w return_10668	;  9
-	offsetTableEntry.w loc_107BC	; $A
-	offsetTableEntry.w loc_107D6	; $B
-	offsetTableEntry.w loc_106A2	; $C
-	offsetTableEntry.w loc_10692	; $D
+	offsetTableEntry.w Obj18_Stationary		;  0
+	offsetTableEntry.w Obj18_Horizontal.normal	;  1
+	offsetTableEntry.w Obj18_Vertical.normal	;  2
+	offsetTableEntry.w Obj18_Falling		;  3
+	offsetTableEntry.w Obj18_Fall			;  4
+	offsetTableEntry.w Obj18_Horizontal.reversed	;  5
+	offsetTableEntry.w Obj18_Vertical.reversed	;  6
+	offsetTableEntry.w Obj18_ButtonTrigger		;  7
+	offsetTableEntry.w Obj18_Rise			;  8
+	offsetTableEntry.w Obj18_Stationary		;  9
+	offsetTableEntry.w Obj18_ShortVertical.reversed	; $A
+	offsetTableEntry.w Obj18_ShortVertical.normal	; $B
+	offsetTableEntry.w Obj18_Vertical.altNormal	; $C
+	offsetTableEntry.w Obj18_Vertical.altReversed	; $D
 ; ===========================================================================
-
-return_10668:
+; 0, 9 - Platform that doesn't move
+; ---------------------------------------------------------------------------
+; return_10668:
+Obj18_Stationary:
 	rts
 ; ===========================================================================
-
-loc_1066A:
-	move.w	objoff_32(a0),d0
+; 1, 5 - Horizontally moving platform
+; ---------------------------------------------------------------------------
+; Movement has a radius of $40
+; 1 - Start at lower end of range: -$40
+; 5 - Start at upper end of range: $40
+; ---------------------------------------------------------------------------
+; loc_1066A:
+Obj18_Horizontal:
+.reversed:
+	move.w	obj18_x_origin(a0),d0
 	move.b	angle(a0),d1
 	neg.b	d1
 	addi.b	#$40,d1
-	bra.s	loc_10686
-; ===========================================================================
-
-loc_1067A:
-	move.w	objoff_32(a0),d0
+	bra.s	.moveX
+; ---------------------------------------------------------------------------
+; loc_1067A:
+.normal:
+	move.w	obj18_x_origin(a0),d0
 	move.b	angle(a0),d1
 	subi.b	#$40,d1
 
-loc_10686:
+; loc_10686:
+.moveX:
 	ext.w	d1
 	add.w	d1,d0
 	move.w	d0,x_pos(a0)
-	bra.w	loc_107EE
+	bra.w	Obj18_UpdateAngle
 ; ===========================================================================
-
-loc_10692:
-	move.w	objoff_34(a0),d0
+; 2, 6, $C, $D - Vertically moving platform
+; ---------------------------------------------------------------------------
+; Regular movement (2, 6) has a radius of $40
+; 2 - Start at lower end of range: -$40
+; 6 - Start at upper end of range: $40
+; ---------------------------------------------------------------------------
+; Alternative movement ($C, $D) has a(n imperfect) radius of $30
+; $C - Start at lower end of range: -$2F
+; $D - Start at upper end of range: $2F
+; ---------------------------------------------------------------------------
+; loc_10692:
+Obj18_Vertical:
+.altReversed:
+	move.w	obj18_y_origin(a0),d0
 	move.b	(Oscillating_Data+$C).w,d1
 	neg.b	d1
-	addi.b	#$30,d1
-	bra.s	loc_106CC
-; ===========================================================================
-
-loc_106A2:
-	move.w	objoff_34(a0),d0
+	addi.b	#$30,d1			; range: -$2F..$30
+	bra.s	.moveY
+; ---------------------------------------------------------------------------
+; loc_106A2:
+.altNormal:
+	move.w	obj18_y_origin(a0),d0
 	move.b	(Oscillating_Data+$C).w,d1
-	subi.b	#$30,d1
-	bra.s	loc_106CC
-; ===========================================================================
-
-loc_106B0:
-	move.w	objoff_34(a0),d0
+	subi.b	#$30,d1			; range: -$30..$2F
+	bra.s	.moveY
+; ---------------------------------------------------------------------------
+; loc_106B0:
+.reversed:
+	move.w	obj18_y_origin(a0),d0
 	move.b	angle(a0),d1
 	neg.b	d1
 	addi.b	#$40,d1
-	bra.s	loc_106CC
-; ===========================================================================
-
-loc_106C0:
-	move.w	objoff_34(a0),d0
+	bra.s	.moveY
+; ---------------------------------------------------------------------------
+; loc_106C0:
+.normal:
+	move.w	obj18_y_origin(a0),d0
 	move.b	angle(a0),d1
 	subi.b	#$40,d1
 
-loc_106CC:
+; loc_106CC:
+.moveY:
 	ext.w	d1
 	add.w	d1,d0
-	move.w	d0,objoff_2C(a0)
-	bra.w	loc_107EE
+	move.w	d0,obj18_y_actual(a0)
+	bra.w	Obj18_UpdateAngle
 ; ===========================================================================
-
-loc_106D8:
-	tst.w	objoff_3A(a0)
-	bne.s	loc_106F0
+; 3 - Platform will drop half a second after it is stood on
+; ---------------------------------------------------------------------------
+; loc_106D8:
+Obj18_Falling:
+	tst.w	obj18_delay(a0)		; has timer been set?
+	bne.s	.countdown		; if yes, branch
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
-	beq.s	+	; rts
-	move.w	#$1E,objoff_3A(a0)
-/
+	beq.s	.return
+	move.w	#30,obj18_delay(a0)	; set drop timer
+
+.return:
+	rts
+; ---------------------------------------------------------------------------
+; loc_106F0:
+.countdown:
+	subq.w	#1,obj18_delay(a0)
+	bne.s	.return
+	move.w	#$20,obj18_delay(a0)	; start timer
+	addq.b	#1,subtype(a0)	; => Obj18_Fall
 	rts
 ; ===========================================================================
-
-loc_106F0:
-	subq.w	#1,objoff_3A(a0)
-	bne.s	-	; rts
-	move.w	#$20,objoff_3A(a0)
-	addq.b	#1,subtype(a0)
-	rts
-; ===========================================================================
-
-loc_10702:
-	tst.w	objoff_3A(a0)
-	beq.s	loc_10730
-	subq.w	#1,objoff_3A(a0)
-	bne.s	loc_10730
+; 4 - Platform as it is falling
+; ---------------------------------------------------------------------------
+; Will drop players after half a second, which translates into $65 pixels
+; below the platform's initial position
+; ---------------------------------------------------------------------------
+; loc_10702:
+Obj18_Fall:
+	tst.w	obj18_delay(a0)
+	beq.s	.moveY
+	subq.w	#1,obj18_delay(a0)
+	bne.s	.moveY
 	bclr	#p1_standing_bit,status(a0)
-	beq.s	+
+	beq.s	.noP1
 	lea	(MainCharacter).w,a1 ; a1=character
-	bsr.s	sub_1075E
-+
-	bclr	#p2_standing_bit,status(a0)
-	beq.s	+
-	lea	(Sidekick).w,a1 ; a1=character
-	bsr.s	sub_1075E
-+
-	move.b	#6,routine(a0)
+	bsr.s	Obj18_DropPlayer
 
-loc_10730:
-	move.l	objoff_2C(a0),d3
+.noP1:
+	bclr	#p2_standing_bit,status(a0)
+	beq.s	.noP2
+	lea	(Sidekick).w,a1 ; a1=character
+	bsr.s	Obj18_DropPlayer
+
+.noP2:
+	move.b	#6,routine(a0)	; => Obj18_NonSolid
+
+; loc_10730:
+.moveY:
+	move.l	obj18_y_actual(a0),d3
 	move.w	y_vel(a0),d0
 	ext.l	d0
 	asl.l	#8,d0
 	add.l	d0,d3
-	move.l	d3,objoff_2C(a0)
+	move.l	d3,obj18_y_actual(a0)
 	addi.w	#$38,y_vel(a0)
 	move.w	(Camera_Max_Y_pos).w,d0
-	addi.w	#$120,d0
-	cmp.w	objoff_2C(a0),d0
-	bhs.s	+	; rts
-	move.b	#4,routine(a0)
-+
+	addi.w	#screen_height+$40,d0
+	cmp.w	obj18_y_actual(a0),d0
+	bhs.s	.return
+	move.b	#4,routine(a0)	; => Obj18_Delete
+
+.return:
 	rts
+
+; ---------------------------------------------------------------------------
+; Subroutine to detach the player from the falling platform and transfer its
+; downward velocity
+; Input:
+;	a1	Address to player object
+; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-
-sub_1075E:
+; sub_1075E:
+Obj18_DropPlayer:
 	bset	#status.player.in_air,status(a1)
 	bclr	#status.player.on_object,status(a1)
 	move.b	#2,routine(a1)
 	move.w	y_vel(a0),y_vel(a1)
 	rts
-; End of function sub_1075E
+; End of function Obj18_DropPlayer
 
 ; ===========================================================================
-
-loc_10778:
-	tst.w	objoff_3A(a0)
-	bne.s	loc_10798
+; 7 - Platform will rise one second after a button is pressed
+; ---------------------------------------------------------------------------
+; Leftover from S1. The subtype bits used to determine the button ID are
+; cleared during init, but would also conflict with the frame/width and
+; solidity selection. As a result, this platform type can respond to only
+; button ID 0
+; ---------------------------------------------------------------------------
+; loc_10778:
+Obj18_ButtonTrigger:
+	tst.w	obj18_delay(a0)		; has timer been set?
+	bne.s	.countdown		; if yes, branch
 	lea	(ButtonVine_Trigger).w,a2
 	moveq	#0,d0
-	move.b	subtype(a0),d0
-	lsr.w	#4,d0
+	move.b	subtype(a0),d0		; high nybble determines the button ID
+	lsr.w	#4,d0			; d0 = button ID
 	tst.b	(a2,d0.w)
-	beq.s	+	; rts
-	move.w	#60,objoff_3A(a0)
-/
+	beq.s	.return
+	move.w	#60,obj18_delay(a0)	; start timer
+
+.return:
+	rts
+; ---------------------------------------------------------------------------
+; loc_10798:
+.countdown:
+	subq.w	#1,obj18_delay(a0)
+	bne.s	.return
+	addq.b	#1,subtype(a0)	; => Obj18_Rise
 	rts
 ; ===========================================================================
+; 8 - Platform as it is rising
+; ---------------------------------------------------------------------------
+; Will stop $200 pixels above its initial position
+; ---------------------------------------------------------------------------
+; loc_107A4:
+Obj18_Rise:
+	subq.w	#2,obj18_y_actual(a0)
+	move.w	obj18_y_origin(a0),d0
+	subi.w	#$200,d0		; target is $200 above start position
+	cmp.w	obj18_y_actual(a0),d0	; is target reached?
+	bne.s	.return			; if not, branch
+	clr.b	subtype(a0)	; => Obj18_Stationary
 
-loc_10798:
-	subq.w	#1,objoff_3A(a0)
-	bne.s	-	; rts
-	addq.b	#1,subtype(a0)
+.return:
 	rts
 ; ===========================================================================
-
-loc_107A4:
-	subq.w	#2,objoff_2C(a0)
-	move.w	objoff_34(a0),d0
-	subi.w	#$200,d0
-	cmp.w	objoff_2C(a0),d0
-	bne.s	+	; rts
-	clr.b	subtype(a0)
-+
-	rts
-; ===========================================================================
-
-loc_107BC:
-	move.w	objoff_34(a0),d0
+; $A, $B - Vertically moving platform with smaller movement range
+; ---------------------------------------------------------------------------
+; Movement has a radius of $20
+; $A - Start at lower end of range: -$20
+; $B - Start at upper end of range: $20
+; ---------------------------------------------------------------------------
+; loc_107BC:
+Obj18_ShortVertical:
+.reversed:
+	move.w	obj18_y_origin(a0),d0
 	move.b	angle(a0),d1
 	subi.b	#$40,d1
 	ext.w	d1
 	asr.w	#1,d1
 	add.w	d1,d0
-	move.w	d0,objoff_2C(a0)
-	bra.w	loc_107EE
-; ===========================================================================
-
-loc_107D6:
-	move.w	objoff_34(a0),d0
+	move.w	d0,obj18_y_actual(a0)
+	bra.w	Obj18_UpdateAngle
+; ---------------------------------------------------------------------------
+; loc_107D6:
+.normal:
+	move.w	obj18_y_origin(a0),d0
 	move.b	angle(a0),d1
 	neg.b	d1
 	addi.b	#$40,d1
 	ext.w	d1
 	asr.w	#1,d1
 	add.w	d1,d0
-	move.w	d0,objoff_2C(a0)
-
-loc_107EE:
-	move.b	(Oscillating_Data+$18).w,angle(a0)
+	move.w	d0,obj18_y_actual(a0)
+	; fall through to Obj18_UpdateAngle
+; ===========================================================================
+; loc_107EE:
+Obj18_UpdateAngle:
+	move.b	(Oscillating_Data+$18).w,angle(a0)	; range: 0..$80
 	rts
 ; ===========================================================================
 ; -------------------------------------------------------------------------------
@@ -24573,17 +24673,20 @@ Obj29_MapUnc_11ED0:	include "mappings/sprite/obj29.asm"
 
 
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 25 - A ring (usually only placed through placement mode)
-; ----------------------------------------------------------------------------
-; Obj_Ring:
+; ---------------------------------------------------------------------------
+; OST Variables:
+ring_base_x_pos		= objoff_32	; x-position of primary ring (leftover from Sonic 1)
+
+; Sprite_11F44: Obj_Ring:
 Obj25:
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	Obj25_Index(pc,d0.w),d1
 	jmp	Obj25_Index(pc,d1.w)
 ; ===========================================================================
-; Obj_25_subtbl:
+; off_11F52: Obj_25_subtbl:
 Obj25_Index:	offsetTable
 		offsetTableEntry.w Obj25_Init		; 0
 		offsetTableEntry.w Obj25_Animate	; 2
@@ -24591,35 +24694,35 @@ Obj25_Index:	offsetTable
 		offsetTableEntry.w Obj25_Sparkle	; 6
 		offsetTableEntry.w Obj25_Delete		; 8
 ; ===========================================================================
-; Obj_25_sub_0:
+; loc_11F5C: Obj_25_sub_0:
 Obj25_Init:
 	addq.b	#2,routine(a0)
-	move.w	x_pos(a0),objoff_32(a0)
+	move.w	x_pos(a0),ring_base_x_pos(a0)
 	move.l	#Obj25_MapUnc_12382,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#2,priority(a0)
 	move.b	#$47,obColType(a0)
 	move.b	#8,width_pixels(a0)
-; Obj_25_sub_2:
+; loc_11F90: Obj_25_sub_2:
 Obj25_Animate:
 	move.b	(Rings_anim_frame).w,mapping_frame(a0)
-	move.w	objoff_32(a0),d0
+	move.w	ring_base_x_pos(a0),d0
 	bra.w	MarkObjGone2
 ; ===========================================================================
-; Obj_25_sub_4:
+; loc_11F9E: Obj_25_sub_4:
 Obj25_Collect:
 	addq.b	#2,routine(a0)
 	move.b	#0,obColType(a0)
 	move.b	#1,priority(a0)
 	bsr.s	CollectRing
-; Obj_25_sub_6:
+; loc_11FB0: Obj_25_sub_6:
 Obj25_Sparkle:
 	lea	(Ani_Ring).l,a1
 	bsr.w	AnimateSprite
 	bra.w	DisplaySprite
 ; ===========================================================================
-; BranchTo4_DeleteObject
+; loc_11FBE: BranchTo4_DeleteObject
 Obj25_Delete:
 	bra.w	DeleteObject
 
@@ -24704,9 +24807,14 @@ JmpTo2_PlaySound2 ; JmpTo
 ; End of function CollectRing
 
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 37 - Scattering rings (generated when Sonic is hurt and has rings)
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
+; OST Variables:
+  if fixBugs
+lostrings_timer		= objoff_1F	; time until ring is deleted
+  endif
+
 ; Sprite_12078:
 Obj37:
 	moveq	#0,d0
@@ -24714,7 +24822,7 @@ Obj37:
 	move.w	Obj37_Index(pc,d0.w),d1
 	jmp	Obj37_Index(pc,d1.w)
 ; ===========================================================================
-; Obj_37_subtbl:
+; off_12086: Obj_37_subtbl:
 Obj37_Index:	offsetTable
 		offsetTableEntry.w Obj37_Init		; 0
 		offsetTableEntry.w Obj37_Main		; 2
@@ -24722,22 +24830,22 @@ Obj37_Index:	offsetTable
 		offsetTableEntry.w Obj37_Sparkle	; 6
 		offsetTableEntry.w Obj37_Delete		; 8
 ; ===========================================================================
-; Obj_37_sub_0:
+; loc_12090: Obj_37_sub_0:
 Obj37_Init:
 	movea.l	a0,a1
 	moveq	#0,d5
-	move.w	(Ring_count).w,d5
-	tst.b	parent+1(a0)
-	beq.s	+
-	move.w	(Ring_count_2P).w,d5
+	move.w	(Ring_count).w,d5	; use Sonic's rings counter
+	tst.b	parent+1(a0)		; did Tails lose his rings?
+	beq.s	+			; if not, branch
+	move.w	(Ring_count_2P).w,d5	; use Tails' ring counter instead
 +
-	moveq	#$20,d0
-	cmp.w	d0,d5
-	blo.s	+
-	move.w	d0,d5
+	moveq	#32,d0
+	cmp.w	d0,d5		; has player over 33 rings?
+	blo.s	+		; if not, branch
+	move.w	d0,d5		; if yes, limit to 32 rings
 +
 	subq.w	#1,d5
-	move.w	#$288,d4
+	move.w	#$288,d4	; set initial angle
 	bra.s	+
 ; ===========================================================================
 
@@ -24756,7 +24864,13 @@ Obj37_Init:
 	move.b	#3,priority(a1)
 	move.b	#$47,obColType(a1)
 	move.b	#8,width_pixels(a1)
-	move.b	#-1,(Ring_spill_anim_counter).w
+  if ~~fixBugs
+	; The ring deletion timer shouldn't be stored as a global variable, since
+	; it makes it possible to reset it for all lost rings by getting hit twice
+	; in quick succession (this is more noticeable in two player mode). Instead,
+	; we'll handle it as an SST.
+	move.b	#-1,(Ring_spill_anim_counter).w		; reset deletion/animation timer
+  endif
 	tst.w	d4
 	bmi.s	+
 	move.w	d4,d0
@@ -24779,81 +24893,102 @@ Obj37_Init:
 	neg.w	d4
 	dbf	d5,-
 +
+  if fixBugs
+	moveq	#-1,d0
+	move.b	d0,lostrings_timer(a0)		; reset deletion/animation timer
+	move.b	d0,(Ring_spill_anim_counter).w	; we still need this for the animation
+  endif
 	move.w	#SndID_RingSpill,d0
 	jsr	(PlaySound2).l
-	tst.b	parent+1(a0)
-	bne.s	+
+	tst.b	parent+1(a0)	; did Tails grab the ring?
+	bne.s	+		; if yes, branch
+	; reset Sonic's ring counter
 	move.w	#0,(Ring_count).w
 	move.b	#$80,(Update_HUD_rings).w
 	move.b	#0,(Extra_life_flags).w
 	bra.s	Obj37_Main
 ; ===========================================================================
 +
+	; reset Tails' ring counter
 	move.w	#0,(Ring_count_2P).w
 	move.b	#$80,(Update_HUD_rings_2P).w
 	move.b	#0,(Extra_life_flags_2P).w
-; Obj_37_sub_2:
+; loc_12178: Obj_37_sub_2:
 Obj37_Main:
 	move.b	(Ring_spill_anim_frame).w,mapping_frame(a0)
 	bsr.w	ObjectMove
-	addi.w	#$18,y_vel(a0)
-	bmi.s	loc_121B8
+	addi.w	#$18,y_vel(a0)		; apply gravity
+	bmi.s	Obj37_CheckBoundary
+
+	; only checks floor collision every 8 frames
 	move.b	(Vint_runcount+3).w,d0
 	add.b	d7,d0
 	andi.b	#7,d0
-	bne.s	loc_121B8
+	bne.s	Obj37_CheckBoundary
+
 	_btst	#render_flags.on_screen,render_flags(a0)
 	_beq.s	loc_121D0
 	jsr	(RingCheckFloorDist).l
-	tst.w	d1
-	bpl.s	loc_121B8
-	add.w	d1,y_pos(a0)
+	tst.w	d1			; has the ring hit the floor?
+	bpl.s	Obj37_CheckBoundary	; if not, branch
+	add.w	d1,y_pos(a0)		; align to floor
+	; reduce y-speed by 25% and bounce
 	move.w	y_vel(a0),d0
 	asr.w	#2,d0
 	sub.w	d0,y_vel(a0)
 	neg.w	y_vel(a0)
-
-loc_121B8:
-
-	tst.b	(Ring_spill_anim_counter).w
-	beq.s	Obj37_Delete
+; loc_121B8:
+Obj37_CheckBoundary:
+  if fixBugs
+	subq.b	#1,lostrings_timer(a0)		; has the timer finished?
+	beq.s	Obj37_Delete			; if yes, branch
+  else
+	tst.b	(Ring_spill_anim_counter).w	; has the animation finished?
+	beq.s	Obj37_Delete			; if yes, branch
+  endif
+	; The code below is programmed to automatically delete rings if they hit
+	; the bottom of the screen, however it does not take into account vertical
+	; wrapping, leading to a situation where the player will unfairly lose all
+	; their rings immediately if they happen to take damage near the boundary.
 	move.w	(Camera_Max_Y_pos).w,d0
 	addi.w	#screen_height,d0
-	cmp.w	y_pos(a0),d0
-	blo.s	Obj37_Delete
+	cmp.w	y_pos(a0),d0			; has object moved below the level boundary?
+	blo.s	Obj37_Delete			; if yes, branch
 	bra.w	DisplaySprite
 ; ===========================================================================
 
 loc_121D0:
 	tst.w	(Two_player_mode).w
 	bne.w	Obj37_Delete
-	bra.s	loc_121B8
+	bra.s	Obj37_CheckBoundary
 ; ===========================================================================
-; Obj_37_sub_4:
+; loc_121DA: Obj_37_sub_4:
 Obj37_Collect:
 	addq.b	#2,routine(a0)
 	move.b	#0,obColType(a0)
 	move.b	#1,priority(a0)
 	bsr.w	CollectRing
-; Obj_37_sub_6:
+; loc_121EE: Obj_37_sub_6:
 Obj37_Sparkle:
 	lea	(Ani_Ring).l,a1
 	bsr.w	AnimateSprite
 	bra.w	DisplaySprite
 ; ===========================================================================
-; BranchTo5_DeleteObject
+; loc_121FC: BranchTo5_DeleteObject
 Obj37_Delete:
 	bra.w	DeleteObject
 
-; Unused - dead code/data S1 big ring:
 ; ===========================================================================
-; BigRing:
-	; a0=object
+; ---------------------------------------------------------------------------
+; Object XX - Giant Ring (leftover from S1, unreferenced)
+; ---------------------------------------------------------------------------
+; Sprite_12504: Obj_BigRing:
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	BigRing_States(pc,d0.w),d1
 	jmp	BigRing_States(pc,d1.w)
 ; ===========================================================================
+; off_12512:
 BigRing_States:	offsetTable
 		offsetTableEntry.w BigRing_Init		; 0
 		offsetTableEntry.w BigRing_Main		; 2
@@ -24868,6 +25003,12 @@ BigRing_Init:
 	move.b	#$40,width_pixels(a0)
 	_btst	#render_flags.on_screen,render_flags(a0)
 	_beq.s	BigRing_Main
+	; Got_Emerald is a boolean set after exiting a Special Stage, it should actually
+	; be using Emerald_count.
+	; This seems to be the result of Sega repurposing the original variable, since
+	; it correctly checked Emerald_count up to Beta 4 (coincidentally, it was this
+	; build that moved it from $FE57 to $FFB1). Super Sonic also incorrectly checked
+	; this variable in Beta 5, and the All Emeralds cheat still writes to it.
 	cmpi.b	#6,(Got_Emerald).w
 	beq.w	BigRing_Delete
 	cmpi.w	#50,(Ring_count).w
@@ -24878,7 +25019,7 @@ BigRing_Init:
 	addq.b	#2,routine(a0)
 	move.b	#2,priority(a0)
 	move.b	#$52,obColType(a0)
-	move.w	#$C40,(BigRingGraphics).w
+	move.w	#$C40,(BigRingGraphics).w	; $C40 was the size of the Giant Ring graphics
 ; loc_12264:
 BigRing_Main:
 	move.b	(Rings_anim_frame).w,mapping_frame(a0)
@@ -24916,15 +25057,20 @@ BigRing_Enter:
 BigRing_Delete:
 	bra.w	DeleteObject
 
-; Unused - dead code/data S1 ring flash:
 ; ===========================================================================
-; BigRingFlash:
-	; a0=object
+; ---------------------------------------------------------------------------
+; Object XX - Giant Ring flash (leftover from S1, unreferenced)
+; ---------------------------------------------------------------------------
+; OST Variables:
+flash_parent 		= objoff_3C
+
+; Sprite_125C8: Obj_BigRingFlash:
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	BigRingFlash_States(pc,d0.w),d1
 	jmp	BigRingFlash_States(pc,d1.w)
 ; ===========================================================================
+; off_125D6:
 BigRingFlash_States: offsetTable
 	offsetTableEntry.w BigRingFlash_Init	; 0
 	offsetTableEntry.w BigRingFlash_Main	; 2
@@ -24961,7 +25107,7 @@ BigRingFlash_Animate:
 	bhs.s	++				; if yes, branch
 	cmpi.b	#3,mapping_frame(a0)		; have we reached the 4th animation frame?
 	bne.s	+	; rts			; if not, return
-	movea.l	objoff_3C(a0),a1 ; a1=object	; get the parent big ring object
+	movea.l	flash_parent(a0),a1 ; a1=object	; get the parent big ring object
 	move.b	#6,routine(a1)			; set its routine to "delete"
 	move.b	#AniIDSonAni_Blank,(MainCharacter+anim).w	; change the character's animation
 	move.b	#1,(f_bigring).w
@@ -24985,7 +25131,6 @@ BigRingFlash_Delete:
 ; end of dead code/data
 
 ; ===========================================================================
-
 ; animation script
 ; byte_1237A:
 Ani_Ring:	offsetTable
@@ -24996,7 +25141,6 @@ Ani_Ring:	offsetTable
 ; sprite mappings
 ; -------------------------------------------------------------------------------
 Obj25_MapUnc_12382:	include "mappings/sprite/obj37_a.asm"
-
 ; -------------------------------------------------------------------------------
 ; Unused sprite mappings
 ; -------------------------------------------------------------------------------
@@ -25078,20 +25222,20 @@ Ani_objDC:	offsetTable
 
 
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 26 - Monitor
 ;
 ; The power-ups themselves are handled by the next object. This just does the
 ; monitor collision and graphics.
-; ----------------------------------------------------------------------------
-; Obj_Monitor:
+; ---------------------------------------------------------------------------
+; Sprite_12974: Obj_Monitor:
 Obj26:
 	moveq	#0,d0
 	move.b	routine(a0),d0
 	move.w	Obj26_Index(pc,d0.w),d1
 	jmp	Obj26_Index(pc,d1.w)
 ; ===========================================================================
-; obj_26_subtbl:
+; off_12982: obj_26_subtbl:
 Obj26_Index:	offsetTable
 		offsetTableEntry.w Obj26_Init			; 0
 		offsetTableEntry.w Obj26_Main			; 2
@@ -25099,7 +25243,7 @@ Obj26_Index:	offsetTable
 		offsetTableEntry.w Obj26_Animate		; 6
 		offsetTableEntry.w BranchTo2_MarkObjGone	; 8
 ; ===========================================================================
-; obj_26_sub_0: Obj_26_Init:
+; loc_1298C: obj_26_sub_0: Obj_26_Init:
 Obj26_Init:
 	addq.b	#2,routine(a0)
 	move.b	#$E,y_radius(a0)
@@ -25136,7 +25280,7 @@ Obj26_Init:
 	tst.w	(Two_player_mode).w	; is it two player mode?
 	beq.s	Obj26_Main		; if not, branch
 	move.b	#9,anim(a0)		; use '?' icon
-;obj_26_sub_2:
+; loc_12A00: obj_26_sub_2:
 Obj26_Main:
 	move.b	routine_secondary(a0),d0
 	beq.s	SolidObject_Monitor
@@ -25164,7 +25308,7 @@ SolidObject_Monitor:
 	lea	(Sidekick).w,a1 ; a1=character
 	moveq	#p2_standing_bit,d6
 	bsr.w	SolidObject_Monitor_Tails
-
+; loc_12A4E:
 Obj26_Animate:
 	lea	(Ani_obj26).l,a1
 	bsr.w	AnimateSprite
@@ -25173,6 +25317,7 @@ BranchTo2_MarkObjGone ; BranchTo
 	bra.w	MarkObjGone
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
 ; sub_12756:
 SolidObject_Monitor_Sonic:
 	btst	d6,status(a0)			; is Sonic standing on the monitor?
@@ -25184,6 +25329,7 @@ SolidObject_Monitor_Sonic:
 
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
 ; sub_12768:
 SolidObject_Monitor_Tails:
 	btst	d6,status(a0)			; is Tails standing on the monitor?
@@ -25199,7 +25345,10 @@ SolidObject_Monitor_Tails:
 ; ---------------------------------------------------------------------------
 ; Checks if the player has walked over the edge of the monitor.
 ; ---------------------------------------------------------------------------
-;loc_12782:
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_12782:
 Obj26_ChkOverEdge:
 	move.w	d1,d2
 	add.w	d2,d2
@@ -25220,14 +25369,14 @@ Obj26_ChkOverEdge:
 	moveq	#0,d4
 	rts
 ; ---------------------------------------------------------------------------
-;loc_127B2:
+; loc_127B2:
 Obj26_CharStandOn:
 	move.w	d4,d2
 	bsr.w	MvSonicOnPtfm
 	moveq	#0,d4
 	rts
 ; ===========================================================================
-;obj_26_sub_4:
+; loc_12AC2: obj_26_sub_4:
 Obj26_Break:
 	move.b	status(a0),d0
 	andi.b	#standing_mask|pushing_mask,d0	; is someone touching the monitor?
@@ -25242,7 +25391,7 @@ Obj26_Break:
 	beq.s	Obj26_SpawnIcon	; if not, branch
 	andi.b	#~(1<<status.player.on_object|1<<status.player.pushing),(Sidekick+status).w
 	ori.b	#1<<status.player.in_air,(Sidekick+status).w	; prevent Tails from walking in the air
-;loc_127EC:
+; loc_127EC:
 Obj26_SpawnIcon:
 	clr.b	status(a0)
 	addq.b	#2,routine(a0)
@@ -25254,7 +25403,7 @@ Obj26_SpawnIcon:
 	move.w	y_pos(a0),y_pos(a1)
 	move.b	anim(a0),anim(a1)
 	move.w	parent(a0),parent(a1)	; parent gets the item
-;loc_1281E:
+; loc_1281E:
 Obj26_SpawnSmoke:
 	bsr.w	AllocateObject
 	bne.s	+
@@ -25278,10 +25427,11 @@ Obj26_SpawnSmoke:
 +
 	move.b	#$A,anim(a0)
 	bra.w	DisplaySprite
+
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 2E - Monitor contents (code for power-up behavior and rising image)
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 
 Obj2E:
 	moveq	#0,d0
@@ -25481,7 +25631,7 @@ ChkPlayer_1up:
 super_shoes:
 	addq.w	#1,(a2)
 	bset	#status_secondary.speed_shoes,status_secondary(a1)	; give super sneakers status
-	move.w	#$4B0,speedshoes_time(a1)
+	move.w	#20*60,speedshoes_time(a1)
 	cmpa.w	#MainCharacter,a1	; did the main character break the monitor?
 	bne.s	super_shoes_Tails	; if not, branch
 	cmpi.w	#2,(Player_mode).w	; is player using Tails?
@@ -25742,14 +25892,37 @@ teleport_swap_table:
 	TeleportTableEntry	Camera_Difference,        Camera_Difference_P2
 	TeleportTableEntry	Sonic_Pos_Record_Buf,     Tails_Pos_Record_Buf
 teleport_swap_table_end:
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; '?' Monitor
-; doesn't actually do anything other than increase the player's monitor score
+; Doesn't actually do anything other than increase the player's monitor score,
+; since randomization is handled upon creating the object.
+;
+; In the August 21st and September 14th builds, it was used to test Super Sonic.
+; Sonic_CheckGoSuper likely had its code copied from here.
 ; ---------------------------------------------------------------------------
 qmark_monitor:
 	addq.w	#1,(a2)
+    if 0
+	move.b	#1,(Super_Sonic_palette).w
+	move.b	#$F,(Palette_timer).w
+	move.b	#1,(Super_Sonic_flag).w
+	move.b	#$81,(MainCharacter+obj_control).w
+	move.b	#AniIDSupSonAni_Transform,(MainCharacter+anim).w	; use transformation animation
+	move.b	#ObjID_SuperSonicStars,(SuperSonicStars+id).w	; load Obj7E (Super Sonic stars object) at $FFFFD040
+	move.w	#$A00,(Sonic_top_speed).w
+	move.w	#$30,(Sonic_acceleration).w
+	move.w	#$100,(Sonic_deceleration).w
+	move.w	#0,(MainCharacter+invincibility_time).w
+	bset	#status_secondary.invincible,status_secondary(a1)
+	move.w	#SndID_SuperTransform,d0
+	jsr	(PlaySound).l	; play transformation sound effect.
+	move.w	#MusID_SuperSonic,d0
+	jmp	(PlayMusic).l	; play Super Sonic umsic
+    else
 	rts
+    endif
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Holds icon in place for a while, then destroys it
@@ -25811,9 +25984,9 @@ Ani_obj26_QuestionMark:
 Ani_obj26_Broken:
 	dc.b   2,  0,  1, $B,$FE,  1
 	even
-; ---------------------------------------------------------------------------------
-; Sprite Mappings - Sprite table for monitor and monitor contents (26, ??)
-; ---------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
 ; MapUnc_12D36: MapUnc_obj26:
 Obj26_MapUnc_12D36:	include "mappings/sprite/obj26.asm"
 ; ===========================================================================
@@ -78688,7 +78861,7 @@ ObjC0_MapUnc_3C098:	include "mappings/sprite/objC0.asm"
 plating_time		= objoff_30	; time between grabbing the plating & breaking
 plating_grabbed		= objoff_32	; flag set when Sonic/Tails grab the plating
 plating_unk		= objoff_3F	; seems to be used to determine how long some plates hold on
-					; for after breaking until they fly off
+					; for after Sonic/Tails lets go
 ; Sprite_3C0AC:
 ObjC1:
 	moveq	#0,d0
