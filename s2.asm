@@ -82773,15 +82773,15 @@ loc_3F212:
 	lea	objoff_38(a0),a3
 	lea	Obj3E_ObjLoadData(pc),a2
 	moveq	#3,d1
-	bra.s	loc_3F228
+	bra.s	.loc_3F228
 ; ===========================================================================
 
-loc_3F220:
-	jsrto	JmpTo20_AllocateObject
-	bne.s	loc_3F272
+.loop:
+	jsr	(AllocateObject).l
+	bne.s	.loc_3F272
 	move.w	a1,(a3)+
 
-loc_3F228:
+.loc_3F228:
 	_move.b	id(a0),id(a1) ; load obj
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
@@ -82798,8 +82798,8 @@ loc_3F228:
 	move.b	(a2)+,priority(a1)
 	move.b	(a2)+,mapping_frame(a1)
 
-loc_3F272:
-	dbf	d1,loc_3F220
+.loc_3F272:
+	dbf	d1,.loop
 	rts
 ; ===========================================================================
 
@@ -82808,9 +82808,9 @@ loc_3F278:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3F2AE(pc,d0.w),d1
 	jsr	off_3F2AE(pc,d1.w)
-	move.w	#$2B,d1
-	move.w	#$18,d2
-	move.w	#$18,d3
+	moveq	#$2B,d1
+	moveq	#$18,d2
+	moveq	#$18,d3
 	move.w	x_pos(a0),d4
 	jsr	(SolidObject).l
 	lea	(Ani_obj3E).l,a1
@@ -82865,7 +82865,7 @@ loc_3F2FC:
 	dbf	d6,-
 +
 	movea.w	objoff_3C(a0),a2 ; a2=object
-	move.w	#$B4,anim_frame_duration(a2)
+	move.b	#$B4,anim_frame_duration(a2)
 	addq.b	#2,routine_secondary(a2)
 	addq.b	#2,routine_secondary(a0)
 
@@ -82874,9 +82874,9 @@ return_3F352:
 ; ===========================================================================
 
 loc_3F354:
-	move.w	#$1B,d1
-	move.w	#8,d2
-	move.w	#8,d3
+	moveq	#$1B,d1
+	moveq	#8,d2
+	moveq	#8,d3
 	move.w	x_pos(a0),d4
 	jsr	(SolidObject).l
 	move.w	objoff_30(a0),y_pos(a0)
@@ -82928,10 +82928,10 @@ loc_3F3A8:
 	move.w	#$C,objoff_36(a1)
 
 loc_3F3F4:
-	subq.w	#1,anim_frame_duration(a0)
+	subq.b	#1,anim_frame_duration(a0)
 	bne.s	return_3F404
 	addq.b	#2,routine(a0)
-	move.w	#$B4,anim_frame_duration(a0)
+	move.b	#$B4,anim_frame_duration(a0)
 
 return_3F404:
 	rts
@@ -82943,14 +82943,12 @@ loc_3F406:
 	lea	(Dynamic_Object_RAM).w,a1
 
 -	cmp.b	id(a1),d1
-	beq.s	+	; rts
+	beq.s	return_3F404
 	lea	next_object(a1),a1 ; a1=object
 	dbf	d0,-
 
 	jsr	(Load_EndOfAct).l
 	jmp	(DeleteObject).l
-; ===========================================================================
-+	rts
 ; ===========================================================================
 ; animation script
 ; off_3F428:
