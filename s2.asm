@@ -47545,30 +47545,30 @@ Obj32_Main:
 	moveq	#0,d1
 	move.b	width_pixels(a0),d1
 	addi.w	#$B,d1
-	move.w	#$10,d2
-	move.w	#$11,d3
+	moveq	#$10,d2
+	moveq	#$11,d3
 	move.w	x_pos(a0),d4
-	jsrto	JmpTo3_SolidObject
+	jsr	(SolidObject).l
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0	; is at least one player standing on the object?
 	bne.s	Obj32_SupportingSomeone
 
-BranchTo2_JmpTo9_MarkObjGone ; BranchTo
-	jmpto	JmpTo9_MarkObjGone
+BreakableBlock_MarkObjGone:
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; loc_235BC:
 Obj32_SupportingSomeone:
-	cmpi.b	#standing_mask,d0	; are BOTH players standing on the object?
+	cmpi.b	#standing_mask,d0		; are BOTH players standing on the object?
 	bne.s	Obj32_SupportingOnePlayerOnly	; if not, branch
 	cmpi.b	#AniIDSonAni_Roll,breakableblock_mainchar_anim(a0)
 	beq.s	+
 	cmpi.b	#AniIDSonAni_Roll,breakableblock_sidekick_anim(a0)
-	bne.s	BranchTo2_JmpTo9_MarkObjGone
+	bne.s	BreakableBlock_MarkObjGone
 +
-	lea	(MainCharacter).w,a1 ; a1=character
+	lea	(MainCharacter).w,a1	; a1=character
 	move.b	breakableblock_mainchar_anim(a0),d0
 	bsr.s	Obj32_SetCharacterOffBlock
-	lea	(Sidekick).w,a1 ; a1=character
+	lea	(Sidekick).w,a1		; a1=character
 	move.b	breakableblock_sidekick_anim(a0),d0
 	bsr.s	Obj32_SetCharacterOffBlock
 	bra.w	Obj32_Destroy
@@ -47576,11 +47576,11 @@ Obj32_SupportingSomeone:
 ; loc_235EA:
 Obj32_SupportingOnePlayerOnly:
 	move.b	d0,d1
-	andi.b	#p1_standing,d1			 ; is the main character standing on the object?
-	beq.s	Obj32_SupportingSidekick ; if not, branch
+	andi.b	#p1_standing,d1			; is the main character standing on the object?
+	beq.s	Obj32_SupportingSidekick	; if not, branch
 	cmpi.b	#AniIDSonAni_Roll,breakableblock_mainchar_anim(a0)
-	bne.s	BranchTo2_JmpTo9_MarkObjGone
-	lea	(MainCharacter).w,a1 ; a1=character
+	bne.s	BreakableBlock_MarkObjGone
+	lea	(MainCharacter).w,a1		; a1=character
 	bsr.s	Obj32_BouncePlayer
 	bra.s	Obj32_Destroy
 ; ===========================================================================
@@ -47604,9 +47604,9 @@ Obj32_BouncePlayer:
 ; loc_2363A:
 Obj32_SupportingSidekick:
 	andi.b	#p2_standing,d0	; is the sidekick standing on the object? (at this point, it should...)
-	beq.w	BranchTo2_JmpTo9_MarkObjGone ; if, by miracle, he's not, branch
+	beq.w	BreakableBlock_MarkObjGone ; if, by miracle, he's not, branch
 	cmpi.b	#2,breakableblock_sidekick_anim(a0)
-	bne.w	BranchTo2_JmpTo9_MarkObjGone
+	bne.w	BreakableBlock_MarkObjGone
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.s	Obj32_BouncePlayer
 ; loc_23652:
@@ -47614,15 +47614,15 @@ Obj32_Destroy:
 	move.w	objoff_38(a0),(Chain_Bonus_counter).w
 	andi.b	#~standing_mask,status(a0)
 	movea.l	objoff_3C(a0),a4
-	jsrto	JmpTo_BreakObjectToPieces
+	jsr	(BreakObjectToPieces).l
 	bsr.w	SmashableObject_LoadPoints
 ; loc_2366A:
 Obj32_Fragment:
-	jsrto	JmpTo8_ObjectMove
+	jsr	(ObjectMove).l
 	addi.w	#$18,y_vel(a0)
 	_btst	#render_flags.on_screen,render_flags(a0)
 	_beq.w	JmpTo22_DeleteObject
-	jmpto	JmpTo12_DisplaySprite
+	jmp	(DisplaySprite).l
 
     if removeJmpTos
 JmpTo22_DeleteObject ; JmpTo
@@ -47650,7 +47650,7 @@ Obj32_VelArray2:
 ; ===========================================================================
 ; loc_236A8:
 SmashableObject_LoadPoints:
-	jsrto	JmpTo3_AllocateObject
+	jsr	(AllocateObject).l
 	bne.s	+++	; rts
 	_move.b	#ObjID_Points,id(a1) ; load obj29
 	move.w	x_pos(a0),x_pos(a1)
@@ -49059,34 +49059,36 @@ Obj47_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj47_MapUnc_24D96,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Button,0,0),art_tile(a0)
-	move.b	#1<<render_flags.level_fg,render_flags(a0)
+	move.b	#4,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#4,priority(a0)
 	addq.w	#4,y_pos(a0)
 ; loc_24D32:
 Obj47_Main:
-	_btst	#render_flags.on_screen,render_flags(a0)
-	_beq.s	BranchTo_JmpTo12_MarkObjGone
+	tst.b	render_flags(a0)
+	bpl.s	++
 	move.w	#$1B,d1
 	move.w	#4,d2
 	move.w	#5,d3
 	move.w	x_pos(a0),d4
-	jsrto	JmpTo6_SolidObject
+	jsr	(SolidObject).l
 	move.b	#0,mapping_frame(a0)
 	move.b	subtype(a0),d0
 	andi.w	#$F,d0
 	lea	(ButtonVine_Trigger).w,a3
 	lea	(a3,d0.w),a3
 	moveq	#0,d3
-	btst	#6,subtype(a0)
-	beq.s	+
-	moveq	#7,d3
+	; Leftover from Sonic 1; This alters the target bit in the switch status array to be 7 instead of 0
+	; if subtype 6 is set. It goes completely unused in the entire game.
+	btst	#6,subtype(a0)		; is "alternate flag" state set? (unused)
+	beq.s	+			; if not, branch
+	moveq	#7,d3			; use bit 7 for the pressed state flag instead
 +
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
 	bne.s	+
 	bclr	d3,(a3)
-	bra.s	BranchTo_JmpTo12_MarkObjGone
++	jmp	(MarkObjGone).l
 ; ===========================================================================
 +
 	tst.b	(a3)
@@ -49096,9 +49098,7 @@ Obj47_Main:
 +
 	bset	d3,(a3)
 	move.b	#1,mapping_frame(a0)
-
-BranchTo_JmpTo12_MarkObjGone ; BranchTo
-	jmpto	JmpTo12_MarkObjGone
+	jmp	(MarkObjGone).l
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; sprite mappings
